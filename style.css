@@ -256,9 +256,9 @@ footer a:hover { color: var(--primary); }
     width: 450px;        
     
     height: auto;
-    border-radius: 6px;
+    border-radius: 14px;
     border: 1px solid #ddd;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     transition: transform 0.3s ease;
 }
 
@@ -273,6 +273,6 @@ footer a:hover { color: var(--primary); }
    only stacking on very small mobile screens if necessary */
 @media (max-width: 400px) {
     .experience-media img {
-        width: 400px; /* Shrink even more for small phones to stay side-by-side */
+        width: 140px; /* Shrink even more for small phones to stay side-by-side */
     }
 }
