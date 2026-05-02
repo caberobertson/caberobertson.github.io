@@ -242,33 +242,35 @@ footer a:hover { color: var(--primary); }
     nav .container { flex-direction: column; gap: 1rem; }
     nav ul { gap: 1rem; }
 }
-/* Styling for images inside experience/projects */
 .experience-media {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Side by side */
-    gap: 15px;
+    display: flex;        /* Puts them side by side */
+    gap: 20px;           /* Space between the images */
     margin-top: 1.5rem;
+    justify-content: flex-start; /* Aligns them to the left */
 }
 
 .experience-media img {
-    width: 100%;
-    height: auto;
-    border-radius: 12px; /* Matches the modern card style */
+    width: 250px;        /* Force them to be this specific width */
+    height: auto;        /* Keep the aspect ratio correct */
+    border-radius: 8px;  /* Slight rounding for a modern look */
     border: 1px solid rgba(0,0,0,0.1);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
 }
 
-/* Hover effect to make it interactive */
 .experience-media img:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    cursor: pointer;
+    transform: scale(1.05); /* Slight pop when hovering */
+    cursor: zoom-in;        /* Shows user they can look closer */
 }
 
-/* Mobile View: Stack the images on top of each other */
-@media (max-width: 600px) {
+/* On very small phones, allow them to stack so they aren't tiny */
+@media (max-width: 480px) {
     .experience-media {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: center;
+    }
+    .experience-media img {
+        width: 100%;      /* On mobile, let them take full width */
+        max-width: 300px; /* But don't let them get too big */
     }
 }
