@@ -1,0 +1,98 @@
+:root {
+    --primary: #003a70; /* NMSU Blue style */
+    --secondary: #666;
+    --light: #f4f7f9;
+    --white: #ffffff;
+    --dark: #333;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    color: var(--dark);
+    background-color: var(--light);
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 2rem;
+}
+
+nav {
+    background: var(--white);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+}
+
+nav ul li { margin-left: 20px; }
+nav ul li a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 0.9rem; }
+
+header {
+    background: linear-gradient(135deg, var(--primary) 0%, #0056a3 100%);
+    color: white;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.hero-content h1 { font-size: 3.5rem; margin-bottom: 0.5rem; }
+
+.social-links a {
+    color: white;
+    margin: 0 10px;
+    text-decoration: none;
+    border: 1px solid white;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.btn { background: white; color: var(--primary) !important; font-weight: bold; }
+
+section { padding: 4rem 0; }
+
+h2 { border-bottom: 3px solid var(--primary); display: inline-block; margin-bottom: 2rem; }
+
+.card, .timeline-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.timeline-item h3 { margin: 0; color: var(--primary); }
+.date { font-size: 0.85rem; color: var(--secondary); font-style: italic; }
+
+.project-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.project-card { background: var(--white); padding: 1.5rem; border-radius: 8px; border-top: 5px solid var(--primary); }
+
+.skills-flex { display: flex; justify-content: space-between; flex-wrap: wrap; }
+.skill-category { flex: 1; min-width: 250px; background: white; margin: 10px; padding: 1rem; border-radius: 8px; }
+
+footer { text-align: center; padding: 2rem; background: var(--dark); color: white; }
+footer a { color: #aaa; }
+
+@media (max-width: 768px) {
+    .project-grid { grid-template-columns: 1fr; }
+    .hero-content h1 { font-size: 2.5rem; }
+}

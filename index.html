@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabe Robertson | Electrical Engineering Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav>
+        <div class="container">
+            <span class="logo">Cabe Robertson</span>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#experience">Experience</a></li>
+                <li><a href="#projects">Projects</a></li>
+                <li><a href="#skills">Skills</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header id="home">
+        <div class="hero-content">
+            <h1>Cabe Robertson</h1>
+            <p>Electrical Engineering Student | Communications & Signal Processing</p>
+            <div class="social-links">
+                <a href="https://www.linkedin.com/in/caberobertson/" target="_blank">LinkedIn</a>
+                <a href="mailto:caberobertson@gmail.com">Email</a>
+                <a href="#" class="btn">Download Resume</a>
+            </div>
+        </div>
+    </header>
+
+    <section id="about" class="container">
+        <h2>About Me</h2>
+        <div class="card">
+            <p>I am a Junior Electrical Engineering student at <strong>New Mexico State University</strong> (Expected Dec 2027). I specialize in Communications and Signal Processing, with a strong background in hardware prototyping, VHDL, and Python simulation.</p>
+            <p>Currently serving as the <strong>Vice President of the IEEE NMSU Chapter</strong>, I am passionate about bridging the gap between theoretical engineering and practical, scalable solutions.</p>
+        </div>
+    </section>
+
+    <section id="experience" class="container">
+        <h2>Professional Experience</h2>
+        
+        <div class="timeline-item">
+            <h3>Electrical Engineering Intern | GILZ LLC</h3>
+            <span class="date">Mar 2026 - May 2026</span>
+            <ul>
+                <li>Deconstructed desk blower fans to test BLDC motor ratings and PWM capabilities for air filtration systems.</li>
+                <li>Programmed ESP32 via Arduino to implement 3-speed user control capabilities.</li>
+            </ul>
+        </div>
+
+        <div class="timeline-item">
+            <h3>Hardware Engineering Intern | Syndetix Incorporated</h3>
+            <span class="date">Apr 2025 - Aug 2025</span>
+            <ul>
+                <li>Developed a $219 communication disrupting demonstration kit for defense agencies.</li>
+                <li>Authored in-depth user manuals and repaired critical server synchronization issues active for 4 years.</li>
+            </ul>
+        </div>
+
+        <div class="timeline-item">
+            <h3>Research Assistant | Mitchell Coding Group</h3>
+            <span class="date">Aug 2025 - Feb 2026</span>
+            <ul>
+                <li>Simulated channel decoding using Linear Algebra and Python for wireless models.</li>
+                <li>Processed experimental results using MATLAB to produce publication-quality data visualizations.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="projects" class="container">
+        <h2>Featured Projects</h2>
+        <div class="project-grid">
+            <div class="project-card">
+                <h3>Self-Navigating Robot</h3>
+                <p><strong>Tools:</strong> Arduino, Ultrasonic Sensors</p>
+                <p>Developed an autonomous robot that avoids obstacles using real-time sensor data and optimized C++ logic.</p>
+            </div>
+            <div class="project-card">
+                <h3>Seven-Segment FPGA Display</h3>
+                <p><strong>Tools:</strong> VHDL, Vivado, FPGA</p>
+                <p>Programmed a VHDL-based display controller using Karnaugh maps and Boolean simplification for optimized logic gates.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="skills" class="container">
+        <h2>Technical Skills</h2>
+        <div class="skills-flex">
+            <div class="skill-category">
+                <h3>Software</h3>
+                <p>C, Python, MATLAB, VHDL, Arduino IDE, EAGLE, Overleaf</p>
+            </div>
+            <div class="skill-category">
+                <h3>Hardware</h3>
+                <p>Oscilloscope, FPGA, Spectrum Analyzers, Soldering, Anemometer</p>
+            </div>
+            <div class="skill-category">
+                <h3>Languages</h3>
+                <p>English (Native), Spanish (Native)</p>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <p>© 2024 Cabe Robertson | <a href="mailto:caberobertson@gmail.com">caberobertson@gmail.com</a> | 575-644-4703</p>
+    </footer>
+
+</body>
+</html>
+:root {
+    --primary: #003a70; /* NMSU Blue style */
+    --secondary: #666;
+    --light: #f4f7f9;
+    --white: #ffffff;
+    --dark: #333;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    color: var(--dark);
+    background-color: var(--light);
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 2rem;
+}
+
+nav {
+    background: var(--white);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+}
+
+nav ul li { margin-left: 20px; }
+nav ul li a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 0.9rem; }
+
+header {
+    background: linear-gradient(135deg, var(--primary) 0%, #0056a3 100%);
+    color: white;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.hero-content h1 { font-size: 3.5rem; margin-bottom: 0.5rem; }
+
+.social-links a {
+    color: white;
+    margin: 0 10px;
+    text-decoration: none;
+    border: 1px solid white;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.btn { background: white; color: var(--primary) !important; font-weight: bold; }
+
+section { padding: 4rem 0; }
+
+h2 { border-bottom: 3px solid var(--primary); display: inline-block; margin-bottom: 2rem; }
+
+.card, .timeline-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.timeline-item h3 { margin: 0; color: var(--primary); }
+.date { font-size: 0.85rem; color: var(--secondary); font-style: italic; }
+
+.project-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.project-card { background: var(--white); padding: 1.5rem; border-radius: 8px; border-top: 5px solid var(--primary); }
+
+.skills-flex { display: flex; justify-content: space-between; flex-wrap: wrap; }
+.skill-category { flex: 1; min-width: 250px; background: white; margin: 10px; padding: 1rem; border-radius: 8px; }
+
+footer { text-align: center; padding: 2rem; background: var(--dark); color: white; }
+footer a { color: #aaa; }
+
+@media (max-width: 768px) {
+    .project-grid { grid-template-columns: 1fr; }
+    .hero-content h1 { font-size: 2.5rem; }
+}
