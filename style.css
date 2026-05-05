@@ -518,3 +518,21 @@ body, header, section {
         font-size: 0.75rem;
     }
 }
+/* --- Company Links in Experience --- */
+.company-link {
+    color: var(--primary); /* Keeps it your Electric Blue */
+    text-decoration: none;
+    transition: 0.3s ease;
+    border-bottom: 1px solid transparent; /* Hidden border for smooth hover */
+}
+
+.company-link:hover {
+    color: var(--accent); /* Changes to Neon Teal on hover */
+    border-bottom: 1px solid var(--accent);
+    opacity: 0.8;
+}
+
+/* Ensure the header text next to the link doesn't look like a link */
+.timeline-item h3 {
+    color: var(--text-main);
+}
