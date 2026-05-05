@@ -170,3 +170,57 @@ nav ul li a.active {
     color: var(--primary);
     border-bottom: 2px solid var(--primary);
 }
+
+/* --- Vertical Spacing Fix --- */
+
+.hero-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 60px; /* THIS FORCES THE GAP BETWEEN TOP AND BOTTOM */
+    min-height: 80vh;
+}
+
+.home-hero {
+    padding: 40px 0;
+    position: relative;
+}
+
+.hero-top {
+    text-align: center;
+}
+
+.subtitle {
+    margin-bottom: 25px;
+    color: var(--text-muted);
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 0; /* Gap above handles this now */
+}
+
+.about-preview {
+    width: 100%;
+    max-width: 850px;
+}
+
+.about-card {
+    text-align: left;
+    margin: 0 !important; /* Removes any conflicting margins */
+    background: rgba(22, 22, 26, 0.6);
+    border: 1px solid var(--border);
+}
+
+/* Ensure the blue line doesn't make the card feel crowded */
+.about-card h2 {
+    margin-top: 0;
+}
+
+/* This fixes the original 'header' style that might be interfering */
+header {
+    height: auto !important; 
+}
