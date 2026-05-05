@@ -74,13 +74,64 @@ nav ul li a:hover {
 }
 
 /* --- Hero Section --- */
-header {
-    height: 85vh;
+/* --- Home Page Vertical Layout --- */
+
+/* Reset the header height from the original 85vh to something compact */
+.home-hero {
+    height: auto;
+    min-height: 90vh;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
+    padding: 3rem 0;
     text-align: center;
-    position: relative;
+}
+
+.hero-content {
+    margin-bottom: 2rem; /* Space between links and About Me */
+}
+
+.hero-content h1 {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.about-preview {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-preview .card {
+    text-align: left;
+    background: rgba(22, 22, 26, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+}
+
+/* Adjust Social Links for vertical layout */
+.social-links {
+    margin-bottom: 2rem;
+}
+
+/* Background Glow adjustment to center on the content */
+.home-hero::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    height: 400px;
+    background: var(--primary);
+    filter: blur(150px);
+    opacity: 0.1;
+    z-index: -1;
 }
 
 /* Background Radial Glow */
