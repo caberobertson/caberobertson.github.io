@@ -189,28 +189,42 @@ h2::before {
 .date { color: var(--accent); font-family: monospace; font-size: 0.9rem; }
 
 /* --- Side-by-Side Images (Mitchell Coding) --- */
+/* --- Mitchell Coding Plots - Enlarged --- */
 .experience-media {
     display: flex;
-    gap: 15px;
-    margin-top: 1.5rem;
+    gap: 20px;
+    margin-top: 2rem;
+    flex-wrap: wrap; /* Allows them to stack if they run out of room */
 }
 
 .experience-media img {
-    width: 180px; /* Small and sleek */
+    /* Change width from 180px to a much larger percentage or fixed size */
+    width: 48%; /* This puts them side-by-side at roughly half-page width */
+    min-width: 350px; /* Ensures they don't get too small on tablets */
     height: auto;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid var(--border);
-    filter: grayscale(20%); /* Cool engineering look */
+    filter: grayscale(10%); /* Keeps the engineering look but shows more color */
     transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
+/* Make them interactive: they pop out slightly more on hover */
 .experience-media img:hover {
     filter: grayscale(0%);
-    transform: scale(1.15);
+    transform: scale(1.05); /* Reduced scale slightly so it doesn't overlap other text */
     border-color: var(--primary);
     z-index: 10;
+    cursor: zoom-in;
 }
 
+/* Mobile Fix for Plots */
+@media (max-width: 768px) {
+    .experience-media img {
+        width: 100%; /* Full width on mobile phones */
+        min-width: 100%;
+    }
+}
 /* --- Project Grid --- */
 .project-grid {
     display: grid;
