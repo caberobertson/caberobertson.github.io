@@ -74,90 +74,166 @@ nav ul li a:hover {
 }
 
 /* --- Hero Section --- */
-/* --- Home Page Vertical Layout --- */
-
-/* Reset the header height from the original 85vh to something compact */
-/* --- Home Page Vertical Layout --- */
-
-.home-hero {
-    min-height: calc(100vh - 80px); /* Fill screen minus nav height */
+header {
+    height: 85vh;
     display: flex;
-    flex-direction: column;
-    justify-content: center; /* Centers the whole block vertically */
-    padding: 2rem 0;
-    text-align: center;
-}
-
-.hero-content {
-    /* No bottom margin here, handled by the buttons below */
-}
-
-.hero-content h1 {
-    font-size: clamp(2.5rem, 7vw, 4rem);
-    margin-bottom: 0.5rem;
-    line-height: 1.1;
-}
-
-.subtitle {
-    font-size: 1.1rem;
-    color: var(--text-muted);
-    margin-bottom: 2rem;
-}
-
-/* This creates the gap between buttons and the About card */
-.social-links {
-    margin-bottom: 3rem; 
-    display: flex;
-    gap: 1rem;
+    align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
+    text-align: center;
+    position: relative;
 }
 
-.about-preview {
-    max-width: 850px;
-    margin: 0 auto;
-}
-
-.about-card {
-    text-align: left;
-    background: rgba(22, 22, 26, 0.4);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--border);
-    padding: 1.5rem 2rem; /* Slightly tighter padding to keep it in frame */
-}
-
-.about-card h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-}
-
-.about-card h2::before {
-    width: 20px; /* Smaller blue line for the compact version */
-}
-
-/* Background Glow positioning */
-.home-hero::before {
+/* Background Radial Glow */
+header::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 500px;
-    height: 500px;
+    width: 300px;
+    height: 300px;
     background: var(--primary);
     filter: blur(150px);
-    opacity: 0.1;
+    opacity: 0.15;
     z-index: -1;
 }
 
+.hero-content h1 {
+    font-size: clamp(3rem, 10vw, 5rem);
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    letter-spacing: -2px;
+    line-height: 1;
+}
+
+.hero-content p {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    margin-bottom: 2.5rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.social-links a {
+    color: var(--text-main);
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.social-links a:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.btn {
+    background: var(--primary) !important;
+    color: #000 !important;
+    border: none !important;
+    box-shadow: 0 0 20px var(--glow);
+}
+
+.btn:hover {
+    box-shadow: 0 0 30px var(--primary);
+}
+
+/* --- Content Sections --- */
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 0 2rem;
+}
+
+section { padding: 6rem 0; }
+
+h2 {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+h2::before {
+    content: '';
+    width: 30px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+.card, .timeline-item, .project-card, .skill-category {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    transition: 0.3s;
+}
+
+.card:hover, .project-card:hover {
+    border-color: rgba(0, 168, 255, 0.5);
+    transform: translateY(-5px);
+}
+
+/* --- Timeline Customization --- */
+.timeline-item h3 { color: var(--primary); margin: 0; }
+.date { color: var(--accent); font-family: monospace; font-size: 0.9rem; }
+
+/* --- Side-by-Side Images (Mitchell Coding) --- */
+.experience-media {
+    display: flex;
+    gap: 15px;
+    margin-top: 1.5rem;
+}
+
+.experience-media img {
+    width: 180px; /* Small and sleek */
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    filter: grayscale(20%); /* Cool engineering look */
+    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.experience-media img:hover {
+    filter: grayscale(0%);
+    transform: scale(1.15);
+    border-color: var(--primary);
+    z-index: 10;
+}
+
+/* --- Project Grid --- */
+.project-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.skills-flex {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+footer {
+    text-align: center;
+    padding: 4rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
 @media (max-width: 768px) {
-    .home-hero {
-        justify-content: flex-start;
-        padding-top: 3rem;
-    }
-    .social-links {
-        margin-bottom: 2rem;
-    }
+    .project-grid { grid-template-columns: 1fr; }
+    .experience-media { flex-wrap: wrap; }
 }
 /* Ensure the page content has enough room since sections aren't stacked anymore */
 section.container {
@@ -169,58 +245,4 @@ section.container {
 nav ul li a.active {
     color: var(--primary);
     border-bottom: 2px solid var(--primary);
-}
-
-/* --- Vertical Spacing Fix --- */
-
-.hero-layout {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 60px; /* THIS FORCES THE GAP BETWEEN TOP AND BOTTOM */
-    min-height: 80vh;
-}
-
-.home-hero {
-    padding: 40px 0;
-    position: relative;
-}
-
-.hero-top {
-    text-align: center;
-}
-
-.subtitle {
-    margin-bottom: 25px;
-    color: var(--text-muted);
-}
-
-.social-links {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-bottom: 0; /* Gap above handles this now */
-}
-
-.about-preview {
-    width: 100%;
-    max-width: 850px;
-}
-
-.about-card {
-    text-align: left;
-    margin: 0 !important; /* Removes any conflicting margins */
-    background: rgba(22, 22, 26, 0.6);
-    border: 1px solid var(--border);
-}
-
-/* Ensure the blue line doesn't make the card feel crowded */
-.about-card h2 {
-    margin-top: 0;
-}
-
-/* This fixes the original 'header' style that might be interfering */
-header {
-    height: auto !important; 
 }
