@@ -37,6 +37,41 @@
 
         <!-- Part 2: About card -->
         <div class="about-preview">
+<!-- Photo Gallery Section -->
+<div class="gallery-section">
+    <h3 class="gallery-title">Experience Spotlight</h3>
+    <div class="slider-container">
+        <div class="slider-track">
+            <!-- Slide 1 -->
+            <div class="slide">
+                <img src="photo1.jpg" alt="Description of work 1">
+                <div class="slide-caption">Internship Project at GILZ LLC</div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="slide">
+                <img src="photo2.jpg" alt="Description of work 2">
+                <div class="slide-caption">Signal Processing Research Visualization</div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="slide">
+                <img src="photo3.jpg" alt="Description of work 3">
+                <div class="slide-caption">IEEE Student Chapter Event</div>
+            </div>
+        </div>
+
+        <!-- Navigation Arrows -->
+        <button class="slider-btn prev" onclick="moveSlide(-1)">&#10094;</button>
+        <button class="slider-btn next" onclick="moveSlide(1)">&#10095;</button>
+        
+        <!-- Navigation Dots -->
+        <div class="dots-container">
+            <span class="dot active" onclick="currentSlide(0)"></span>
+            <span class="dot" onclick="currentSlide(1)"></span>
+            <span class="dot" onclick="currentSlide(2)"></span>
+        </div>
+    </div>
+</div>
+            
             <div class="card about-card">
                 <h2>About Me</h2>
                 <p>I am a Junior Electrical Engineering student at <strong>New Mexico State University</strong> (Expected Dec 2027). I specialize in Communications and Signal Processing, with a strong background in hardware prototyping and embedded programming.</p>
