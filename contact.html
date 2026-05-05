@@ -2,35 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact | Cabe Robertson</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <canvas id="bg-canvas"></canvas>
+
     <nav>
-    <div class="container">
-        <span class="logo">Cabe Robertson</span>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="experience.html">Experience</a></li>
-            <li><a href="projects.html">Projects</a></li>
-            <li><a href="skills.html">Skills</a></li>
-            <li><a href="contact.html">Contact</a></li>
-        </ul>
-    </div>
-</nav>
-    <nav> <!-- Same Nav --> </nav>
-    <section class="container">
+        <div class="container">
+            <span class="logo">Cabe Robertson</span>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="experience.html">Experience</a></li>
+                <li><a href="projects.html">Projects</a></li>
+                <li><a href="skills.html">Skills</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="container contact-section">
         <h2>Contact Me</h2>
-        <div class="card">
-            <p>I am currently looking for internship opportunities for Summer 2026 and 2027.</p>
-            <p><strong>Email:</strong> <a href="mailto:caberobertson@gmail.com" style="color:var(--primary)">caberobertson@gmail.com</a></p>
-            <p><strong>Phone:</strong> 575-644-4703</p>
-            <p><strong>Location:</strong> Las Cruces, NM</p>
-            <br>
-            <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" class="btn">Message me on LinkedIn</a>
+        
+        <!-- This div limits the width so it matches the 'Project Card' feel -->
+        <div class="contact-card-wrapper">
+            <div class="card">
+                <p>I am currently looking for internship opportunities for Summer 2026 and 2027.</p>
+                
+                <div class="contact-info">
+                    <p><strong>Email:</strong> <a href="mailto:caberobertson@gmail.com">caberobertson@gmail.com</a></p>
+                    <p><strong>Phone:</strong> 575-644-4703</p>
+                    <p><strong>Location:</strong> Las Cruces, NM</p>
+                </div>
+                
+                <div class="contact-footer">
+                    <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" class="btn">Message me on LinkedIn</a>
+                </div>
+            </div>
         </div>
     </section>
+
     <script src="particles.js"></script>
 </body>
 </html>
