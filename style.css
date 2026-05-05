@@ -231,10 +231,7 @@ footer {
     color: var(--text-muted);
 }
 
-@media (max-width: 768px) {
-    .project-grid { grid-template-columns: 1fr; }
-    .experience-media { flex-wrap: wrap; }
-}
+
 /* --- Vertical Spacing Fix --- */
 
 .hero-layout {
@@ -401,3 +398,109 @@ body, header, section {
 
 .dot.active { background-color: var(--primary); width: 20px; border-radius: 10px; }
 
+/* --- COMPREHENSIVE MOBILE OVERHAUL --- */
+
+@media (max-width: 768px) {
+    /* 1. Fix Container Padding */
+    .container {
+        padding: 0 1.2rem; /* Give more room to the content on sides */
+    }
+
+    /* 2. Scale down the Hero Text (Your Name) */
+    .hero-content h1 {
+        font-size: 2.8rem !important; /* Smaller but still bold */
+        line-height: 1.1;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+        padding: 0 10px;
+    }
+
+    /* 3. Make Navigation Mobile-Friendly */
+    nav .container {
+        flex-direction: column; /* Stack logo and links */
+        gap: 15px;
+        padding: 15px 0;
+    }
+
+    nav ul {
+        gap: 10px;
+        flex-wrap: wrap; /* Allow links to go to second line if needed */
+        justify-content: center;
+        padding: 0;
+    }
+
+    nav ul li a {
+        font-size: 0.85rem;
+        padding: 5px 8px;
+    }
+
+    /* 4. Fix Hero Spacing */
+    .home-hero {
+        padding-top: 2rem;
+        justify-content: flex-start; /* Start from top so user sees info immediately */
+        min-height: auto;
+    }
+
+    .hero-layout {
+        gap: 30px; /* Reduce the huge gap on mobile */
+    }
+
+    /* 5. Fix the Photo Gallery (Shorter for vertical screens) */
+    .slide img {
+        height: 250px; /* 400px is way too tall for a phone screen */
+    }
+
+    .slider-btn {
+        padding: 10px;
+        font-size: 1.2rem;
+    }
+
+    /* 6. Fix Skills & Project Grids */
+    .project-grid, .skills-flex {
+        grid-template-columns: 1fr; /* Force single column */
+    }
+
+    .card, .timeline-item {
+        padding: 1.5rem; /* Slightly less padding inside cards */
+    }
+
+    /* 7. Buttons - Make them slightly larger for touch */
+    .social-links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .social-links a {
+        font-size: 0.9rem;
+        padding: 12px 15px;
+        flex: 1 1 auto; /* Make buttons grow to fill space */
+        text-align: center;
+    }
+
+    /* 8. Fix the About Me text on mobile */
+    .about-card {
+        padding: 1.2rem;
+    }
+
+    .about-card p {
+        font-size: 0.95rem;
+    }
+}
+
+/* Specific fix for very small screens (iPhone SE, etc) */
+@media (max-width: 400px) {
+    .hero-content h1 {
+        font-size: 2.2rem !important;
+    }
+    
+    nav ul {
+        gap: 5px;
+    }
+    
+    nav ul li a {
+        font-size: 0.75rem;
+    }
+}
