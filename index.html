@@ -8,12 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
     <nav>
         <div class="container">
             <span class="logo">Cabe Robertson</span>
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="#about">About</a></li> <!-- Points to the section below -->
                 <li><a href="experience.html">Experience</a></li>
                 <li><a href="projects.html">Projects</a></li>
                 <li><a href="skills.html">Skills</a></li>
@@ -22,25 +22,30 @@
         </div>
     </nav>
 
-    <header>
-        <div class="hero-content">
-            <h1>Cabe Robertson</h1>
-            <p>Electrical Engineering Student | Communications & Signal Processing</p>
-            <div class="social-links">
-                <a href="https://www.linkedin.com/in/caberobertson/" target="_blank">LinkedIn</a>
-                <a href="mailto:caberobertson@gmail.com">Email</a>
-                <a href="Cabe_Robertson_Resume.pdf" target="_blank" class="btn">Download Resume</a>
+    <header class="hero-split">
+        <div class="container grid-container">
+            <!-- Left Side: Hero Info -->
+            <div class="hero-content">
+                <h1>Cabe Robertson</h1>
+                <p>Electrical Engineering Student | Communications & Signal Processing</p>
+                <div class="social-links">
+                    <a href="https://www.linkedin.com/in/caberobertson/" target="_blank">LinkedIn</a>
+                    <a href="mailto:caberobertson@gmail.com">Email</a>
+                    <a href="Cabe_Robertson_Resume.pdf" target="_blank" class="btn">Resume</a>
+                </div>
+            </div>
+
+            <!-- Right Side: About Me -->
+            <div class="hero-about">
+                <div class="card">
+                    <h2 class="no-line">About Me</h2>
+                    <p>I am a Junior Electrical Engineering student at <strong>New Mexico State University</strong> (Expected Dec 2027).</p>
+                    <p>I specialize in Communications and Signal Processing, with a strong background in hardware prototyping and embedded programming.</p>
+                    <p>Currently serving as the <strong>Vice President of the IEEE NMSU Chapter</strong>.</p>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- About Section merged here -->
-    <section id="about" class="container">
-        <h2>About Me</h2>
-        <div class="card">
-            <p>I am a Junior Electrical Engineering student at <strong>New Mexico State University</strong> (Expected Dec 2027). I specialize in Communications and Signal Processing, with a strong background in hardware prototyping, embedded programming, and creating simulations.</p>
-            <p>Currently serving as the <strong>Vice President of the IEEE NMSU Chapter</strong></p>
-        </div>
-    </section>
 </body>
 </html>
