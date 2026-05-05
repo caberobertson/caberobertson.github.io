@@ -235,3 +235,14 @@ footer {
     .project-grid { grid-template-columns: 1fr; }
     .experience-media { flex-wrap: wrap; }
 }
+/* Ensure the page content has enough room since sections aren't stacked anymore */
+section.container {
+    min-height: 80vh;
+    padding-top: 4rem;
+}
+
+/* Optional: Highlight the current page in nav (requires adding class="active" to the <a> tag) */
+nav ul li a.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
