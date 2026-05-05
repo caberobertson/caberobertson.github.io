@@ -302,3 +302,102 @@ header {
 body, header, section {
     background: transparent !important;
 }
+
+/* --- Photo Gallery Slider --- */
+.gallery-section {
+    width: 100%;
+    max-width: 850px;
+    margin-top: 20px;
+}
+
+.gallery-title {
+    text-align: left;
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-family: monospace;
+}
+
+.slider-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: rgba(22, 22, 26, 0.4);
+}
+
+.slider-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide {
+    min-width: 100%;
+    position: relative;
+}
+
+.slide img {
+    width: 100%;
+    height: 400px; /* Set a fixed height for consistency */
+    object-fit: cover; /* This crops images to fill the frame nicely */
+    display: block;
+    filter: brightness(0.8);
+}
+
+.slide-caption {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: var(--text-main);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Navigation Buttons */
+.slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 168, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 15px;
+    cursor: pointer;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    margin: 0 10px;
+    transition: 0.3s;
+    backdrop-filter: blur(5px);
+}
+
+.slider-btn:hover {
+    background: var(--primary);
+    color: black;
+}
+
+.prev { left: 0; }
+.next { right: 0; }
+
+/* Dots indicator */
+.dots-container {
+    text-align: center;
+    padding: 10px;
+    background: rgba(10, 10, 12, 0.6);
+}
+
+.dot {
+    height: 8px;
+    width: 8px;
+    margin: 0 5px;
+    background-color: var(--text-muted);
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.dot.active { background-color: var(--primary); width: 20px; border-radius: 10px; }
+
