@@ -22,16 +22,43 @@
     <section class="container">
         <h2>Featured Projects</h2>
         <div class="project-grid">
+            
+            <!-- NEW: Face Tracking Project (Spans full width for the video) -->
+            <div class="project-card full-width">
+                <h3>Face Tracking with Arduino and Python</h3>
+                <p><strong>Tools:</strong> Python (OpenCV), Arduino, Pan-Tilt Servos</p>
+                <p>Developed a computer vision system utilizing Python to detect and track faces in real-time. Coordinate data is communicated serially to an Arduino to physically orient a camera using pan-tilt servos.</p>
+                
+                <!-- Video Embed Wrapper -->
+                <div class="video-wrapper">
+                    <!-- OPTION 1: YouTube Embed (Recommended for faster load times) -->
+                    <!-- Replace YOUR_VIDEO_ID with the actual text after "v=" in your YouTube link -->
+                    <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" title="Face Tracking Project Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    
+                    <!-- OPTION 2: Local MP4 File -->
+                    <!-- To use this instead, delete the <iframe> above and uncomment the <video> below -->
+                    <!--
+                    <video controls muted loop>
+                        <source src="face_tracking_demo.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    -->
+                </div>
+            </div>
+
+            <!-- Existing Projects -->
             <div class="project-card">
                 <h3>Self-Navigating Robot</h3>
                 <p><strong>Tools:</strong> Arduino, Ultrasonic Sensors</p>
                 <p>Developed a program that correctly avoids obstacles autonomously.</p>
             </div>
+            
             <div class="project-card">
                 <h3>Seven-Segment FPGA Display</h3>
                 <p><strong>Tools:</strong> VHDL, FPGA</p>
                 <p>Programmed a display in VHDL to show characters on an FPGA board.</p>
             </div>
+            
         </div>
     </section>
     <script src="particles.js"></script>
