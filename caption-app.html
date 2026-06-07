@@ -579,22 +579,51 @@ function toast(msg, type = '') {
 }
 
 /* ────────────────────────────────────────────────
-   Camera — uses native Android camera via input[capture]
+   Camera — uses native Android camera via input[capture].
+   All photos are normalised through a canvas → JPEG so that
+   HEIC, WebP, odd JPEG variants, and EXIF rotation all work.
 ──────────────────────────────────────────────── */
 function handlePhoto(e) {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    capturedURL = ev.target.result;
+  toast('Loading photo…', '');
+
+  const objURL = URL.createObjectURL(file);
+  const img    = new Image();
+
+  img.onload = () => {
+    URL.revokeObjectURL(objURL);
+
+    // Resize to max 2400 px on the longest side — keeps docx manageable
+    const MAX = 2400;
+    let w = img.naturalWidth, h = img.naturalHeight;
+    if (w > MAX || h > MAX) {
+      const scale = MAX / Math.max(w, h);
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+
+    // Draw to canvas → export as JPEG (normalises any format/EXIF rotation)
+    const canvas = document.createElement('canvas');
+    canvas.width  = w;
+    canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    capturedURL = canvas.toDataURL('image/jpeg', 0.88);
+
     document.getElementById('snap-preview').src = capturedURL;
     document.getElementById('snap-preview').style.display = 'block';
-    document.getElementById('camera-empty').style.display = 'none';
-    document.getElementById('retake-btn').style.display = 'inline-flex';
+    document.getElementById('camera-empty').style.display  = 'none';
+    document.getElementById('retake-btn').style.display    = 'inline-flex';
     enterCapturedLayout();
     toast('Photo ready!', 'success');
   };
-  reader.readAsDataURL(file);
+
+  img.onerror = () => {
+    URL.revokeObjectURL(objURL);
+    toast('Could not load photo — try again.', 'error');
+  };
+
+  img.src = objURL;
 }
 
 function retakePhoto() {
@@ -895,6 +924,10 @@ ${imgRels}
     const cx = w * EMU, cy = h * EMU;
     const rid = `rId${i + 1}`, pid = i + 1;
 
+    // Caption indent: align its left edge with the centered image's left edge.
+    // Content width = 6.5" = 9360 twips; 1 px at 96 dpi = 15 twips.
+    const captionIndent = Math.max(0, Math.round((9360 - w * 15) / 2));
+
     // Image paragraph
     body += `<w:p>
       <w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="80"/></w:pPr>
@@ -925,9 +958,9 @@ ${imgRels}
       </w:drawing></w:r>
     </w:p>`;
 
-    // Caption paragraph — same font/size for every item
+    // Caption paragraph — left-aligned, indented to match image's left edge
     body += `<w:p>
-      <w:pPr><w:jc w:val="left"/><w:spacing w:after="200"/></w:pPr>
+      <w:pPr><w:jc w:val="left"/><w:ind w:left="${captionIndent}"/><w:spacing w:after="200"/></w:pPr>
       <w:r>
         <w:rPr>
           <w:rFonts w:ascii="${fontEsc}" w:hAnsi="${fontEsc}"/>
