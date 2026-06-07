@@ -385,14 +385,13 @@
 
   <!-- ── STEP 3: Format ── -->
   <div class="card">
-    <div class="card-title"><span class="badge">3</span> Format &amp; Add to Document</div>
+    <div class="card-title"><span class="badge">3</span> Caption Style &amp; Add to Document</div>
+
+    <div class="notice" style="margin-bottom:1rem">
+      Images are auto-sized to fit <strong>2 per page</strong> with uniform formatting. Font settings apply to every caption in the document.
+    </div>
 
     <div class="controls-grid">
-      <div class="ctrl">
-        <label>Image width: <strong id="w-val">350</strong> px</label>
-        <input type="range" id="img-width" min="80" max="680" value="350"
-               oninput="document.getElementById('w-val').textContent=this.value">
-      </div>
       <div class="ctrl">
         <label>Caption font size</label>
         <select id="font-size">
@@ -637,11 +636,13 @@ function spawnSession() {
 function stopRecording() {
   isRecording = false;
   if (activeRec) { try { activeRec.stop(); } catch (_) {} activeRec = null; }
-  // Commit any dangling session text
   const trimSF = sessionFinal.trim();
   if (trimSF && !committed.trimEnd().endsWith(trimSF)) committed += trimSF + ' ';
   sessionFinal = '';
-  document.getElementById('caption-box').value = committed.trimEnd();
+  // Auto-correct grammar and punctuation from speech-to-text
+  const box = document.getElementById('caption-box');
+  box.value = fixGrammar(committed.trimEnd());
+  committed = box.value;
   setRecordingUI(false);
 }
 
@@ -649,7 +650,19 @@ function setRecordingUI(on) {
   document.getElementById('rec-btn').textContent = on ? '⏹ Stop Recording' : '🎤 Start Recording';
   document.getElementById('rec-btn').className   = 'btn btn-record' + (on ? ' active' : '');
   document.getElementById('rec-dot').classList.toggle('active', on);
-  document.getElementById('voice-status').textContent = on ? 'Listening…' : 'Recording stopped';
+  document.getElementById('voice-status').textContent = on ? 'Listening…' : 'Recording stopped — grammar corrected';
+}
+
+/* Fix common speech-to-text issues: capitalisation, punctuation */
+function fixGrammar(text) {
+  if (!text.trim()) return text;
+  let t = text.trim();
+  t = t.replace(/ {2,}/g, ' ');                              // collapse spaces
+  t = t.replace(/\bi\b/g, 'I');                              // capitalize lone i
+  t = t.replace(/([.!?]\s+)([a-z])/g, (_, p, l) => p + l.toUpperCase()); // after sentence end
+  t = t.charAt(0).toUpperCase() + t.slice(1);               // capitalize first word
+  if (!/[.!?]$/.test(t)) t += '.';                          // ensure ending punctuation
+  return t;
 }
 
 /* ────────────────────────────────────────────────
@@ -660,34 +673,24 @@ function addToDocument() {
     toast('Capture or upload a photo first.', 'error');
     return;
   }
-
-  const caption = document.getElementById('caption-box').value.trim();
   if (isRecording) stopRecording();
 
-  const imgWidth  = parseInt(document.getElementById('img-width').value);
-  const fontSize  = parseInt(document.getElementById('font-size').value);
-  const fontFamily = document.getElementById('font-family').value;
+  const caption = fixGrammar(document.getElementById('caption-box').value.trim());
 
-  // Calculate proportional height
+  // Store natural dimensions; docx sizing is computed at export time
   const img = new Image();
   img.onload = () => {
-    const ratio   = img.naturalHeight / img.naturalWidth;
-    const imgHeight = Math.round(imgWidth * ratio);
-
     docItems.push({
       id: Date.now(),
       url: capturedURL,
       caption,
-      imgWidth,
-      imgHeight,
-      fontSize,
-      fontFamily,
+      naturalW: img.naturalWidth,
+      naturalH: img.naturalHeight,
     });
-
     renderPreview();
     document.getElementById('dl-btn').disabled = false;
     resetCapture();
-    toast('Added to document! (' + docItems.length + ' item' + (docItems.length > 1 ? 's' : '') + ')', 'success');
+    toast('Added! ' + docItems.length + ' item' + (docItems.length > 1 ? 's' : '') + ' in document.', 'success');
   };
   img.src = capturedURL;
 }
@@ -705,12 +708,8 @@ function renderPreview() {
     <div class="doc-item">
       <img class="doc-thumb" src="${item.url}" alt="Photo ${i+1}">
       <div class="doc-info">
-        <div class="doc-num">Item ${i + 1}</div>
+        <div class="doc-num">Item ${i + 1} ${i % 2 === 0 ? '· Page ' + (Math.floor(i/2)+1) + ' top' : '· Page ' + (Math.floor(i/2)+1) + ' bottom'}</div>
         <div class="doc-caption">${item.caption ? escHtml(item.caption) : '<em style="color:var(--muted)">No caption</em>'}</div>
-        <div class="doc-meta">
-          ${item.imgWidth} × ${item.imgHeight} px &nbsp;·&nbsp;
-          ${item.fontFamily} ${item.fontSize} pt
-        </div>
       </div>
       <button class="remove-btn" onclick="removeItem(${item.id})" title="Remove">✕</button>
     </div>
@@ -766,8 +765,22 @@ function xmlEsc(s) {
     .replace(/"/g, '&quot;');
 }
 
-async function buildDocxBlob(items, title) {
-  const EMU = 9525; // 1 CSS px = 9525 EMU
+/* Scale image to fit within the half-page slot (2 images per page).
+   US Letter with 1" margins → content 6.5" × 9" at 96 dpi = 624 × 864 px.
+   Each slot: 624 wide × 370 tall (leaving ~62 px for caption + spacing). */
+const SLOT_W = 624, SLOT_H = 370;
+
+function fitInSlot(naturalW, naturalH) {
+  let w = naturalW, h = naturalH;
+  if (w > SLOT_W) { h = h * SLOT_W / w; w = SLOT_W; }
+  if (h > SLOT_H) { w = w * SLOT_H / h; h = SLOT_H; }
+  return { w: Math.round(w), h: Math.round(h) };
+}
+
+async function buildDocxBlob(items, title, fontSize, fontFamily) {
+  const EMU = 9525; // 1 px = 9525 EMU
+  const szVal = fontSize * 2; // half-points
+  const fontEsc = xmlEsc(fontFamily);
 
   /* ── [Content_Types].xml ── */
   const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -810,17 +823,18 @@ ${imgRels}
       <w:pPr><w:jc w:val="center"/><w:spacing w:after="480"/></w:pPr>
       <w:r><w:rPr><w:b/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr>
         <w:t>${xmlEsc(title)}</w:t></w:r>
-    </w:p>`;
+    </w:p>
+    <w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
   }
 
   items.forEach((item, i) => {
-    const cx = item.imgWidth  * EMU;
-    const cy = item.imgHeight * EMU;
-    const rid = `rId${i + 1}`;
-    const pid = i + 1;
+    const { w, h } = fitInSlot(item.naturalW, item.naturalH);
+    const cx = w * EMU, cy = h * EMU;
+    const rid = `rId${i + 1}`, pid = i + 1;
 
+    // Image paragraph
     body += `<w:p>
-      <w:pPr><w:jc w:val="center"/><w:spacing w:after="80"/></w:pPr>
+      <w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="80"/></w:pPr>
       <w:r><w:drawing>
         <wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
           <wp:extent cx="${cx}" cy="${cy}"/>
@@ -848,17 +862,25 @@ ${imgRels}
       </w:drawing></w:r>
     </w:p>`;
 
+    // Caption paragraph — same font/size for every item
     body += `<w:p>
-      <w:pPr><w:jc w:val="center"/><w:spacing w:after="500"/></w:pPr>
+      <w:pPr><w:jc w:val="center"/><w:spacing w:after="200"/></w:pPr>
       <w:r>
         <w:rPr>
-          <w:rFonts w:ascii="${xmlEsc(item.fontFamily)}" w:hAnsi="${xmlEsc(item.fontFamily)}"/>
-          <w:sz w:val="${item.fontSize * 2}"/><w:szCs w:val="${item.fontSize * 2}"/>
-          ${item.caption ? '<w:i/>' : ''}
+          <w:rFonts w:ascii="${fontEsc}" w:hAnsi="${fontEsc}"/>
+          <w:sz w:val="${szVal}"/><w:szCs w:val="${szVal}"/>
+          <w:i/>
         </w:rPr>
         <w:t>${xmlEsc(item.caption || '')}</w:t>
       </w:r>
     </w:p>`;
+
+    // Page break after every 2nd item (but not after the very last one)
+    const isSecondInPair = (i % 2 === 1);
+    const isLast = (i === items.length - 1);
+    if (isSecondInPair && !isLast) {
+      body += `<w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
+    }
   });
 
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -906,8 +928,10 @@ async function downloadDoc() {
   try {
     if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded — please refresh the page.');
 
-    const docTitle = document.getElementById('doc-title').value.trim();
-    const blob  = await buildDocxBlob(docItems, docTitle);
+    const docTitle   = document.getElementById('doc-title').value.trim();
+    const fontSize   = parseInt(document.getElementById('font-size').value);
+    const fontFamily = document.getElementById('font-family').value;
+    const blob  = await buildDocxBlob(docItems, docTitle, fontSize, fontFamily);
     const raw   = (docTitle || 'photo-captions').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '-');
     const fname = (raw || 'photo-captions') + '.docx';
 
