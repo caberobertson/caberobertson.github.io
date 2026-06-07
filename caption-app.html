@@ -458,13 +458,13 @@
 /* ────────────────────────────────────────────────
    State
 ──────────────────────────────────────────────── */
-let mediaStream   = null;
-let capturedURL   = null;   // data URL of current photo
-let recognition   = null;
-let isRecording   = false;
-let interimText   = '';
-let finalText     = '';
-let docItems      = [];     // { id, url, caption, imgW, imgH, fontSize, fontFamily }
+let mediaStream    = null;
+let capturedURL    = null;
+let activeRec      = null;   // current SpeechRecognition instance
+let isRecording    = false;
+let committed      = '';     // finalized text from all completed sessions
+let sessionFinal   = '';     // final text from the current active session only
+let docItems       = [];
 
 /* ────────────────────────────────────────────────
    Toast helper
@@ -562,6 +562,10 @@ function handleUpload(e) {
 
 /* ────────────────────────────────────────────────
    Voice Recording
+   Android Chrome bug: restarting SpeechRecognition after onend replays
+   the previous session's results. Fix: use continuous=false, spawn a
+   fresh instance per utterance, track committed vs session text separately,
+   and dedup on commit.
 ──────────────────────────────────────────────── */
 function toggleRecording() {
   isRecording ? stopRecording() : startRecording();
@@ -570,61 +574,83 @@ function toggleRecording() {
 function startRecording() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
-    toast('Speech API not supported — please use Chrome or Edge, or type manually.', 'error');
+    toast('Speech API not supported — use Chrome or Edge, or type manually.', 'error');
     return;
   }
-
-  finalText = document.getElementById('caption-box').value;
-  if (finalText && !finalText.endsWith(' ')) finalText += ' ';
-  interimText = '';
-
-  recognition = new SR();
-  recognition.continuous     = true;
-  recognition.interimResults = true;
-  recognition.lang           = 'en-US';
-
-  recognition.onresult = ev => {
-    let interim = '';
-    for (let i = ev.resultIndex; i < ev.results.length; i++) {
-      if (ev.results[i].isFinal) {
-        finalText += ev.results[i][0].transcript + ' ';
-      } else {
-        interim += ev.results[i][0].transcript;
-      }
-    }
-    interimText = interim;
-    document.getElementById('caption-box').value = finalText + interim;
-  };
-
-  recognition.onerror = ev => {
-    if (ev.error !== 'aborted') toast('Mic error: ' + ev.error, 'error');
-    stopRecording();
-  };
-
-  recognition.onend = () => { if (isRecording) recognition.start(); };
-
-  recognition.start();
   isRecording = true;
+  // Seed committed with any text already in the box
+  committed = document.getElementById('caption-box').value.trim();
+  if (committed) committed += ' ';
+  sessionFinal = '';
 
-  document.getElementById('rec-btn').textContent  = '⏹ Stop Recording';
-  document.getElementById('rec-btn').className    = 'btn btn-record active';
-  document.getElementById('rec-dot').classList.add('active');
-  document.getElementById('voice-status').textContent = 'Listening…';
+  setRecordingUI(true);
+  spawnSession();
+}
+
+function spawnSession() {
+  if (!isRecording) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const r = new SR();
+  r.continuous     = false;   // single-utterance — avoids Android replay bug
+  r.interimResults = true;
+  r.lang           = 'en-US';
+  activeRec        = r;
+  sessionFinal     = '';
+
+  r.onresult = ev => {
+    let sf = '', interim = '';
+    for (let i = 0; i < ev.results.length; i++) {
+      if (ev.results[i].isFinal) sf   += ev.results[i][0].transcript;
+      else                        interim += ev.results[i][0].transcript;
+    }
+    sessionFinal = sf;
+    document.getElementById('caption-box').value =
+      (committed + (sf ? sf + ' ' : '') + interim).trimEnd();
+  };
+
+  r.onend = () => {
+    activeRec = null;
+    // Commit session text, but only if it isn't already at the end of committed
+    // (guards against Android occasionally re-firing the same result)
+    const trimSF = sessionFinal.trim();
+    if (trimSF && !committed.trimEnd().endsWith(trimSF)) {
+      committed += trimSF + ' ';
+    }
+    sessionFinal = '';
+    document.getElementById('caption-box').value = committed.trimEnd();
+    // Spawn next session automatically while still recording
+    if (isRecording) setTimeout(spawnSession, 120);
+  };
+
+  r.onerror = ev => {
+    if (ev.error === 'not-allowed') {
+      toast('Microphone access denied.', 'error');
+      isRecording = false;
+      setRecordingUI(false);
+      return;
+    }
+    // 'no-speech' and 'aborted' are non-fatal — onend will restart
+  };
+
+  try { r.start(); } catch (_) { /* already started, ignore */ }
 }
 
 function stopRecording() {
   isRecording = false;
-  if (recognition) { recognition.stop(); recognition = null; }
+  if (activeRec) { try { activeRec.stop(); } catch (_) {} activeRec = null; }
+  // Commit any dangling session text
+  const trimSF = sessionFinal.trim();
+  if (trimSF && !committed.trimEnd().endsWith(trimSF)) committed += trimSF + ' ';
+  sessionFinal = '';
+  document.getElementById('caption-box').value = committed.trimEnd();
+  setRecordingUI(false);
+}
 
-  // Commit interim text as final
-  const box = document.getElementById('caption-box');
-  box.value = (finalText + interimText).trim();
-  interimText = '';
-
-  document.getElementById('rec-btn').textContent  = '🎤 Start Recording';
-  document.getElementById('rec-btn').className    = 'btn btn-record';
-  document.getElementById('rec-dot').classList.remove('active');
-  document.getElementById('voice-status').textContent = 'Recording stopped';
+function setRecordingUI(on) {
+  document.getElementById('rec-btn').textContent = on ? '⏹ Stop Recording' : '🎤 Start Recording';
+  document.getElementById('rec-btn').className   = 'btn btn-record' + (on ? ' active' : '');
+  document.getElementById('rec-dot').classList.toggle('active', on);
+  document.getElementById('voice-status').textContent = on ? 'Listening…' : 'Recording stopped';
 }
 
 /* ────────────────────────────────────────────────
@@ -714,9 +740,9 @@ function clearAll() {
    Reset after adding
 ──────────────────────────────────────────────── */
 function resetCapture() {
-  capturedURL = null;
-  finalText   = '';
-  interimText = '';
+  capturedURL  = null;
+  committed    = '';
+  sessionFinal = '';
 
   document.getElementById('snap-preview').style.display = 'none';
   document.getElementById('snap-preview').src = '';
@@ -730,6 +756,8 @@ function resetCapture() {
 
 /* ────────────────────────────────────────────────
    Generate & download Word document
+   On Android, prefer the Web Share API (opens native share sheet)
+   so the user can save to Drive/Files/email. Falls back to saveAs.
 ──────────────────────────────────────────────── */
 async function downloadDoc() {
   if (docItems.length === 0) return;
@@ -739,82 +767,73 @@ async function downloadDoc() {
   btn.textContent = 'Building…';
 
   try {
-    const {
-      Document, Paragraph, TextRun, ImageRun,
-      Packer, AlignmentType, HeadingLevel,
-    } = window.docx;
+    if (!window.docx) throw new Error('Document library not loaded — please refresh and try again.');
+    const { Document, Paragraph, TextRun, ImageRun, Packer, AlignmentType } = window.docx;
 
     const docTitle = document.getElementById('doc-title').value.trim();
     const children = [];
 
-    // Optional title
     if (docTitle) {
-      children.push(
-        new Paragraph({
-          children: [new TextRun({ text: docTitle, bold: true, size: 48, font: 'Calibri' })],
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 480 },
-        })
-      );
+      children.push(new Paragraph({
+        children: [new TextRun({ text: docTitle, bold: true, size: 48, font: 'Calibri' })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 480 },
+      }));
     }
 
     for (const item of docItems) {
-      // Convert data URL → Uint8Array
-      const base64 = item.url.split(',')[1];
-      const mime   = item.url.split(';')[0].split(':')[1];
+      const base64  = item.url.split(',')[1];
+      const mime    = item.url.split(';')[0].split(':')[1];
       const imgType = mime === 'image/png' ? 'png' : 'jpg';
-
-      const binary = atob(base64);
-      const bytes  = new Uint8Array(binary.length);
+      const binary  = atob(base64);
+      const bytes   = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
-      // Image paragraph
-      children.push(
-        new Paragraph({
-          children: [
-            new ImageRun({
-              data: bytes,
-              transformation: { width: item.imgWidth, height: item.imgHeight },
-              type: imgType,
-            }),
-          ],
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 80 },
-        })
-      );
+      children.push(new Paragraph({
+        children: [new ImageRun({
+          data: bytes,
+          transformation: { width: item.imgWidth, height: item.imgHeight },
+          type: imgType,
+        })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 80 },
+      }));
 
-      // Caption paragraph
-      if (item.caption) {
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: item.caption,
-                font: item.fontFamily,
-                size: item.fontSize * 2,   // half-points
-                italics: true,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 500 },
-          })
-        );
-      } else {
-        children.push(new Paragraph({ text: '', spacing: { after: 500 } }));
-      }
+      children.push(new Paragraph({
+        children: [new TextRun({
+          text: item.caption || '',
+          font: item.fontFamily,
+          size: item.fontSize * 2,
+          italics: !!item.caption,
+        })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 500 },
+      }));
     }
 
-    const doc = new Document({
-      sections: [{ children }],
-    });
-
+    const doc  = new Document({ sections: [{ children }] });
     const blob = await Packer.toBlob(doc);
-    const fname = (docTitle || 'photo-captions').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '-') + '.docx';
-    saveAs(blob, fname);
-    toast('Downloaded: ' + fname, 'success');
+    const raw  = (docTitle || 'photo-captions').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '-');
+    const fname = (raw || 'photo-captions') + '.docx';
+    const file  = new File([blob], fname, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+
+    // Android: use native share sheet so user can save to Files / Drive / etc.
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: fname });
+      toast('Shared successfully!', 'success');
+    } else {
+      // Desktop / browsers without share API
+      const url = URL.createObjectURL(blob);
+      const a   = Object.assign(document.createElement('a'), { href: url, download: fname });
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 15000);
+      toast('Download started: ' + fname, 'success');
+    }
   } catch (err) {
-    console.error(err);
-    toast('Export failed: ' + err.message, 'error');
+    console.error('downloadDoc error:', err);
+    toast('Export failed: ' + (err.message || err), 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Download .docx';
