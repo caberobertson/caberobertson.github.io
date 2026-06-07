@@ -4,31 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Photo Caption Builder</title>
-  <script>
-  /* Load docx library — try jsdelivr first, fall back to unpkg */
-  (function() {
-    function tryLoad(urls, idx) {
-      if (idx >= urls.length) {
-        console.error('All docx CDN sources failed');
-        document.addEventListener('DOMContentLoaded', function() {
-          var btn = document.getElementById('dl-btn');
-          if (btn) { btn.textContent = '⚠ Library failed — reload page'; }
-        });
-        return;
-      }
-      var s = document.createElement('script');
-      s.src = urls[idx];
-      s.onload  = function() { console.log('docx loaded from', urls[idx]); };
-      s.onerror = function() { document.head.removeChild(s); tryLoad(urls, idx + 1); };
-      document.head.appendChild(s);
-    }
-    tryLoad([
-      'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js',
-      'https://unpkg.com/docx@8.5.0/build/index.js',
-      'https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js',
-    ], 0);
-  })();
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -778,10 +754,148 @@ function resetCapture() {
 }
 
 /* ────────────────────────────────────────────────
-   Generate & download Word document
-   On Android, prefer the Web Share API (opens native share sheet)
-   so the user can save to Drive/Files/email. Falls back to saveAs.
+   Build .docx from scratch with JSZip + raw XML.
+   No external docx library — avoids the "permission denied"
+   error that the docx npm package throws on Android Chrome.
 ──────────────────────────────────────────────── */
+function xmlEsc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function buildDocxBlob(items, title) {
+  const EMU = 9525; // 1 CSS px = 9525 EMU
+
+  /* ── [Content_Types].xml ── */
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml"  ContentType="application/xml"/>
+  <Default Extension="jpeg" ContentType="image/jpeg"/>
+  <Default Extension="jpg"  ContentType="image/jpeg"/>
+  <Default Extension="png"  ContentType="image/png"/>
+  <Override PartName="/word/document.xml"
+    ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
+
+  /* ── _rels/.rels ── */
+  const pkgRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1"
+    Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
+    Target="word/document.xml"/>
+</Relationships>`;
+
+  /* ── word/_rels/document.xml.rels ── */
+  const imgRels = items.map((item, i) => {
+    const ext = item.url.startsWith('data:image/png') ? 'png' : 'jpeg';
+    return `  <Relationship Id="rId${i + 1}"
+    Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
+    Target="media/image${i + 1}.${ext}"/>`;
+  }).join('\n');
+
+  const docRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+${imgRels}
+</Relationships>`;
+
+  /* ── word/document.xml ── */
+  let body = '';
+
+  if (title) {
+    body += `<w:p>
+      <w:pPr><w:jc w:val="center"/><w:spacing w:after="480"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr>
+        <w:t>${xmlEsc(title)}</w:t></w:r>
+    </w:p>`;
+  }
+
+  items.forEach((item, i) => {
+    const cx = item.imgWidth  * EMU;
+    const cy = item.imgHeight * EMU;
+    const rid = `rId${i + 1}`;
+    const pid = i + 1;
+
+    body += `<w:p>
+      <w:pPr><w:jc w:val="center"/><w:spacing w:after="80"/></w:pPr>
+      <w:r><w:drawing>
+        <wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+          <wp:extent cx="${cx}" cy="${cy}"/>
+          <wp:docPr id="${pid}" name="img${pid}"/>
+          <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+            <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+              <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:nvPicPr>
+                  <pic:cNvPr id="${pid}" name="img${pid}"/>
+                  <pic:cNvPicPr/>
+                </pic:nvPicPr>
+                <pic:blipFill>
+                  <a:blip r:embed="${rid}"
+                    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
+                  <a:stretch><a:fillRect/></a:stretch>
+                </pic:blipFill>
+                <pic:spPr>
+                  <a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm>
+                  <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+                </pic:spPr>
+              </pic:pic>
+            </a:graphicData>
+          </a:graphic>
+        </wp:inline>
+      </w:drawing></w:r>
+    </w:p>`;
+
+    body += `<w:p>
+      <w:pPr><w:jc w:val="center"/><w:spacing w:after="500"/></w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="${xmlEsc(item.fontFamily)}" w:hAnsi="${xmlEsc(item.fontFamily)}"/>
+          <w:sz w:val="${item.fontSize * 2}"/><w:szCs w:val="${item.fontSize * 2}"/>
+          ${item.caption ? '<w:i/>' : ''}
+        </w:rPr>
+        <w:t>${xmlEsc(item.caption || '')}</w:t>
+      </w:r>
+    </w:p>`;
+  });
+
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+  xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+  xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+  <w:body>
+    ${body}
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
+
+  /* ── Assemble ZIP ── */
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', contentTypes);
+  zip.file('_rels/.rels', pkgRels);
+  zip.file('word/_rels/document.xml.rels', docRels);
+  zip.file('word/document.xml', documentXml);
+
+  items.forEach((item, i) => {
+    const ext    = item.url.startsWith('data:image/png') ? 'png' : 'jpeg';
+    const base64 = item.url.split(',')[1];
+    zip.file(`word/media/image${i + 1}.${ext}`, base64, { base64: true });
+  });
+
+  return zip.generateAsync({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+}
+
 async function downloadDoc() {
   if (docItems.length === 0) return;
 
@@ -790,57 +904,13 @@ async function downloadDoc() {
   btn.textContent = 'Building…';
 
   try {
-    if (!window.docx) throw new Error('Document library not loaded — please refresh and try again.');
-    const { Document, Paragraph, TextRun, ImageRun, Packer, AlignmentType } = window.docx;
+    if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded — please refresh the page.');
 
     const docTitle = document.getElementById('doc-title').value.trim();
-    const children = [];
-
-    if (docTitle) {
-      children.push(new Paragraph({
-        children: [new TextRun({ text: docTitle, bold: true, size: 48, font: 'Calibri' })],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 480 },
-      }));
-    }
-
-    for (const item of docItems) {
-      const base64  = item.url.split(',')[1];
-      const mime    = item.url.split(';')[0].split(':')[1];
-      const imgType = mime === 'image/png' ? 'png' : 'jpg';
-      const binary  = atob(base64);
-      const bytes   = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-      children.push(new Paragraph({
-        children: [new ImageRun({
-          data: bytes,
-          transformation: { width: item.imgWidth, height: item.imgHeight },
-          type: imgType,
-        })],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 80 },
-      }));
-
-      children.push(new Paragraph({
-        children: [new TextRun({
-          text: item.caption || '',
-          font: item.fontFamily,
-          size: item.fontSize * 2,
-          italics: !!item.caption,
-        })],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 500 },
-      }));
-    }
-
-    const doc  = new Document({ sections: [{ children }] });
-    const blob = await Packer.toBlob(doc);
-    const raw  = (docTitle || 'photo-captions').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '-');
+    const blob  = await buildDocxBlob(docItems, docTitle);
+    const raw   = (docTitle || 'photo-captions').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '-');
     const fname = (raw || 'photo-captions') + '.docx';
 
-    // Anchor-click download works on Android Chrome and all desktop browsers.
-    // The Web Share API blocks .docx due to MIME-type allowlist restrictions.
     const url = URL.createObjectURL(blob);
     const a   = Object.assign(document.createElement('a'), { href: url, download: fname });
     document.body.appendChild(a);
@@ -849,7 +919,7 @@ async function downloadDoc() {
     setTimeout(() => URL.revokeObjectURL(url), 30000);
     toast('Saving to Downloads: ' + fname, 'success');
   } catch (err) {
-    console.error('downloadDoc error:', err);
+    console.error('downloadDoc:', err);
     toast('Export failed: ' + (err.message || err), 'error');
   } finally {
     btn.disabled = false;
