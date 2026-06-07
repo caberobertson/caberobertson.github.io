@@ -327,6 +327,55 @@
       .controls-grid { grid-template-columns: 1fr; }
     }
 
+    /* ── Photo-captured: two-column layout (triggered by JS class) ── */
+    .workflow-area.photo-captured {
+      display: grid;
+      grid-template-columns: 46% 1fr;
+      grid-template-rows: auto auto;
+      gap: .75rem;
+      align-items: start;
+    }
+    .workflow-area.photo-captured #capture-card { grid-column: 1; grid-row: 1 / 3; }
+    .workflow-area.photo-captured #voice-card   { grid-column: 2; grid-row: 1; }
+    .workflow-area.photo-captured #format-card  { grid-column: 2; grid-row: 2; }
+
+    /* Right column slides in */
+    .workflow-area.photo-captured #voice-card,
+    .workflow-area.photo-captured #format-card {
+      animation: slideIn .25s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(14px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Camera wrap becomes a natural-height photo frame */
+    .workflow-area.photo-captured #camera-wrap {
+      aspect-ratio: unset;
+      height: auto;
+      max-height: 54vh;
+    }
+    .workflow-area.photo-captured #snap-preview {
+      max-height: 54vh;
+      object-fit: contain;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    /* Tighten everything in the right column */
+    .workflow-area.photo-captured .card        { padding: .7rem .75rem; }
+    .workflow-area.photo-captured .card-title  { font-size: .88rem; margin-bottom: .55rem; }
+    .workflow-area.photo-captured .notice      { display: none; }
+    .workflow-area.photo-captured textarea#caption-box { min-height: 58px; font-size: .85rem; }
+    .workflow-area.photo-captured .btn         { font-size: .8rem; padding: .42rem .75rem; }
+    .workflow-area.photo-captured .upload-label{ font-size: .8rem; padding: .42rem .75rem; }
+    .workflow-area.photo-captured .btn-group   { gap: .35rem; margin-top: .6rem; }
+    .workflow-area.photo-captured .controls-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .workflow-area.photo-captured .ctrl label  { font-size: .75rem; }
+    .workflow-area.photo-captured select       { font-size: .8rem; padding: .32rem .45rem; }
+    .workflow-area.photo-captured .add-section { padding-top: .2rem; }
+    .workflow-area.photo-captured .btn-add     { padding: .5rem 1.2rem; font-size: .88rem; }
+
     /* ── Landscape mobile ── */
     @media (orientation: landscape) and (max-height: 540px) {
       header {
@@ -587,6 +636,7 @@ function capturePhoto() {
   stopStream();
   document.getElementById('cam-btn').textContent = '▶ Start Camera';
   document.getElementById('retake-btn').style.display = 'inline-flex';
+  enterCapturedLayout();
   toast('Photo captured!', 'success');
 }
 
@@ -597,6 +647,7 @@ function retakePhoto() {
   document.getElementById('video').style.display = 'block';
   document.getElementById('retake-btn').style.display = 'none';
   document.getElementById('file-input').value = '';
+  exitCapturedLayout();
 }
 
 function handleUpload(e) {
@@ -612,9 +663,22 @@ function handleUpload(e) {
     stopStream();
     document.getElementById('cam-btn').textContent = '▶ Start Camera';
     document.getElementById('retake-btn').style.display = 'inline-flex';
+    enterCapturedLayout();
     toast('Photo loaded!', 'success');
   };
   reader.readAsDataURL(file);
+}
+
+function enterCapturedLayout() {
+  document.querySelector('.workflow-area').classList.add('photo-captured');
+  // Smooth scroll so voice card is in view
+  setTimeout(() => {
+    document.getElementById('voice-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 80);
+}
+
+function exitCapturedLayout() {
+  document.querySelector('.workflow-area').classList.remove('photo-captured');
 }
 
 /* ────────────────────────────────────────────────
@@ -809,6 +873,7 @@ function resetCapture() {
   document.getElementById('caption-box').value = '';
   document.getElementById('voice-status').textContent = 'Ready to record';
   document.getElementById('file-input').value = '';
+  exitCapturedLayout();
 }
 
 /* ────────────────────────────────────────────────
