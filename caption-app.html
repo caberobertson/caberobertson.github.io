@@ -838,22 +838,16 @@ async function downloadDoc() {
     const blob = await Packer.toBlob(doc);
     const raw  = (docTitle || 'photo-captions').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '-');
     const fname = (raw || 'photo-captions') + '.docx';
-    const file  = new File([blob], fname, { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 
-    // Android: use native share sheet so user can save to Files / Drive / etc.
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: fname });
-      toast('Shared successfully!', 'success');
-    } else {
-      // Desktop / browsers without share API
-      const url = URL.createObjectURL(blob);
-      const a   = Object.assign(document.createElement('a'), { href: url, download: fname });
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 15000);
-      toast('Download started: ' + fname, 'success');
-    }
+    // Anchor-click download works on Android Chrome and all desktop browsers.
+    // The Web Share API blocks .docx due to MIME-type allowlist restrictions.
+    const url = URL.createObjectURL(blob);
+    const a   = Object.assign(document.createElement('a'), { href: url, download: fname });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    toast('Saving to Downloads: ' + fname, 'success');
   } catch (err) {
     console.error('downloadDoc error:', err);
     toast('Export failed: ' + (err.message || err), 'error');
