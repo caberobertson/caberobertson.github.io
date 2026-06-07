@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Caption Builder</title>
+  <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+  <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --surface2: #0d1020;
+      --accent:   #4f8ef7;
+      --danger:   #e94560;
+      --success:  #2ecc71;
+      --border:   #2a3050;
+      --text:     #e2e8f0;
+      --muted:    #5a6890;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a1d27 0%, #0d1020 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: .5px; }
+    header p  { font-size: .85rem; color: var(--muted); margin-top: .2rem; }
+    .logo { font-size: 2rem; }
+
+    /* ── Layout ── */
+    .app { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .badge {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .55rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 600;
+      transition: transform .15s, opacity .15s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); opacity: .92; }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-primary  { background: var(--accent);   color: #fff; }
+    .btn-outline  { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover:not(:disabled) { border-color: var(--accent); }
+    .btn-danger   { background: var(--danger);   color: #fff; }
+    .btn-record   { background: #7c2d2d; color: #fff; }
+    .btn-record.active { background: var(--danger); animation: recordPulse 1.4s infinite; }
+    .btn-success  { background: var(--success);  color: #fff; }
+    .btn-download { background: linear-gradient(135deg, var(--success), #27ae60); color: #fff; font-size: 1rem; padding: .75rem 2rem; }
+    @keyframes recordPulse { 0%,100%{box-shadow:0 0 0 0 rgba(233,69,96,.5)} 50%{box-shadow:0 0 0 8px rgba(233,69,96,0)} }
+
+    .btn-group { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+
+    /* ── Camera ── */
+    #camera-wrap {
+      position: relative;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+      max-height: 420px;
+    }
+    #video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    #canvas { display: none; }
+    #snap-preview {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      display: none;
+      background: #000;
+    }
+    .camera-overlay {
+      position: absolute;
+      bottom: .8rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: .6rem;
+    }
+    .shutter-btn {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      background: rgba(255,255,255,.2);
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: background .15s;
+    }
+    .shutter-btn:hover { background: rgba(255,255,255,.4); }
+    .shutter-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+    /* ── File upload ── */
+    .upload-label {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .55rem 1.1rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: border-color .15s;
+    }
+    .upload-label:hover { border-color: var(--accent); }
+    #file-input { display: none; }
+
+    /* ── Voice ── */
+    .voice-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .75rem 1rem;
+      background: var(--surface2);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+    .dot.active { background: var(--danger); animation: dotPulse 1s infinite; }
+    @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+    #voice-status { font-size: .85rem; color: var(--muted); }
+
+    textarea#caption-box {
+      width: 100%;
+      min-height: 90px;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .75rem;
+      font-size: .95rem;
+      font-family: inherit;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    textarea#caption-box:focus { outline: none; border-color: var(--accent); }
+    textarea#caption-box::placeholder { color: var(--muted); }
+
+    /* ── Controls ── */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.2rem;
+    }
+    .ctrl label {
+      display: block;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: .35rem;
+    }
+    .ctrl label strong { color: var(--text); }
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    select, input[type=text] {
+      width: 100%;
+      padding: .5rem .7rem;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: .9rem;
+      font-family: inherit;
+    }
+    select:focus, input[type=text]:focus { outline: none; border-color: var(--accent); }
+
+    /* ── Add button ── */
+    .add-section {
+      display: flex;
+      justify-content: center;
+      padding-top: .5rem;
+    }
+    .btn-add {
+      background: var(--accent);
+      color: #fff;
+      font-size: 1rem;
+      padding: .75rem 2.5rem;
+      border-radius: 10px;
+    }
+
+    /* ── Document preview ── */
+    #items-list { display: flex; flex-direction: column; gap: 1rem; }
+    .empty { text-align: center; color: var(--muted); padding: 2rem; font-style: italic; }
+
+    .doc-item {
+      display: flex;
+      gap: 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      align-items: flex-start;
+    }
+    .doc-thumb {
+      flex-shrink: 0;
+      width: 110px; height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-num  { font-size: .75rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .doc-caption { font-size: .9rem; margin-top: .25rem; line-height: 1.4; word-break: break-word; }
+    .doc-meta { font-size: .75rem; color: var(--muted); margin-top: .4rem; }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: .2rem .4rem;
+      border-radius: 4px;
+      transition: color .15s, background .15s;
+      flex-shrink: 0;
+    }
+    .remove-btn:hover { color: var(--danger); background: rgba(233,69,96,.1); }
+
+    /* ── Download ── */
+    .download-bar {
+      text-align: center;
+      padding: 1rem;
+    }
+    .doc-title-row {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .doc-title-row label { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+    .doc-title-row input { flex: 1; }
+
+    /* ── Notice ── */
+    .notice {
+      background: rgba(79,142,247,.08);
+      border: 1px solid rgba(79,142,247,.3);
+      border-radius: 8px;
+      padding: .65rem 1rem;
+      font-size: .8rem;
+      color: #8aabf0;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Progress toast ── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .75rem 1.5rem;
+      font-size: .9rem;
+      font-weight: 600;
+      box-shadow: 0 8px 30px rgba(0,0,0,.5);
+      transition: transform .3s ease;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { color: var(--success); border-color: var(--success); }
+    #toast.error   { color: var(--danger);  border-color: var(--danger); }
+
+    @media (max-width: 520px) {
+      header h1 { font-size: 1.2rem; }
+      .controls-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📸</div>
+  <div>
+    <h1>Photo Caption Builder</h1>
+    <p>Capture · Voice caption · Export to Word</p>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- ── STEP 1: Photo ── -->
+  <div class="card">
+    <div class="card-title"><span class="badge">1</span> Capture or Upload a Photo</div>
+
+    <div id="camera-wrap">
+      <video id="video" autoplay playsinline muted></video>
+      <img id="snap-preview" alt="Captured photo">
+      <div class="camera-overlay">
+        <button class="shutter-btn" id="shutter" title="Take photo" disabled></button>
+      </div>
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="cam-btn" onclick="toggleCamera()">▶ Start Camera</button>
+      <button class="btn btn-outline" id="retake-btn" onclick="retakePhoto()" style="display:none">↩ Retake</button>
+      <label class="upload-label">
+        📁 Upload from Device
+        <input type="file" id="file-input" accept="image/*" onchange="handleUpload(event)">
+      </label>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Voice Caption ── -->
+  <div class="card">
+    <div class="card-title"><span class="badge">2</span> Record Voice Caption</div>
+
+    <div class="notice">
+      Voice-to-text uses the Web Speech API — works best in <strong>Chrome</strong> or <strong>Edge</strong>. You can also type your caption directly.
+    </div>
+
+    <div class="voice-row">
+      <div class="dot" id="rec-dot"></div>
+      <span id="voice-status">Ready to record</span>
+    </div>
+
+    <div class="btn-group" style="margin-top:0;margin-bottom:1rem">
+      <button class="btn btn-record" id="rec-btn" onclick="toggleRecording()">🎤 Start Recording</button>
+    </div>
+
+    <textarea id="caption-box" placeholder="Caption appears here after recording — or type / edit directly…"></textarea>
+  </div>
+
+  <!-- ── STEP 3: Format ── -->
+  <div class="card">
+    <div class="card-title"><span class="badge">3</span> Format &amp; Add to Document</div>
+
+    <div class="controls-grid">
+      <div class="ctrl">
+        <label>Image width: <strong id="w-val">350</strong> px</label>
+        <input type="range" id="img-width" min="80" max="680" value="350"
+               oninput="document.getElementById('w-val').textContent=this.value">
+      </div>
+      <div class="ctrl">
+        <label>Caption font size</label>
+        <select id="font-size">
+          <option value="10">10 pt</option>
+          <option value="11">11 pt</option>
+          <option value="12" selected>12 pt</option>
+          <option value="14">14 pt</option>
+          <option value="16">16 pt</option>
+          <option value="18">18 pt</option>
+          <option value="20">20 pt</option>
+          <option value="24">24 pt</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>Caption font</label>
+        <select id="font-family">
+          <option>Calibri</option>
+          <option>Arial</option>
+          <option>Times New Roman</option>
+          <option>Georgia</option>
+          <option>Courier New</option>
+          <option>Verdana</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="add-section" style="margin-top:1.5rem">
+      <button class="btn btn-add" onclick="addToDocument()">✅ Add to Document</button>
+    </div>
+  </div>
+
+  <!-- ── Document Preview ── -->
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between">
+      <span>📄 Document Preview</span>
+      <button class="btn btn-outline" style="font-size:.8rem;padding:.35rem .75rem" onclick="clearAll()">Clear All</button>
+    </div>
+    <div id="items-list">
+      <div class="empty">No items yet — capture a photo and click "Add to Document" to get started.</div>
+    </div>
+  </div>
+
+  <!-- ── Download ── -->
+  <div class="card">
+    <div class="card-title">⬇ Export Word Document</div>
+    <div class="doc-title-row">
+      <label for="doc-title">Document title (optional):</label>
+      <input type="text" id="doc-title" placeholder="My Photo Collection">
+    </div>
+    <div class="download-bar">
+      <button class="btn btn-download" id="dl-btn" onclick="downloadDoc()" disabled>
+        Download .docx
+      </button>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<div id="toast"></div>
+
+<script>
+/* ────────────────────────────────────────────────
+   State
+──────────────────────────────────────────────── */
+let mediaStream   = null;
+let capturedURL   = null;   // data URL of current photo
+let recognition   = null;
+let isRecording   = false;
+let interimText   = '';
+let finalText     = '';
+let docItems      = [];     // { id, url, caption, imgW, imgH, fontSize, fontFamily }
+
+/* ────────────────────────────────────────────────
+   Toast helper
+──────────────────────────────────────────────── */
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 2800);
+}
+
+/* ────────────────────────────────────────────────
+   Camera
+──────────────────────────────────────────────── */
+async function toggleCamera() {
+  if (mediaStream) {
+    stopStream();
+    document.getElementById('cam-btn').textContent = '▶ Start Camera';
+    return;
+  }
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } },
+      audio: false,
+    });
+    const video = document.getElementById('video');
+    video.srcObject = mediaStream;
+    video.style.display = 'block';
+    document.getElementById('snap-preview').style.display = 'none';
+    document.getElementById('shutter').disabled = false;
+    document.getElementById('cam-btn').textContent = '⏹ Stop Camera';
+    document.getElementById('retake-btn').style.display = 'none';
+  } catch (err) {
+    toast('Camera error: ' + err.message, 'error');
+  }
+}
+
+function stopStream() {
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(t => t.stop());
+    mediaStream = null;
+  }
+  document.getElementById('shutter').disabled = true;
+}
+
+document.getElementById('shutter').onclick = capturePhoto;
+
+function capturePhoto() {
+  const video  = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  canvas.width  = video.videoWidth  || 1280;
+  canvas.height = video.videoHeight || 720;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  capturedURL = canvas.toDataURL('image/jpeg', 0.92);
+
+  const preview = document.getElementById('snap-preview');
+  preview.src = capturedURL;
+  preview.style.display = 'block';
+  video.style.display = 'none';
+
+  stopStream();
+  document.getElementById('cam-btn').textContent = '▶ Start Camera';
+  document.getElementById('retake-btn').style.display = 'inline-flex';
+  toast('Photo captured!', 'success');
+}
+
+function retakePhoto() {
+  capturedURL = null;
+  document.getElementById('snap-preview').style.display = 'none';
+  document.getElementById('snap-preview').src = '';
+  document.getElementById('video').style.display = 'block';
+  document.getElementById('retake-btn').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+function handleUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    capturedURL = ev.target.result;
+    const preview = document.getElementById('snap-preview');
+    preview.src = capturedURL;
+    preview.style.display = 'block';
+    document.getElementById('video').style.display = 'none';
+    stopStream();
+    document.getElementById('cam-btn').textContent = '▶ Start Camera';
+    document.getElementById('retake-btn').style.display = 'inline-flex';
+    toast('Photo loaded!', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ────────────────────────────────────────────────
+   Voice Recording
+──────────────────────────────────────────────── */
+function toggleRecording() {
+  isRecording ? stopRecording() : startRecording();
+}
+
+function startRecording() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    toast('Speech API not supported — please use Chrome or Edge, or type manually.', 'error');
+    return;
+  }
+
+  finalText = document.getElementById('caption-box').value;
+  if (finalText && !finalText.endsWith(' ')) finalText += ' ';
+  interimText = '';
+
+  recognition = new SR();
+  recognition.continuous     = true;
+  recognition.interimResults = true;
+  recognition.lang           = 'en-US';
+
+  recognition.onresult = ev => {
+    let interim = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      if (ev.results[i].isFinal) {
+        finalText += ev.results[i][0].transcript + ' ';
+      } else {
+        interim += ev.results[i][0].transcript;
+      }
+    }
+    interimText = interim;
+    document.getElementById('caption-box').value = finalText + interim;
+  };
+
+  recognition.onerror = ev => {
+    if (ev.error !== 'aborted') toast('Mic error: ' + ev.error, 'error');
+    stopRecording();
+  };
+
+  recognition.onend = () => { if (isRecording) recognition.start(); };
+
+  recognition.start();
+  isRecording = true;
+
+  document.getElementById('rec-btn').textContent  = '⏹ Stop Recording';
+  document.getElementById('rec-btn').className    = 'btn btn-record active';
+  document.getElementById('rec-dot').classList.add('active');
+  document.getElementById('voice-status').textContent = 'Listening…';
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) { recognition.stop(); recognition = null; }
+
+  // Commit interim text as final
+  const box = document.getElementById('caption-box');
+  box.value = (finalText + interimText).trim();
+  interimText = '';
+
+  document.getElementById('rec-btn').textContent  = '🎤 Start Recording';
+  document.getElementById('rec-btn').className    = 'btn btn-record';
+  document.getElementById('rec-dot').classList.remove('active');
+  document.getElementById('voice-status').textContent = 'Recording stopped';
+}
+
+/* ────────────────────────────────────────────────
+   Add to Document
+──────────────────────────────────────────────── */
+function addToDocument() {
+  if (!capturedURL) {
+    toast('Capture or upload a photo first.', 'error');
+    return;
+  }
+
+  const caption = document.getElementById('caption-box').value.trim();
+  if (isRecording) stopRecording();
+
+  const imgWidth  = parseInt(document.getElementById('img-width').value);
+  const fontSize  = parseInt(document.getElementById('font-size').value);
+  const fontFamily = document.getElementById('font-family').value;
+
+  // Calculate proportional height
+  const img = new Image();
+  img.onload = () => {
+    const ratio   = img.naturalHeight / img.naturalWidth;
+    const imgHeight = Math.round(imgWidth * ratio);
+
+    docItems.push({
+      id: Date.now(),
+      url: capturedURL,
+      caption,
+      imgWidth,
+      imgHeight,
+      fontSize,
+      fontFamily,
+    });
+
+    renderPreview();
+    document.getElementById('dl-btn').disabled = false;
+    resetCapture();
+    toast('Added to document! (' + docItems.length + ' item' + (docItems.length > 1 ? 's' : '') + ')', 'success');
+  };
+  img.src = capturedURL;
+}
+
+/* ────────────────────────────────────────────────
+   Render preview list
+──────────────────────────────────────────────── */
+function renderPreview() {
+  const list = document.getElementById('items-list');
+  if (docItems.length === 0) {
+    list.innerHTML = '<div class="empty">No items yet — capture a photo and click "Add to Document" to get started.</div>';
+    return;
+  }
+  list.innerHTML = docItems.map((item, i) => `
+    <div class="doc-item">
+      <img class="doc-thumb" src="${item.url}" alt="Photo ${i+1}">
+      <div class="doc-info">
+        <div class="doc-num">Item ${i + 1}</div>
+        <div class="doc-caption">${item.caption ? escHtml(item.caption) : '<em style="color:var(--muted)">No caption</em>'}</div>
+        <div class="doc-meta">
+          ${item.imgWidth} × ${item.imgHeight} px &nbsp;·&nbsp;
+          ${item.fontFamily} ${item.fontSize} pt
+        </div>
+      </div>
+      <button class="remove-btn" onclick="removeItem(${item.id})" title="Remove">✕</button>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function removeItem(id) {
+  docItems = docItems.filter(x => x.id !== id);
+  renderPreview();
+  document.getElementById('dl-btn').disabled = docItems.length === 0;
+}
+
+function clearAll() {
+  if (docItems.length === 0) return;
+  if (!confirm('Remove all items from the document?')) return;
+  docItems = [];
+  renderPreview();
+  document.getElementById('dl-btn').disabled = true;
+}
+
+/* ────────────────────────────────────────────────
+   Reset after adding
+──────────────────────────────────────────────── */
+function resetCapture() {
+  capturedURL = null;
+  finalText   = '';
+  interimText = '';
+
+  document.getElementById('snap-preview').style.display = 'none';
+  document.getElementById('snap-preview').src = '';
+  document.getElementById('video').style.display = 'block';
+  document.getElementById('retake-btn').style.display = 'none';
+  document.getElementById('cam-btn').textContent = '▶ Start Camera';
+  document.getElementById('caption-box').value = '';
+  document.getElementById('voice-status').textContent = 'Ready to record';
+  document.getElementById('file-input').value = '';
+}
+
+/* ────────────────────────────────────────────────
+   Generate & download Word document
+──────────────────────────────────────────────── */
+async function downloadDoc() {
+  if (docItems.length === 0) return;
+
+  const btn = document.getElementById('dl-btn');
+  btn.disabled = true;
+  btn.textContent = 'Building…';
+
+  try {
+    const {
+      Document, Paragraph, TextRun, ImageRun,
+      Packer, AlignmentType, HeadingLevel,
+    } = window.docx;
+
+    const docTitle = document.getElementById('doc-title').value.trim();
+    const children = [];
+
+    // Optional title
+    if (docTitle) {
+      children.push(
+        new Paragraph({
+          children: [new TextRun({ text: docTitle, bold: true, size: 48, font: 'Calibri' })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 480 },
+        })
+      );
+    }
+
+    for (const item of docItems) {
+      // Convert data URL → Uint8Array
+      const base64 = item.url.split(',')[1];
+      const mime   = item.url.split(';')[0].split(':')[1];
+      const imgType = mime === 'image/png' ? 'png' : 'jpg';
+
+      const binary = atob(base64);
+      const bytes  = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+      // Image paragraph
+      children.push(
+        new Paragraph({
+          children: [
+            new ImageRun({
+              data: bytes,
+              transformation: { width: item.imgWidth, height: item.imgHeight },
+              type: imgType,
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 80 },
+        })
+      );
+
+      // Caption paragraph
+      if (item.caption) {
+        children.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: item.caption,
+                font: item.fontFamily,
+                size: item.fontSize * 2,   // half-points
+                italics: true,
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 500 },
+          })
+        );
+      } else {
+        children.push(new Paragraph({ text: '', spacing: { after: 500 } }));
+      }
+    }
+
+    const doc = new Document({
+      sections: [{ children }],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const fname = (docTitle || 'photo-captions').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '-') + '.docx';
+    saveAs(blob, fname);
+    toast('Downloaded: ' + fname, 'success');
+  } catch (err) {
+    console.error(err);
+    toast('Export failed: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Download .docx';
+  }
+}
+</script>
+
+</body>
+</html>
