@@ -924,13 +924,10 @@ ${imgRels}
     const cx = w * EMU, cy = h * EMU;
     const rid = `rId${i + 1}`, pid = i + 1;
 
-    // Caption indent: align its left edge with the centered image's left edge.
-    // Content width = 6.5" = 9360 twips; 1 px at 96 dpi = 15 twips.
-    const captionIndent = Math.max(0, Math.round((9360 - w * 15) / 2));
 
     // Image paragraph
     body += `<w:p>
-      <w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="80"/></w:pPr>
+      <w:pPr><w:jc w:val="left"/><w:spacing w:before="0" w:after="80"/></w:pPr>
       <w:r><w:drawing>
         <wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
           <wp:extent cx="${cx}" cy="${cy}"/>
@@ -958,9 +955,9 @@ ${imgRels}
       </w:drawing></w:r>
     </w:p>`;
 
-    // Caption paragraph — left-aligned, indented to match image's left edge
+    // Caption paragraph — left-aligned
     body += `<w:p>
-      <w:pPr><w:jc w:val="left"/><w:ind w:left="${captionIndent}"/><w:spacing w:after="200"/></w:pPr>
+      <w:pPr><w:jc w:val="left"/><w:spacing w:after="200"/></w:pPr>
       <w:r>
         <w:rPr>
           <w:rFonts w:ascii="${fontEsc}" w:hAnsi="${fontEsc}"/>
