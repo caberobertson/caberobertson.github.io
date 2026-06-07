@@ -105,41 +105,30 @@
     /* ── Camera ── */
     #camera-wrap {
       position: relative;
-      background: #000;
+      background: var(--surface2);
       border-radius: 10px;
       overflow: hidden;
-      aspect-ratio: 16/9;
-      max-height: 420px;
+      min-height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed var(--border);
     }
-    #video {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      display: block;
+    .camera-empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem 1rem;
+      pointer-events: none;
     }
-    #canvas { display: none; }
+    .camera-empty .cam-icon { font-size: 2.8rem; line-height: 1; }
+    .camera-empty p { margin-top: .5rem; font-size: .85rem; }
     #snap-preview {
-      width: 100%; height: 100%;
-      object-fit: contain;
+      width: 100%;
+      height: auto;
       display: none;
-      background: #000;
+      border-radius: 8px;
+      object-fit: contain;
     }
-    .camera-overlay {
-      position: absolute;
-      bottom: .8rem; left: 50%;
-      transform: translateX(-50%);
-      display: flex; gap: .6rem;
-    }
-    .shutter-btn {
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      border: 4px solid #fff;
-      background: rgba(255,255,255,.2);
-      cursor: pointer;
-      backdrop-filter: blur(4px);
-      transition: background .15s;
-    }
-    .shutter-btn:hover { background: rgba(255,255,255,.4); }
-    .shutter-btn:disabled { opacity: .3; cursor: not-allowed; }
 
     /* ── File upload ── */
     .upload-label {
@@ -351,9 +340,10 @@
 
     /* Camera wrap becomes a natural-height photo frame */
     .workflow-area.photo-captured #camera-wrap {
-      aspect-ratio: unset;
       height: auto;
       max-height: 54vh;
+      min-height: unset;
+      border: none;
     }
     .workflow-area.photo-captured #snap-preview {
       max-height: 54vh;
@@ -410,7 +400,6 @@
 
       /* Camera fills left column height */
       #camera-wrap {
-        aspect-ratio: unset;
         height: calc(100dvh - 108px);
         min-height: 180px;
         max-height: 340px;
@@ -451,20 +440,26 @@
     <div class="card-title"><span class="badge">1</span> Capture or Upload a Photo</div>
 
     <div id="camera-wrap">
-      <video id="video" autoplay playsinline muted></video>
-      <img id="snap-preview" alt="Captured photo">
-      <div class="camera-overlay">
-        <button class="shutter-btn" id="shutter" title="Take photo" disabled></button>
+      <div class="camera-empty" id="camera-empty">
+        <div class="cam-icon">📷</div>
+        <p>Tap Open Camera to take a photo</p>
       </div>
+      <img id="snap-preview" alt="Captured photo">
     </div>
-    <canvas id="canvas"></canvas>
+
+    <!-- capture="environment" opens the native Android camera app -->
+    <input type="file" id="camera-input" accept="image/*" capture="environment"
+           style="display:none" onchange="handlePhoto(event)">
+    <!-- no capture attribute = opens gallery picker -->
+    <input type="file" id="file-input" accept="image/*"
+           style="display:none" onchange="handlePhoto(event)">
 
     <div class="btn-group">
-      <button class="btn btn-primary" id="cam-btn" onclick="toggleCamera()">▶ Start Camera</button>
+      <button class="btn btn-primary" onclick="document.getElementById('camera-input').click()">📷 Open Camera</button>
       <button class="btn btn-outline" id="retake-btn" onclick="retakePhoto()" style="display:none">↩ Retake</button>
       <label class="upload-label">
-        📁 Upload from Device
-        <input type="file" id="file-input" accept="image/*" onchange="handleUpload(event)">
+        📁 From Gallery
+        <input type="file" accept="image/*" onchange="handlePhoto(event)" style="display:inline">
       </label>
     </div>
   </div>
@@ -564,7 +559,6 @@
 /* ────────────────────────────────────────────────
    State
 ──────────────────────────────────────────────── */
-let mediaStream    = null;
 let capturedURL    = null;
 let activeRec      = null;   // current SpeechRecognition instance
 let isRecording    = false;
@@ -585,88 +579,33 @@ function toast(msg, type = '') {
 }
 
 /* ────────────────────────────────────────────────
-   Camera
+   Camera — uses native Android camera via input[capture]
 ──────────────────────────────────────────────── */
-async function toggleCamera() {
-  if (mediaStream) {
-    stopStream();
-    document.getElementById('cam-btn').textContent = '▶ Start Camera';
-    return;
-  }
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } },
-      audio: false,
-    });
-    const video = document.getElementById('video');
-    video.srcObject = mediaStream;
-    video.style.display = 'block';
-    document.getElementById('snap-preview').style.display = 'none';
-    document.getElementById('shutter').disabled = false;
-    document.getElementById('cam-btn').textContent = '⏹ Stop Camera';
-    document.getElementById('retake-btn').style.display = 'none';
-  } catch (err) {
-    toast('Camera error: ' + err.message, 'error');
-  }
-}
-
-function stopStream() {
-  if (mediaStream) {
-    mediaStream.getTracks().forEach(t => t.stop());
-    mediaStream = null;
-  }
-  document.getElementById('shutter').disabled = true;
-}
-
-document.getElementById('shutter').onclick = capturePhoto;
-
-function capturePhoto() {
-  const video  = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  canvas.width  = video.videoWidth  || 1280;
-  canvas.height = video.videoHeight || 720;
-  canvas.getContext('2d').drawImage(video, 0, 0);
-  capturedURL = canvas.toDataURL('image/jpeg', 0.92);
-
-  const preview = document.getElementById('snap-preview');
-  preview.src = capturedURL;
-  preview.style.display = 'block';
-  video.style.display = 'none';
-
-  stopStream();
-  document.getElementById('cam-btn').textContent = '▶ Start Camera';
-  document.getElementById('retake-btn').style.display = 'inline-flex';
-  enterCapturedLayout();
-  toast('Photo captured!', 'success');
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    capturedURL = ev.target.result;
+    document.getElementById('snap-preview').src = capturedURL;
+    document.getElementById('snap-preview').style.display = 'block';
+    document.getElementById('camera-empty').style.display = 'none';
+    document.getElementById('retake-btn').style.display = 'inline-flex';
+    enterCapturedLayout();
+    toast('Photo ready!', 'success');
+  };
+  reader.readAsDataURL(file);
 }
 
 function retakePhoto() {
   capturedURL = null;
   document.getElementById('snap-preview').style.display = 'none';
   document.getElementById('snap-preview').src = '';
-  document.getElementById('video').style.display = 'block';
+  document.getElementById('camera-empty').style.display = 'flex';
   document.getElementById('retake-btn').style.display = 'none';
+  document.getElementById('camera-input').value = '';
   document.getElementById('file-input').value = '';
   exitCapturedLayout();
-}
-
-function handleUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    capturedURL = ev.target.result;
-    const preview = document.getElementById('snap-preview');
-    preview.src = capturedURL;
-    preview.style.display = 'block';
-    document.getElementById('video').style.display = 'none';
-    stopStream();
-    document.getElementById('cam-btn').textContent = '▶ Start Camera';
-    document.getElementById('retake-btn').style.display = 'inline-flex';
-    enterCapturedLayout();
-    toast('Photo loaded!', 'success');
-  };
-  reader.readAsDataURL(file);
 }
 
 function enterCapturedLayout() {
@@ -867,12 +806,12 @@ function resetCapture() {
 
   document.getElementById('snap-preview').style.display = 'none';
   document.getElementById('snap-preview').src = '';
-  document.getElementById('video').style.display = 'block';
+  document.getElementById('camera-empty').style.display = 'flex';
   document.getElementById('retake-btn').style.display = 'none';
-  document.getElementById('cam-btn').textContent = '▶ Start Camera';
+  document.getElementById('camera-input').value = '';
+  document.getElementById('file-input').value = '';
   document.getElementById('caption-box').value = '';
   document.getElementById('voice-status').textContent = 'Ready to record';
-  document.getElementById('file-input').value = '';
   exitCapturedLayout();
 }
 
