@@ -863,10 +863,10 @@ function xmlEsc(s) {
 const SLOT_W = 624, SLOT_H = 370;
 
 function fitInSlot(naturalW, naturalH) {
-  let w = naturalW, h = naturalH;
-  if (w > SLOT_W) { h = h * SLOT_W / w; w = SLOT_W; }
-  if (h > SLOT_H) { w = w * SLOT_H / h; h = SLOT_H; }
-  return { w: Math.round(w), h: Math.round(h) };
+  // Always fill the full content width so the image spans margin to margin
+  const w = SLOT_W;
+  const h = Math.round(naturalH * SLOT_W / naturalW);
+  return { w, h };
 }
 
 async function buildDocxBlob(items, title, fontSize, fontFamily) {
