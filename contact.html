@@ -4,79 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact | Cabe Robertson</title>
+    <meta name="description" content="Contact Cabe Robertson — Electrical Engineering student at NMSU, actively seeking internship and co-op roles for Summer/Fall 2026 and 2027.">
+    <meta property="og:title" content="Contact | Cabe Robertson">
+    <meta property="og:description" content="Let's connect — actively seeking internship and co-op roles.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://caberobertson.github.io/contact.html">
+    <meta name="theme-color" content="#050608">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0c12'/%3E%3Cpolygon points='56 10 22 58 45 58 40 90 78 40 52 40' fill='%2300a8ff'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;})();</script>
 </head>
 <body>
-    <canvas id="bg-canvas"></canvas>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
-    <nav>
-        <div class="container">
-            <ul>
+    <nav class="site-nav">
+        <div class="container nav-inner">
+            <a href="index.html" class="logo">cabe<span>.</span>robertson</a>
+            <ul class="nav-links" id="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="experience.html">Experience</a></li>
                 <li><a href="projects.html">Projects</a></li>
                 <li><a href="skills.html">Skills</a></li>
                 <li><a href="contact.html">Contact</a></li>
             </ul>
+            <div class="nav-actions">
+                <button id="cmdk-btn" class="icon-btn" aria-label="Open command palette" title="Command palette (Ctrl+K)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <span class="kbd-hint">Ctrl K</span>
+                </button>
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme">
+                    <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </button>
+                <button id="nav-burger" class="icon-btn nav-burger" aria-label="Toggle menu" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <section class="container page-section">
-        <div class="contact-header centered-header">
-            <h2>Let's Connect</h2>
-            <p>I am actively seeking internship & co-op roles for Summer/Fall 2026 and 2027. Whether you have an opportunity or just want to chat engineering, I'd love to hear from you.</p>
-        </div>
-        
-        <!-- Centered Contact Cards Grid -->
-        <div class="contact-cards-grid">
-            
-            <a href="mailto:caberobertson@gmail.com" class="contact-card-v2">
-                <div class="icon-box">
-                    <!-- Email SVG -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                </div>
-                <div class="card-text">
-                    <span>Email</span>
-                    <h4>caberobertson@gmail.com</h4>
-                </div>
-            </a>
+    <main id="main">
+        <section class="section centered">
+            <div class="container">
+                <h2 class="section-title reveal in">Let's Connect</h2>
+                <p class="section-sub reveal in">I am actively seeking internship &amp; co-op roles for Summer/Fall 2026 and 2027. Whether you have an opportunity or just want to chat engineering, I'd love to hear from you.</p>
 
-            <div class="contact-card-v2">
-                <div class="icon-box pin-icon">
-                    <!-- Phone SVG -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                </div>
-                <div class="card-text">
-                    <span>Phone</span>
-                    <h4>575-644-4703</h4>
+                <div class="contact-grid">
+                    <a href="mailto:caberobertson@gmail.com" class="card contact-card reveal">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </div>
+                        <div class="card-text">
+                            <span class="label">Email</span>
+                            <h4>caberobertson@gmail.com</h4>
+                        </div>
+                        <button class="copy-chip" data-copy="caberobertson@gmail.com" aria-label="Copy email address">copy</button>
+                    </a>
+
+                    <div class="card contact-card reveal" data-delay="1">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        </div>
+                        <div class="card-text">
+                            <span class="label">Phone</span>
+                            <h4>575-644-4703</h4>
+                        </div>
+                        <button class="copy-chip" data-copy="575-644-4703" aria-label="Copy phone number">copy</button>
+                    </div>
+
+                    <div class="card contact-card reveal" data-delay="2">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <div class="card-text">
+                            <span class="label">Location</span>
+                            <h4>Las Cruces, NM</h4>
+                        </div>
+                    </div>
+
+                    <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" rel="noopener" class="card contact-card accent reveal" data-delay="3">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                        </div>
+                        <div class="card-text">
+                            <span class="label">Network</span>
+                            <h4>Connect on LinkedIn</h4>
+                        </div>
+                    </a>
                 </div>
             </div>
+        </section>
+    </main>
 
-            <div class="contact-card-v2">
-                <div class="icon-box location-icon">
-                    <!-- Location SVG -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                </div>
-                <div class="card-text">
-                    <span>Location</span>
-                    <h4>Las Cruces, NM</h4>
-                </div>
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <p>&copy; <span id="year">2026</span> Cabe Robertson &middot; Las Cruces, NM</p>
+            <div class="footer-links">
+                <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" rel="noopener">LinkedIn</a>
+                <a href="mailto:caberobertson@gmail.com">Email</a>
+                <a href="Cabe_Robertson_Resume.pdf" target="_blank">Resume</a>
             </div>
-
-            <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" class="contact-card-v2 highlight-card">
-                <div class="icon-box linkedin-icon">
-                    <!-- LinkedIn SVG -->
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-                </div>
-                <div class="card-text">
-                    <span>Network</span>
-                    <h4>Connect on LinkedIn</h4>
-                </div>
-            </a>
-
+            <span class="footer-hint">press <kbd>Ctrl</kbd>+<kbd>K</kbd> to navigate</span>
         </div>
-    </section>
+    </footer>
+
+    <button id="back-to-top" aria-label="Back to top">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </button>
 
     <script src="particles.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
