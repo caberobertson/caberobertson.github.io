@@ -54,6 +54,7 @@ html { scroll-behavior: smooth; }
 body {
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     font-family: var(--font-body);
@@ -84,7 +85,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.2; }
     padding: 0 1.6rem;
 }
 
-main { flex: 1 0 auto; }
+main { flex: 1 0 auto; padding-bottom: 4rem; }
 
 /* Scroll progress bar */
 #scroll-progress {
@@ -657,7 +658,12 @@ main { flex: 1 0 auto; }
     touch-action: pan-y;
 }
 
-.slide { min-width: 100%; position: relative; }
+.slide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    margin: 0; /* override the browser's default figure margins, which skew the 100%-per-slide transform */
+    position: relative;
+}
 
 .slide img {
     width: 100%;
@@ -724,7 +730,7 @@ main { flex: 1 0 auto; }
 
 /* ---------- Footer ---------- */
 .site-footer {
-    margin-top: 5rem;
+    margin-top: auto; /* flex: pin to the bottom of the viewport on short pages */
     border-top: 1px solid var(--border);
     padding: 2.4rem 0;
     background: var(--surface);

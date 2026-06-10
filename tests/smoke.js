@@ -39,7 +39,8 @@ for (const page of pages) {
     for (const el of doc.querySelectorAll('img[src], script[src], link[rel=stylesheet][href]')) {
         const src = el.getAttribute('src') || el.getAttribute('href');
         if (/^(https?:|data:)/.test(src)) continue;
-        if (!fs.existsSync(path.join(root, src))) errs.push(`missing asset: ${src}`);
+        const file = src.split('?')[0]; // ignore cache-busting query strings
+        if (!fs.existsSync(path.join(root, file))) errs.push(`missing asset: ${src}`);
     }
 
     // Internal links must resolve to a real file
