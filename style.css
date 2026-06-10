@@ -131,32 +131,16 @@ main { flex: 1 0 auto; }
 }
 
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    text-decoration: none;
-    color: var(--text);
     font-family: var(--font-display);
     font-weight: 700;
-}
-
-.logo-mark {
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: var(--gradient);
-    color: #04121f;
-    font-size: 0.95rem;
-    letter-spacing: -0.5px;
-    box-shadow: 0 6px 18px var(--glow);
-}
-
-.logo-text {
-    font-size: 1.08rem;
+    font-size: 1.1rem;
     letter-spacing: -0.4px;
+    text-decoration: none;
+    color: var(--text);
+    transition: color 0.25s ease;
 }
+
+.logo:hover { color: var(--primary); }
 
 .nav-links {
     list-style: none;
