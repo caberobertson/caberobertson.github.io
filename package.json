@@ -1,0 +1,15 @@
+{
+  "name": "caberobertson-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal portfolio of Cabe Robertson — built with hand-written HTML, CSS, and vanilla JavaScript.",
+  "scripts": {
+    "validate": "html-validate \"*.html\"",
+    "test": "node tests/smoke.js",
+    "ci": "npm run validate && npm test"
+  },
+  "devDependencies": {
+    "html-validate": "^11.5.3",
+    "jsdom": "^29.1.1"
+  }
+}

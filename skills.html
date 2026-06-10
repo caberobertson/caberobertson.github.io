@@ -19,11 +19,15 @@
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <div id="scroll-progress" aria-hidden="true"></div>
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
     <nav class="site-nav">
         <div class="container nav-inner">
-            <a href="index.html" class="logo">cabe<span>.</span>robertson</a>
+            <a href="index.html" class="logo" aria-label="Cabe Robertson — home">
+                <span class="logo-mark" aria-hidden="true">CR</span>
+                <span class="logo-text">Cabe Robertson</span>
+            </a>
             <ul class="nav-links" id="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="experience.html">Experience</a></li>
@@ -32,15 +36,15 @@
                 <li><a href="contact.html">Contact</a></li>
             </ul>
             <div class="nav-actions">
-                <button id="cmdk-btn" class="icon-btn" aria-label="Open command palette" title="Command palette (Ctrl+K)">
+                <button type="button" id="cmdk-btn" class="icon-btn" aria-label="Open command palette" title="Command palette (Ctrl+K)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     <span class="kbd-hint">Ctrl K</span>
                 </button>
-                <button id="theme-toggle" class="icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme">
+                <button type="button" id="theme-toggle" class="icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme">
                     <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 </button>
-                <button id="nav-burger" class="icon-btn nav-burger" aria-label="Toggle menu" aria-expanded="false">
+                <button type="button" id="nav-burger" class="icon-btn nav-burger" aria-label="Toggle menu" aria-expanded="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
             </div>
@@ -50,7 +54,7 @@
     <main id="main">
         <section class="section">
             <div class="container">
-                <h2 class="section-title reveal in">Technical Skills</h2>
+                <h1 class="section-title reveal in">Technical Skills</h1>
                 <p class="section-sub reveal in">The languages, tools, and equipment I work with — in the lab and at the keyboard.</p>
 
                 <div class="skills-grid">
@@ -65,7 +69,9 @@
                             <span class="skill-tag">C / C++</span>
                             <span class="skill-tag">MATLAB</span>
                             <span class="skill-tag">VHDL</span>
+                            <span class="skill-tag">OpenCV</span>
                             <span class="skill-tag">Arduino IDE</span>
+                            <span class="skill-tag">Git / GitHub</span>
                             <span class="skill-tag">EAGLE (PCB Design)</span>
                             <span class="skill-tag">LaTeX (Overleaf)</span>
                         </div>
@@ -79,6 +85,8 @@
                         </h3>
                         <div class="skill-tags accent-tags">
                             <span class="skill-tag">FPGA</span>
+                            <span class="skill-tag">ESP32 &amp; Microcontrollers</span>
+                            <span class="skill-tag">BLDC Motor Control (PWM)</span>
                             <span class="skill-tag">Oscilloscope</span>
                             <span class="skill-tag">Function Generator</span>
                             <span class="skill-tag">Power Supply</span>
@@ -116,7 +124,7 @@
         </div>
     </footer>
 
-    <button id="back-to-top" aria-label="Back to top">
+    <button type="button" id="back-to-top" aria-label="Back to top">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
     </button>
 

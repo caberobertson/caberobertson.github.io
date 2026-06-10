@@ -19,9 +19,10 @@ Personal portfolio of **Cabe Robertson** — Electrical Engineering student at N
 
 - **Light/dark theme** with persistence (`localStorage`) and a theme-aware particle constellation background
 - **Command palette** — press `Ctrl`/`⌘` + `K` anywhere to navigate, download the resume, or toggle the theme
-- **Scroll-reveal animations**, typed hero text, and animated counters (all respect `prefers-reduced-motion`)
+- **Scroll-reveal animations**, typed hero text, and a scroll-progress bar (all respect `prefers-reduced-motion`)
 - **Touch/keyboard-friendly photo slider** with autoplay that pauses on hover and hidden tabs
-- Responsive mobile navigation, SEO/Open Graph metadata, and accessibility touches (skip link, ARIA labels)
+- **JSON-LD `Person` structured data** for rich search results
+- Responsive mobile navigation, SEO/Open Graph metadata, and accessibility touches (skip link, single `<h1>` per page, ARIA labels)
 
 ## Stack
 
@@ -29,6 +30,20 @@ Hand-written HTML, CSS, and vanilla JavaScript — no frameworks, no build step.
 
 ```
 style.css     — design system (tokens, components, themes)
-main.js       — interactions (theme, nav, palette, slider, reveal, counters)
+main.js       — interactions (theme, nav, palette, slider, reveal, progress)
 particles.js  — canvas constellation background
 ```
+
+## Development & CI
+
+Tooling is dev-only (no runtime dependencies). Install and run the checks locally:
+
+```bash
+npm install
+npm run validate   # html-validate across all pages
+npm test           # jsdom smoke test (assets, links, widgets, structured data)
+npm run ci         # both of the above
+```
+
+Every push and pull request runs the same checks via GitHub Actions
+(`.github/workflows/ci.yml`).

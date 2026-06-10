@@ -444,7 +444,7 @@
         <div class="cam-icon">📷</div>
         <p>Tap Open Camera to take a photo</p>
       </div>
-      <img id="snap-preview" alt="Captured photo">
+      <img id="snap-preview" alt="Captured photo" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
     </div>
 
     <!-- capture="environment" opens the native Android camera app -->
@@ -455,8 +455,8 @@
            style="display:none" onchange="handlePhoto(event)">
 
     <div class="btn-group">
-      <button class="btn btn-primary" onclick="document.getElementById('camera-input').click()">📷 Open Camera</button>
-      <button class="btn btn-outline" id="retake-btn" onclick="retakePhoto()" style="display:none">↩ Retake</button>
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('camera-input').click()">📷 Open Camera</button>
+      <button type="button" class="btn btn-outline" id="retake-btn" onclick="retakePhoto()" style="display:none">↩ Retake</button>
       <label class="upload-label">
         📁 From Gallery
         <input type="file" accept="image/*" onchange="handlePhoto(event)" style="display:inline">
@@ -478,7 +478,7 @@
     </div>
 
     <div class="btn-group" style="margin-top:0;margin-bottom:1rem">
-      <button class="btn btn-record" id="rec-btn" onclick="toggleRecording()">🎤 Start Recording</button>
+      <button type="button" class="btn btn-record" id="rec-btn" onclick="toggleRecording()">🎤 Start Recording</button>
     </div>
 
     <textarea id="caption-box" placeholder="Caption appears here after recording — or type / edit directly…"></textarea>
@@ -520,7 +520,7 @@
     </div>
 
     <div class="add-section" style="margin-top:1.5rem">
-      <button class="btn btn-add" onclick="addToDocument()">✅ Add to Document</button>
+      <button type="button" class="btn btn-add" onclick="addToDocument()">✅ Add to Document</button>
     </div>
   </div>
 
@@ -530,7 +530,7 @@
   <div class="card">
     <div class="card-title" style="justify-content:space-between">
       <span>📄 Document Preview</span>
-      <button class="btn btn-outline" style="font-size:.8rem;padding:.35rem .75rem" onclick="clearAll()">Clear All</button>
+      <button type="button" class="btn btn-outline" style="font-size:.8rem;padding:.35rem .75rem" onclick="clearAll()">Clear All</button>
     </div>
     <div id="items-list">
       <div class="empty">No items yet — capture a photo and click "Add to Document" to get started.</div>
@@ -545,7 +545,7 @@
       <input type="text" id="doc-title" placeholder="My Photo Collection">
     </div>
     <div class="download-bar">
-      <button class="btn btn-download" id="dl-btn" onclick="downloadDoc()" disabled>
+      <button type="button" class="btn btn-download" id="dl-btn" onclick="downloadDoc()" disabled>
         Download .docx
       </button>
     </div>
@@ -802,7 +802,7 @@ function renderPreview() {
         <div class="doc-num">Item ${i + 1} ${i % 2 === 0 ? '· Page ' + (Math.floor(i/2)+1) + ' top' : '· Page ' + (Math.floor(i/2)+1) + ' bottom'}</div>
         <div class="doc-caption">${item.caption ? escHtml(item.caption) : '<em style="color:var(--muted)">No caption</em>'}</div>
       </div>
-      <button class="remove-btn" onclick="removeItem(${item.id})" title="Remove">✕</button>
+      <button type="button" class="remove-btn" onclick="removeItem(${item.id})" title="Remove">✕</button>
     </div>
   `).join('');
 }

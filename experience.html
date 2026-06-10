@@ -19,11 +19,15 @@
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <div id="scroll-progress" aria-hidden="true"></div>
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
     <nav class="site-nav">
         <div class="container nav-inner">
-            <a href="index.html" class="logo">cabe<span>.</span>robertson</a>
+            <a href="index.html" class="logo" aria-label="Cabe Robertson — home">
+                <span class="logo-mark" aria-hidden="true">CR</span>
+                <span class="logo-text">Cabe Robertson</span>
+            </a>
             <ul class="nav-links" id="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="experience.html">Experience</a></li>
@@ -32,15 +36,15 @@
                 <li><a href="contact.html">Contact</a></li>
             </ul>
             <div class="nav-actions">
-                <button id="cmdk-btn" class="icon-btn" aria-label="Open command palette" title="Command palette (Ctrl+K)">
+                <button type="button" id="cmdk-btn" class="icon-btn" aria-label="Open command palette" title="Command palette (Ctrl+K)">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     <span class="kbd-hint">Ctrl K</span>
                 </button>
-                <button id="theme-toggle" class="icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme">
+                <button type="button" id="theme-toggle" class="icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme">
                     <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 </button>
-                <button id="nav-burger" class="icon-btn nav-burger" aria-label="Toggle menu" aria-expanded="false">
+                <button type="button" id="nav-burger" class="icon-btn nav-burger" aria-label="Toggle menu" aria-expanded="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
             </div>
@@ -50,7 +54,7 @@
     <main id="main">
         <section class="section">
             <div class="container">
-                <h2 class="section-title reveal in">Professional Experience</h2>
+                <h1 class="section-title reveal in">Professional Experience</h1>
                 <p class="section-sub reveal in">Internships and research roles spanning hardware prototyping, test &amp; benchmarking, and communications research.</p>
 
                 <div class="timeline">
@@ -68,9 +72,9 @@
                                 <span class="tech-pill">Benchmarking</span>
                             </div>
                             <ul>
-                                <li>Deconstructed a desk blower fan to test the internal BLDC motor's voltage/current ratings and PWM capabilities for use in an air filtration system</li>
-                                <li>Drafted an Arduino program on an ESP32 to control the 3 speeds of the BLDC motor to add user control capabilities</li>
-                                <li>Conducted benchmarks with the original blower fan to measure noise, temperature, speed, and velocity of the fan using different attachments such as air ducts and filters</li>
+                                <li>Reverse-engineered a desk blower fan to characterize the internal BLDC motor's voltage/current ratings and PWM response for an air-filtration system prototype</li>
+                                <li>Programmed an ESP32 (Arduino) for 3 user-selectable fan speeds, adding speed control where the stock unit had none</li>
+                                <li>Benchmarked airflow, noise, temperature, and velocity across duct and filter attachments, identifying the configuration that reduced noise by ~10&nbsp;dB and increased airflow by 20% versus the stock fan</li>
                             </ul>
                         </div>
                     </article>
@@ -89,9 +93,9 @@
                                 <span class="tech-pill">Channel Coding</span>
                             </div>
                             <ul>
-                                <li>Developed Python programs to simulate channel decoding using Linear Algebra for wireless communication models</li>
-                                <li>Executed experiments with multiple-hour runtimes utilizing contrasting bit string values to ensure software functionality</li>
-                                <li>Wrote MATLAB scripts to process and visualize experimental results, producing publication-quality plots and diagrams</li>
+                                <li>Developed Python simulations of linear-algebra channel decoding for wireless communication models, validating bit-error performance across various encoding schemes</li>
+                                <li>Designed and ran multi-hour experiments over contrasting input bit-string values to verify decoder reliability under varied conditions</li>
+                                <li>Automated result processing and plotting in MATLAB, producing publication-quality figures and diagrams</li>
                             </ul>
                             <div class="experience-media">
                                 <img src="plot1.jpg" alt="MATLAB plot of channel decoding simulation results" loading="lazy">
@@ -108,14 +112,16 @@
                                 <span class="date">Apr 2025 – Aug 2025</span>
                             </div>
                             <div class="tech-stack">
+                                <span class="tech-pill">RF Systems</span>
                                 <span class="tech-pill">Hardware Prototyping</span>
                                 <span class="tech-pill">Technical Writing</span>
                                 <span class="tech-pill">Defense</span>
                             </div>
                             <ul>
-                                <li>Created an affordable demonstration kit for $219 to accurately present the capabilities of a communication-disrupting device to law enforcement and defense agencies while also being easily producible</li>
-                                <li>Improvised a lightweight solution for a scenario in which wind could knock over the demonstration, ensuring portability and stability of the kit</li>
-                                <li>Authored an in-depth user manual for a new product, guiding customers on proper handling and setup of the device for missions or training</li>
+                                <li>Designed and built a portable $219 demonstration kit for an RF communication-jamming device shown to law enforcement and defense clients — ~56% cheaper than the prior $500 setup</li>
+                                <li>Engineered a lightweight stabilizing fix that kept the demo operational in windy outdoor conditions, eliminating tip-over failures during client demonstrations</li>
+                                <li>Resolved a 4-year-old server permission/synchronization bug, restoring reliable shared-file access and improving workstation efficiency company-wide</li>
+                                <li>Authored the product user manual, standardizing setup and handling procedures for mission and training use</li>
                             </ul>
                         </div>
                     </article>
@@ -134,19 +140,20 @@
                         <div class="card timeline-card">
                             <div class="timeline-head">
                                 <h3>Vice President &middot; IEEE NMSU Student Chapter</h3>
-                                <span class="date">Current</span>
+                                <span class="date">Oct 2024 – Present</span>
                             </div>
                             <div class="tech-stack">
                                 <span class="tech-pill">External Affairs</span>
                                 <span class="tech-pill">Fundraising</span>
                                 <span class="tech-pill">Industry Relations</span>
+                                <span class="tech-pill">Mentorship</span>
                             </div>
                             <ul>
-                                <li>Lead all external affairs with the national IEEE organization and communication with industry employers for collaboration with our chapter</li>
-                                <li>Lead a fundraising project for the chapter and the entire Electrical and Computer Engineering department, with an estimated value of over $50,000</li>
-                                <li>Hosted a resume workshop preparing students for a career fair, and represented the chapter at the IEEE Rising Stars Conference 2026</li>
-                                <li>Demonstrated a Brain-Computer Interface kit to attendees at the El Paso Science Festival 2026</li>
-                                <li>Chapter recognized with the Most Improved Student Organization Award at the 2026 E-Council Banquet</li>
+                                <li>Lead a $50,000 fundraising initiative to revitalize the chapter and the entire Electrical &amp; Computer Engineering department</li>
+                                <li>Spearheaded the chapter's turnaround, earning its Most Improved Student Organization Award at the 2026 E-Council Banquet</li>
+                                <li>Grew general-meeting attendance to 30+ students and mentor members through hands-on troubleshooting and soldering workshops</li>
+                                <li>Serve as primary liaison to industry sponsors, national IEEE, and campus organizations to secure collaborations and sponsorship</li>
+                                <li>Hosted a pre-career-fair resume workshop, represented the chapter at the IEEE Rising Stars Conference 2026, and demonstrated a Brain–Computer Interface kit at the El Paso Science Festival 2026</li>
                             </ul>
                         </div>
                     </article>
@@ -167,7 +174,7 @@
         </div>
     </footer>
 
-    <button id="back-to-top" aria-label="Back to top">
+    <button type="button" id="back-to-top" aria-label="Back to top">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
     </button>
 

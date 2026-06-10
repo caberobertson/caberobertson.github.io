@@ -1,6 +1,6 @@
 /* ==========================================================================
    Cabe Robertson — Portfolio interactions
-   Theme toggle · mobile nav · scroll reveal · typed hero · counters ·
+   Theme toggle · mobile nav · scroll reveal · typed hero · scroll progress ·
    photo slider · command palette · back-to-top · clipboard
    ========================================================================== */
 (() => {
@@ -78,36 +78,6 @@
         }
     }
 
-    /* ---------- Animated counters ---------- */
-    const counters = $$('[data-count]');
-    if (counters.length && 'IntersectionObserver' in window) {
-        const animate = (el) => {
-            const target = parseFloat(el.dataset.count);
-            const prefix = el.dataset.prefix || '';
-            const suffix = el.dataset.suffix || '';
-            if (reducedMotion) { el.textContent = prefix + target + suffix; return; }
-            const duration = 1400;
-            const start = performance.now();
-            const step = (now) => {
-                const p = Math.min((now - start) / duration, 1);
-                const eased = 1 - Math.pow(1 - p, 3);
-                el.textContent = prefix + Math.round(target * eased) + suffix;
-                if (p < 1) requestAnimationFrame(step);
-            };
-            requestAnimationFrame(step);
-        };
-        const io = new IntersectionObserver((entries) => {
-            entries.forEach((e) => {
-                if (e.isIntersecting) { animate(e.target); io.unobserve(e.target); }
-            });
-        }, { threshold: 0.4 });
-        counters.forEach((el) => io.observe(el));
-    } else {
-        counters.forEach((el) => {
-            el.textContent = (el.dataset.prefix || '') + el.dataset.count + (el.dataset.suffix || '');
-        });
-    }
-
     /* ---------- Photo slider ---------- */
     const track = $('.slider-track');
     if (track) {
@@ -120,6 +90,7 @@
         // Build dots to match the number of slides
         slides.forEach((_, i) => {
             const dot = document.createElement('button');
+            dot.type = 'button';
             dot.className = 'dot' + (i === 0 ? ' active' : '');
             dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
             dot.addEventListener('click', () => goTo(i));
@@ -176,6 +147,19 @@
             backBtn.classList.toggle('visible', window.scrollY > 500);
         }, { passive: true });
         backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' }));
+    }
+
+    /* ---------- Scroll progress bar ---------- */
+    const progress = $('#scroll-progress');
+    if (progress) {
+        const updateProgress = () => {
+            const h = document.documentElement;
+            const max = h.scrollHeight - h.clientHeight;
+            progress.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+        };
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        window.addEventListener('resize', updateProgress);
+        updateProgress();
     }
 
     /* ---------- Copy-to-clipboard chips ---------- */
@@ -251,6 +235,7 @@
         }
         filtered.forEach((cmd, i) => {
             const btn = document.createElement('button');
+            btn.type = 'button';
             btn.className = 'cmdk-item' + (i === selected ? ' selected' : '');
             btn.innerHTML = `<span class="cmdk-icon">${cmd.icon}</span><span>${cmd.label}</span>`;
             btn.addEventListener('click', () => { closePalette(); cmd.run(); });
