@@ -21,6 +21,7 @@
     if (storedTheme) document.documentElement.dataset.theme = storedTheme;
 
     const toggleTheme = () => {
+        // Default (no attribute set) is the dark "CRT" theme, so unset must resolve to 'dark'.
         const current = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
         applyTheme(current === 'light' ? 'dark' : 'light');
     };

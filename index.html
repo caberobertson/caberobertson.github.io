@@ -9,12 +9,12 @@
     <meta property="og:description" content="Electrical Engineering student at NMSU · IEEE Student Chapter Vice President · Hardware, R&D, and test engineering.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://caberobertson.github.io/">
-    <meta name="theme-color" content="#050608">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230a0c12'/%3E%3Cpolygon points='56 10 22 58 45 58 40 90 78 40 52 40' fill='%2300a8ff'/%3E%3C/svg%3E">
+    <meta name="theme-color" content="#0e100b">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231b1a17'/%3E%3Cpolyline points='10,68 30,68 30,32 50,32 50,68 70,68 70,32 90,32' fill='none' stroke='%23f2a93c' stroke-width='8' stroke-linecap='square'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,900;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=4">
     <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;})();</script>
     <script type="application/ld+json">
     {
@@ -50,7 +50,6 @@
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <div id="scroll-progress" aria-hidden="true"></div>
-    <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
     <nav class="site-nav">
         <div class="container nav-inner">
@@ -82,30 +81,57 @@
         <!-- Hero -->
         <header class="hero">
             <div class="container">
-                <div class="badge reveal in"><span class="pulse" aria-hidden="true"></span> Open to internship &amp; co-op roles — Summer/Fall 2026 &amp; 2027</div>
-                <h1 class="reveal in">Cabe <span class="grad">Robertson</span></h1>
-                <p class="typed-line reveal in"><span id="typed-text" data-phrases='["Electrical Engineering Student @ NMSU","Hardware &amp; Test Engineering","Communications &amp; Signal Processing","IEEE NMSU Vice President"]'></span><span class="caret">&nbsp;</span></p>
-                <div class="hero-cta reveal in">
-                    <a href="Cabe_Robertson_Resume.pdf" target="_blank" class="btn btn-primary">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        Resume
-                    </a>
-                    <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" rel="noopener" class="btn">LinkedIn</a>
-                    <a href="mailto:caberobertson@gmail.com" class="btn">Email</a>
+                <p class="hero-meta reveal in"><span class="pulse" aria-hidden="true"></span> B.S. Electrical Engineering &middot; NMSU &middot; Expected Dec 2027</p>
+                <div class="hero-grid">
+                    <div>
+                        <h1 class="reveal in">Cabe <span class="accent-word">Robertson</span></h1>
+                        <div class="hero-cta reveal in">
+                            <a href="Cabe_Robertson_Resume.pdf" target="_blank" class="btn btn-primary">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Resume
+                            </a>
+                            <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" rel="noopener" class="btn">LinkedIn</a>
+                            <a href="mailto:caberobertson@gmail.com" class="btn">Email</a>
+                        </div>
+                    </div>
+                    <dl class="spec-block reveal in" data-delay="1">
+                        <div class="spec-row">
+                            <dt>Role</dt>
+                            <dd><span class="live-dot" aria-hidden="true"></span><span class="typed-line"><span id="typed-text" data-phrases='["Electrical Engineering Student @ NMSU","Hardware &amp; Test Engineering","Communications &amp; Signal Processing","IEEE NMSU Vice President"]'></span><span class="caret">&nbsp;</span></span></dd>
+                        </div>
+                        <div class="spec-row">
+                            <dt>Focus</dt>
+                            <dd>Comms &amp; Signal Processing</dd>
+                        </div>
+                        <div class="spec-row">
+                            <dt>Status</dt>
+                            <dd>Open — Summer/Fall '26 &amp; '27</dd>
+                        </div>
+                        <div class="spec-row">
+                            <dt>Location</dt>
+                            <dd>Las Cruces, NM</dd>
+                        </div>
+                    </dl>
                 </div>
             </div>
+            <div class="ruler" aria-hidden="true"></div>
         </header>
 
         <!-- About + Education -->
         <section class="section">
             <div class="container">
-                <h2 class="section-title reveal">About Me</h2>
-                <div class="two-col">
-                    <div class="card reveal">
+                <div class="section-head reveal">
+                    <span class="section-index">01</span>
+                    <h2 class="section-title">About Me</h2>
+                </div>
+                <div class="grid-2">
+                    <div class="panel about-card reveal">
+                        <span class="panel-tag">&sect; About</span>
                         <p>I am a Junior Electrical Engineering student with a concentration in <strong>Communications and Signal Processing</strong> at <strong>New Mexico State University</strong> (expected Dec 2027). Over the course of my degree, I have built a wide range of experience — from hardware prototyping and research, to computer vision projects for facial and object tracking, to working at a startup where I helped develop, research, and test the systems destined for an early-stage product. All of this drives me toward internship roles in <strong>R&amp;D, Test, and Hardware engineering</strong>, where I can contribute meaningfully as an intern and keep expanding my skillset for industry after graduation.</p>
                         <p>I currently serve as the <strong>Vice President of the IEEE NMSU Student Chapter</strong>, where I lead all external affairs with the national IEEE organization and communication with industry employers for collaboration with our chapter. I am also the lead on a fundraising project for our organization and the entire Electrical and Computer Engineering department, with an estimated value of over <strong>$50,000</strong>.</p>
                     </div>
-                    <div class="card edu-card reveal" data-delay="1">
+                    <div class="panel edu-card reveal" data-delay="1">
+                        <span class="panel-tag accent">&sect; Edu</span>
                         <h3>Education</h3>
                         <p class="edu-degree">B.S. Electrical Engineering</p>
                         <p class="edu-meta">New Mexico State University<br>Concentration: Communications &amp; Signal Processing<br>Expected: December 2027</p>
@@ -125,23 +151,23 @@
                         <div class="slider-track">
                             <figure class="slide">
                                 <img src="photo5.jpg" alt="Attending the 2026 E-Council Banquet representing IEEE" loading="lazy">
-                                <figcaption class="slide-caption">Most Improved Student Organization Award</figcaption>
+                                <figcaption class="slide-caption"><span class="fig-num">FIG.01</span> Most Improved Student Organization Award</figcaption>
                             </figure>
                             <figure class="slide">
                                 <img src="photo4.jpg" alt="Demonstrating my Brain-Computer Interface kit to attendees" loading="lazy">
-                                <figcaption class="slide-caption">El Paso Science Festival 2026</figcaption>
+                                <figcaption class="slide-caption"><span class="fig-num">FIG.02</span> El Paso Science Festival 2026</figcaption>
                             </figure>
                             <figure class="slide">
                                 <img src="photo1.jpg" alt="A resume workshop I hosted for students prior to a career fair" loading="lazy">
-                                <figcaption class="slide-caption">Resume Workshop</figcaption>
+                                <figcaption class="slide-caption"><span class="fig-num">FIG.03</span> Resume Workshop</figcaption>
                             </figure>
                             <figure class="slide">
                                 <img src="photo2.jpg" alt="IEEE Rising Stars Conference 2026" loading="lazy">
-                                <figcaption class="slide-caption">IEEE Rising Stars Conference 2026</figcaption>
+                                <figcaption class="slide-caption"><span class="fig-num">FIG.04</span> IEEE Rising Stars Conference 2026</figcaption>
                             </figure>
                             <figure class="slide">
                                 <img src="photo3.jpg" alt="IEEE chapter meeting with over 30 attendees" loading="lazy">
-                                <figcaption class="slide-caption">IEEE Meeting — 30+ Attendees</figcaption>
+                                <figcaption class="slide-caption"><span class="fig-num">FIG.05</span> IEEE Meeting — 30+ Attendees</figcaption>
                             </figure>
                         </div>
                         <button type="button" class="slider-btn prev" aria-label="Previous slide">&#10094;</button>
@@ -169,7 +195,6 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
     </button>
 
-    <script src="particles.js?v=3"></script>
-    <script src="main.js?v=3"></script>
+    <script src="main.js?v=4"></script>
 </body>
 </html>

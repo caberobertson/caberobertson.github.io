@@ -17,7 +17,7 @@ Personal portfolio of **Cabe Robertson** — Electrical Engineering student at N
 
 ## Features
 
-- **Light/dark theme** with persistence (`localStorage`) and a theme-aware particle constellation background
+- **Light/dark theme** with persistence (`localStorage`) — CRT-phosphor dark mode by default, warm paper light theme
 - **Command palette** — press `Ctrl`/`⌘` + `K` anywhere to navigate, download the resume, or toggle the theme
 - **Scroll-reveal animations**, typed hero text, and a scroll-progress bar (all respect `prefers-reduced-motion`)
 - **Touch/keyboard-friendly photo slider** with autoplay that pauses on hover and hidden tabs
@@ -31,7 +31,6 @@ Hand-written HTML, CSS, and vanilla JavaScript — no frameworks, no build step.
 ```
 style.css     — design system (tokens, components, themes)
 main.js       — interactions (theme, nav, palette, slider, reveal, progress)
-particles.js  — canvas constellation background
 ```
 
 ## Development & CI
