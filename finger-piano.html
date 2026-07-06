@@ -200,10 +200,10 @@
 <body>
 
 <header>
-  <div class="logo">🎹</div>
+  <div class="logo">🎻</div>
   <div>
     <h1>Finger Piano</h1>
-    <p>Wave your fingers over the keys — computer vision hand tracking meets a tiny synth</p>
+    <p>Pull the strings with your fingers — computer vision hand tracking meets a physics-based plucked-string synth</p>
   </div>
 </header>
 
@@ -214,8 +214,10 @@
 
     <div class="notice">
       Uses your webcam and <strong>MediaPipe Hand Landmarker</strong> (runs locally in the browser — no video
-      is uploaded anywhere) to track your fingertips. Hold a fingertip over a colored key to play its note;
-      lift off to release it. Works best in good lighting, in <strong>Chrome</strong> or <strong>Edge</strong>.
+      is uploaded anywhere) to track your fingertips. Drag a fingertip sideways through a string to bend it,
+      then lift off — it snaps back and rings out with real spring physics driving the animation and a
+      Karplus-Strong plucked-string synth for the sound. Works best in good lighting, in <strong>Chrome</strong>
+      or <strong>Edge</strong>.
     </div>
 
     <div id="stage-wrap">
@@ -252,12 +254,11 @@
         </select>
       </div>
       <div class="ctrl">
-        <label>Waveform</label>
-        <select id="waveform-select">
-          <option value="sine" selected>Sine (soft)</option>
-          <option value="triangle">Triangle</option>
-          <option value="sawtooth">Sawtooth (bright)</option>
-          <option value="square">Square (buzzy)</option>
+        <label>String Tone</label>
+        <select id="tone-select">
+          <option value="warm" selected>Warm (nylon)</option>
+          <option value="bright">Bright (steel)</option>
+          <option value="metallic">Metallic (twangy)</option>
         </select>
       </div>
       <div class="ctrl">
@@ -290,7 +291,7 @@ const ctx         = canvas.getContext('2d');
 const statusDot   = document.getElementById('status-dot');
 const statusText  = document.getElementById('status-text');
 const scaleSelect = document.getElementById('scale-select');
-const waveSelect  = document.getElementById('waveform-select');
+const toneSelect  = document.getElementById('tone-select');
 const volSlider   = document.getElementById('volume-slider');
 const volVal      = document.getElementById('volume-val');
 
@@ -299,6 +300,8 @@ let handLandmarker = null;
 let running        = false;
 let rafId          = null;
 let lastVideoTime  = -1;
+let lastFrameTime  = 0;
+let latestResult   = null;
 
 /* ────────────────────────────────────────────────
    Toast helper
@@ -334,6 +337,7 @@ const KEY_COLORS = [
 ];
 
 let keys = buildKeys(scaleSelect.value);
+let stringStates = buildStringStates(keys.length);
 
 function buildKeys(scaleName) {
   const notes = SCALES[scaleName];
@@ -344,18 +348,45 @@ function buildKeys(scaleName) {
   }));
 }
 
+function buildStringStates(count) {
+  return Array.from({ length: count }, () => ({
+    displacement: 0,  // current lateral offset in px
+    velocity: 0,      // px/sec
+    isHeld: false,     // touched by a fingertip this frame
+    wasHeld: false,    // touched last frame (for release detection)
+    peakY: 0.5,        // normalized y where the string is being bent
+  }));
+}
+
 scaleSelect.addEventListener('change', () => {
-  stopAllNotes();
   keys = buildKeys(scaleSelect.value);
+  stringStates = buildStringStates(keys.length);
 });
 
 /* ────────────────────────────────────────────────
-   Audio engine — one sustained oscillator per key,
-   gain-ramped on touch/release to avoid clicks
+   Spring-damper physics for each string
 ──────────────────────────────────────────────── */
+const SPRING_STIFFNESS = 340;
+const SPRING_DAMPING = 9;
+const FOLLOW_FACTOR = 0.4;      // how fast the string catches up to a dragging fingertip
+const MAX_PULL_RATIO = 0.42;    // fraction of a string's column width it can be dragged
+const SETTLE_EPSILON = 0.4;
+const MIN_PLUCK_DISPLACEMENT = 6; // px — ignore releases from tiny jitter
+
+/* ────────────────────────────────────────────────
+   Audio engine — Karplus-Strong plucked-string synthesis.
+   Each pluck excites a delay-line/lowpass feedback loop (a comb
+   filter tuned to the string's period) with a single noise burst,
+   which rings and decays the way a real plucked string does.
+──────────────────────────────────────────────── */
+const TONE_PRESETS = {
+  warm:     { cutoff: 2200, feedback: 0.965 },
+  bright:   { cutoff: 5000, feedback: 0.978 },
+  metallic: { cutoff: 8000, feedback: 0.992 },
+};
+
 let audioCtx = null;
 let masterGain = null;
-const activeVoices = new Map(); // keyIndex -> { osc, gain }
 
 function ensureAudio() {
   if (!audioCtx) {
@@ -367,35 +398,51 @@ function ensureAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function noteOn(index) {
-  if (activeVoices.has(index) || !keys[index]) return;
+function pluckString(freq, strength) {
   ensureAudio();
-  const now = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = waveSelect.value;
-  osc.frequency.value = keys[index].freq;
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.35, now + 0.02);
-  osc.connect(gain);
-  gain.connect(masterGain);
-  osc.start();
-  activeVoices.set(index, { osc, gain });
-}
+  const tone = TONE_PRESETS[toneSelect.value] || TONE_PRESETS.warm;
+  const sr = audioCtx.sampleRate;
+  const period = 1 / freq;
+  const bufferSize = Math.max(2, Math.round(sr * period));
 
-function noteOff(index) {
-  const voice = activeVoices.get(index);
-  if (!voice) return;
-  const now = audioCtx.currentTime;
-  voice.gain.gain.cancelScheduledValues(now);
-  voice.gain.gain.setValueAtTime(voice.gain.gain.value, now);
-  voice.gain.gain.linearRampToValueAtTime(0, now + 0.08);
-  voice.osc.stop(now + 0.1);
-  activeVoices.delete(index);
-}
+  const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sr);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
 
-function stopAllNotes() {
-  [...activeVoices.keys()].forEach(noteOff);
+  const noiseSource = audioCtx.createBufferSource();
+  noiseSource.buffer = noiseBuffer;
+
+  const delay = audioCtx.createDelay(1);
+  delay.delayTime.value = period;
+
+  const damping = audioCtx.createBiquadFilter();
+  damping.type = 'lowpass';
+  damping.frequency.value = tone.cutoff;
+
+  const feedback = audioCtx.createGain();
+  feedback.gain.value = tone.feedback;
+
+  const outGain = audioCtx.createGain();
+  const now = audioCtx.currentTime;
+  outGain.gain.setValueAtTime(0, now);
+  outGain.gain.linearRampToValueAtTime(Math.max(0.05, Math.min(1, strength)), now + 0.005);
+
+  noiseSource.connect(delay);
+  delay.connect(damping);
+  damping.connect(feedback);
+  feedback.connect(delay); // feedback loop = the resonating "string"
+  damping.connect(outGain);
+  outGain.connect(masterGain);
+
+  noiseSource.start(now);
+
+  // Nodes ring for a while via the feedback loop; tear them down once decayed.
+  setTimeout(() => {
+    try {
+      noiseSource.disconnect(); delay.disconnect();
+      damping.disconnect(); feedback.disconnect(); outGain.disconnect();
+    } catch (_) {}
+  }, 4000);
 }
 
 volSlider.addEventListener('input', () => {
@@ -455,6 +502,8 @@ async function startCamera() {
     canvas.height = video.videoHeight || 480;
 
     running = true;
+    lastFrameTime = 0;
+    latestResult = null;
     statusDot.className = 'dot active';
     statusText.textContent = 'Tracking hands…';
     rafId = requestAnimationFrame(detectLoop);
@@ -471,7 +520,6 @@ async function startCamera() {
 function stopCamera() {
   running = false;
   if (rafId) cancelAnimationFrame(rafId);
-  stopAllNotes();
   if (stream) {
     stream.getTracks().forEach(t => t.stop());
     stream = null;
@@ -484,32 +532,40 @@ function stopCamera() {
   statusDot.className = 'dot';
   statusText.textContent = 'Camera not started';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stringStates.forEach(s => { s.displacement = 0; s.velocity = 0; s.isHeld = false; s.wasHeld = false; });
+  latestResult = null;
+  lastFrameTime = 0;
 }
 
 /* ────────────────────────────────────────────────
-   Per-frame detection + rendering + note triggering
+   Per-frame detection + string physics + rendering.
+   Hand detection only reruns when a new camera frame has arrived,
+   but physics/rendering run every animation frame for smooth motion.
 ──────────────────────────────────────────────── */
 function detectLoop() {
   if (!running) return;
 
+  const now = performance.now();
+  const dt = lastFrameTime ? Math.min((now - lastFrameTime) / 1000, 0.05) : 1 / 60;
+  lastFrameTime = now;
+
   if (video.currentTime !== lastVideoTime) {
     lastVideoTime = video.currentTime;
-    const result = handLandmarker.detectForVideo(video, performance.now());
-    render(result);
+    latestResult = handLandmarker.detectForVideo(video, now);
   }
 
+  render(latestResult, dt);
   rafId = requestAnimationFrame(detectLoop);
 }
 
-function render(result) {
+function render(result, dt) {
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
 
-  const keyW = w / keys.length;
-  const touched = new Set();
+  const colW = w / keys.length;
+  const maxPull = colW * MAX_PULL_RATIO;
 
-  // Collect fingertip points from every detected hand first, so we know
-  // which keys are touched before drawing (for highlight state).
+  // Collect fingertip points from every detected hand
   const tips = [];
   if (result && result.landmarks) {
     for (const landmarks of result.landmarks) {
@@ -517,31 +573,82 @@ function render(result) {
         const pt = landmarks[idx];
         tips.push({ x: pt.x * w, y: pt.y * h });
       }
-      for (const idx of FINGERTIP_IDX) {
-        const pt = landmarks[idx];
-        const col = Math.floor((pt.x * w) / keyW);
-        if (col >= 0 && col < keys.length) touched.add(col);
-      }
     }
   }
 
-  // Draw keys
+  // Update each string's spring-damper physics based on fingertip contact
+  stringStates.forEach((s, i) => {
+    const restX = (i + 0.5) * colW;
+
+    // Find the touching fingertip pulling this string furthest from rest
+    let bestOffset = 0, bestAbs = -1, bestTip = null;
+    for (const tip of tips) {
+      const offset = tip.x - restX;
+      const absOffset = Math.abs(offset);
+      if (absOffset <= colW / 2 && absOffset > bestAbs) {
+        bestAbs = absOffset;
+        bestOffset = offset;
+        bestTip = tip;
+      }
+    }
+
+    s.wasHeld = s.isHeld;
+    s.isHeld = bestTip !== null;
+
+    if (s.isHeld) {
+      // Dragged: the string elastically follows the fingertip
+      const targetX = Math.max(-maxPull, Math.min(maxPull, bestOffset));
+      s.velocity = (targetX - s.displacement) / Math.max(dt, 0.001);
+      s.displacement += (targetX - s.displacement) * FOLLOW_FACTOR;
+      s.peakY = bestTip.y / h;
+    } else {
+      // Released: free spring-damper oscillation back to rest
+      const accel = -SPRING_STIFFNESS * s.displacement - SPRING_DAMPING * s.velocity;
+      s.velocity += accel * dt;
+      s.displacement += s.velocity * dt;
+      if (Math.abs(s.displacement) < SETTLE_EPSILON && Math.abs(s.velocity) < SETTLE_EPSILON) {
+        s.displacement = 0;
+        s.velocity = 0;
+      }
+    }
+
+    // Just let go of a meaningfully pulled string — pluck it
+    if (s.wasHeld && !s.isHeld && Math.abs(s.displacement) > MIN_PLUCK_DISPLACEMENT) {
+      const strength = Math.min(1, Math.abs(s.displacement) / maxPull);
+      pluckString(keys[i].freq, 0.25 + strength * 0.55);
+    }
+  });
+
+  // Faint column backgrounds so the string "lanes" are visible before touch
   keys.forEach((key, i) => {
-    const x = i * keyW;
-    const isOn = touched.has(i);
     ctx.fillStyle = key.color;
-    ctx.globalAlpha = isOn ? 0.55 : 0.22;
-    ctx.fillRect(x, 0, keyW, h);
+    ctx.globalAlpha = 0.06;
+    ctx.fillRect(i * colW, 0, colW, h);
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x, 0, keyW, h);
+  });
+
+  // Draw each string as a curve bowing toward its current displacement
+  keys.forEach((key, i) => {
+    const restX = (i + 0.5) * colW;
+    const s = stringStates[i];
+    const intensity = Math.min(1, Math.abs(s.displacement) / maxPull);
 
     ctx.save();
-    ctx.translate(x + keyW / 2, h - 18);
+    ctx.strokeStyle = key.color;
+    ctx.lineWidth = 3 + intensity * 4;
+    ctx.shadowColor = key.color;
+    ctx.shadowBlur = 6 + intensity * 18;
+    ctx.beginPath();
+    ctx.moveTo(restX, 0);
+    ctx.quadraticCurveTo(restX + s.displacement * 1.6, s.peakY * h, restX, h);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(restX, h - 18);
     ctx.scale(-1, 1); // undo the mirrored parent so text reads correctly
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 16px sans-serif';
+    ctx.font = 'bold 15px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(key.label, 0, 0);
     ctx.restore();
@@ -567,17 +674,10 @@ function render(result) {
       }
     }
   }
-
-  // Trigger / release notes based on which keys are currently touched
-  keys.forEach((_, i) => {
-    if (touched.has(i)) noteOn(i);
-    else noteOff(i);
-  });
 }
 
-/* Release audio + camera if the user navigates away */
+/* Release camera if the user navigates away */
 window.addEventListener('beforeunload', () => {
-  stopAllNotes();
   if (stream) stream.getTracks().forEach(t => t.stop());
 });
 </script>
