@@ -355,6 +355,7 @@ function buildStringStates(count) {
     isHeld: false,     // touched by a fingertip this frame
     wasHeld: false,    // touched last frame (for release detection)
     peakY: 0.5,        // normalized y where the string is being bent
+    lastPluckTime: -Infinity, // audioCtx time of the last pluck, to prevent rapid retriggers
   }));
 }
 
@@ -364,14 +365,23 @@ scaleSelect.addEventListener('change', () => {
 });
 
 /* ────────────────────────────────────────────────
-   Spring-damper physics for each string
+   Spring-damper physics for each string.
+   Grabbing and holding use different radii on purpose: you must aim
+   at a string's own lane to grab it, but once grabbed it keeps
+   following your fingertip much further away (like a slingshot) —
+   otherwise the string lets go the instant you pull it past its own
+   lane, which both caps how far it can stretch and causes rapid
+   grab/release flicker that stacks up overlapping plucks.
 ──────────────────────────────────────────────── */
-const SPRING_STIFFNESS = 340;
-const SPRING_DAMPING = 9;
-const FOLLOW_FACTOR = 0.4;      // how fast the string catches up to a dragging fingertip
-const MAX_PULL_RATIO = 0.42;    // fraction of a string's column width it can be dragged
+const SPRING_STIFFNESS = 220;
+const SPRING_DAMPING = 8;
+const FOLLOW_FACTOR = 0.45;         // how fast the string catches up to a dragging fingertip
+const GRAB_RADIUS_RATIO = 0.5;      // fraction of column width to *start* holding a string
+const RELEASE_RADIUS_RATIO = 3.5;   // fraction of column width to *keep* holding it while dragged away
+const STRETCH_LIMIT_RATIO = 3;      // fraction of column width the string can visually stretch
 const SETTLE_EPSILON = 0.4;
-const MIN_PLUCK_DISPLACEMENT = 6; // px — ignore releases from tiny jitter
+const MIN_PLUCK_DISPLACEMENT = 6;   // px — ignore releases from tiny jitter
+const MIN_PLUCK_INTERVAL = 0.09;    // seconds — floor between plucks of the same string
 
 /* ────────────────────────────────────────────────
    Audio engine — Karplus-Strong plucked-string synthesis.
@@ -387,18 +397,30 @@ const TONE_PRESETS = {
 
 let audioCtx = null;
 let masterGain = null;
+let voiceCount = 0;
+const MAX_VOICES = 16; // hard ceiling so a flurry of grazed strings can't pile up forever
 
 function ensureAudio() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
     masterGain.gain.value = volSlider.value / 100;
-    masterGain.connect(audioCtx.destination);
+    // A compressor on the bus keeps several simultaneously-ringing strings
+    // from summing past 0dB and hard-clipping into a crackly/broken sound.
+    const compressor = audioCtx.createDynamicsCompressor();
+    compressor.threshold.value = -18;
+    compressor.knee.value = 24;
+    compressor.ratio.value = 8;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
+    masterGain.connect(compressor);
+    compressor.connect(audioCtx.destination);
   }
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
 function pluckString(freq, strength) {
+  if (voiceCount >= MAX_VOICES) return;
   ensureAudio();
   const tone = TONE_PRESETS[toneSelect.value] || TONE_PRESETS.warm;
   const sr = audioCtx.sampleRate;
@@ -424,8 +446,12 @@ function pluckString(freq, strength) {
 
   const outGain = audioCtx.createGain();
   const now = audioCtx.currentTime;
+  const peak = Math.max(0.05, Math.min(1, strength)) * 0.6; // headroom for overlapping voices
+  const ringDuration = 2.2; // seconds — plenty for this feedback gain to ring out and decay
   outGain.gain.setValueAtTime(0, now);
-  outGain.gain.linearRampToValueAtTime(Math.max(0.05, Math.min(1, strength)), now + 0.005);
+  outGain.gain.linearRampToValueAtTime(peak, now + 0.005);
+  outGain.gain.setValueAtTime(peak, now + ringDuration - 0.15);
+  outGain.gain.linearRampToValueAtTime(0, now + ringDuration); // fade to silence before teardown
 
   noiseSource.connect(delay);
   delay.connect(damping);
@@ -435,14 +461,17 @@ function pluckString(freq, strength) {
   outGain.connect(masterGain);
 
   noiseSource.start(now);
+  voiceCount++;
 
-  // Nodes ring for a while via the feedback loop; tear them down once decayed.
+  // Gain has already been ramped to 0 by ringDuration, so disconnecting
+  // here doesn't produce an audible click/pop.
   setTimeout(() => {
+    voiceCount--;
     try {
       noiseSource.disconnect(); delay.disconnect();
       damping.disconnect(); feedback.disconnect(); outGain.disconnect();
     } catch (_) {}
-  }, 4000);
+  }, (ringDuration + 0.05) * 1000);
 }
 
 volSlider.addEventListener('input', () => {
@@ -563,7 +592,9 @@ function render(result, dt) {
   ctx.clearRect(0, 0, w, h);
 
   const colW = w / keys.length;
-  const maxPull = colW * MAX_PULL_RATIO;
+  const grabRadius = colW * GRAB_RADIUS_RATIO;
+  const releaseRadius = colW * RELEASE_RADIUS_RATIO;
+  const maxPull = colW * STRETCH_LIMIT_RATIO;
 
   // Collect fingertip points from every detected hand
   const tips = [];
@@ -576,16 +607,19 @@ function render(result, dt) {
     }
   }
 
-  // Update each string's spring-damper physics based on fingertip contact
+  // Update each string's spring-damper physics based on fingertip contact.
+  // Grabbing a string requires aiming at its own lane (grabRadius), but once
+  // held it keeps following the fingertip much further away (releaseRadius)
+  // so it can be stretched like a slingshot instead of letting go instantly.
   stringStates.forEach((s, i) => {
     const restX = (i + 0.5) * colW;
+    const searchRadius = s.isHeld ? releaseRadius : grabRadius;
 
-    // Find the touching fingertip pulling this string furthest from rest
     let bestOffset = 0, bestAbs = -1, bestTip = null;
     for (const tip of tips) {
       const offset = tip.x - restX;
       const absOffset = Math.abs(offset);
-      if (absOffset <= colW / 2 && absOffset > bestAbs) {
+      if (absOffset <= searchRadius && absOffset > bestAbs) {
         bestAbs = absOffset;
         bestOffset = offset;
         bestTip = tip;
@@ -612,10 +646,17 @@ function render(result, dt) {
       }
     }
 
-    // Just let go of a meaningfully pulled string — pluck it
-    if (s.wasHeld && !s.isHeld && Math.abs(s.displacement) > MIN_PLUCK_DISPLACEMENT) {
+    // Just let go of a meaningfully pulled string — pluck it (with a
+    // cooldown so hand-tracking jitter can't stack up overlapping plucks)
+    const nowSec = audioCtx ? audioCtx.currentTime : performance.now() / 1000;
+    if (
+      s.wasHeld && !s.isHeld &&
+      Math.abs(s.displacement) > MIN_PLUCK_DISPLACEMENT &&
+      nowSec - s.lastPluckTime > MIN_PLUCK_INTERVAL
+    ) {
       const strength = Math.min(1, Math.abs(s.displacement) / maxPull);
       pluckString(keys[i].freq, 0.25 + strength * 0.55);
+      s.lastPluckTime = nowSec;
     }
   });
 
@@ -640,7 +681,7 @@ function render(result, dt) {
     ctx.shadowBlur = 6 + intensity * 18;
     ctx.beginPath();
     ctx.moveTo(restX, 0);
-    ctx.quadraticCurveTo(restX + s.displacement * 1.6, s.peakY * h, restX, h);
+    ctx.quadraticCurveTo(restX + s.displacement, s.peakY * h, restX, h);
     ctx.stroke();
     ctx.restore();
 
