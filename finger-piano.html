@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finger Piano — Camera Instrument</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --surface2: #0d1020;
+      --accent:   #c04fef;
+      --accent2:  #4f8ef7;
+      --danger:   #e94560;
+      --success:  #2ecc71;
+      --border:   #2a3050;
+      --text:     #e2e8f0;
+      --muted:    #5a6890;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1d27 0%, #0d1020 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: .5px; }
+    header p  { font-size: .85rem; color: var(--muted); margin-top: .2rem; }
+    .logo { font-size: 2rem; }
+
+    .app { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .55rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 600;
+      transition: transform .15s, opacity .15s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); opacity: .92; }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover:not(:disabled) { border-color: var(--accent); }
+    .btn-danger  { background: var(--danger); color: #fff; }
+
+    .btn-group { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+
+    /* ── Camera / stage ── */
+    #stage-wrap {
+      position: relative;
+      background: var(--surface2);
+      border-radius: 10px;
+      overflow: hidden;
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed var(--border);
+      aspect-ratio: 4 / 3;
+      max-height: 70vh;
+    }
+    .stage-empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem 1rem;
+      pointer-events: none;
+      position: absolute;
+    }
+    .stage-empty .stage-icon { font-size: 2.8rem; line-height: 1; }
+    .stage-empty p { margin-top: .5rem; font-size: .85rem; }
+
+    /* video + canvas share a mirrored coordinate frame so drawing stays
+       in sync with the raw (unmirrored) frames fed to the hand model */
+    #media-mirror {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform: scaleX(-1);
+      display: none;
+    }
+    #webcam, #overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #webcam { display: block; }
+    #overlay { pointer-events: none; }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-top: 1rem;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .dot.active { background: var(--success); animation: dotPulse 1.4s infinite; }
+    .dot.error { background: var(--danger); }
+    @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.8)} }
+
+    .notice {
+      background: rgba(192,79,239,.08);
+      border: 1px solid rgba(192,79,239,.3);
+      border-radius: 8px;
+      padding: .65rem 1rem;
+      font-size: .8rem;
+      color: #d6a6f2;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Controls ── */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.2rem;
+    }
+    .ctrl label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: .35rem; }
+    .ctrl label strong { color: var(--text); }
+    input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    select {
+      width: 100%;
+      padding: .5rem .7rem;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: .9rem;
+      font-family: inherit;
+    }
+    select:focus { outline: none; border-color: var(--accent); }
+
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .75rem 1.5rem;
+      font-size: .9rem;
+      font-weight: 600;
+      box-shadow: 0 8px 30px rgba(0,0,0,.5);
+      transition: transform .3s ease;
+      z-index: 1000;
+      white-space: nowrap;
+      max-width: 90vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { color: var(--success); border-color: var(--success); }
+    #toast.error   { color: var(--danger);  border-color: var(--danger); }
+
+    @media (max-width: 520px) {
+      header h1 { font-size: 1.2rem; }
+      .controls-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎹</div>
+  <div>
+    <h1>Finger Piano</h1>
+    <p>Wave your fingers over the keys — computer vision hand tracking meets a tiny synth</p>
+  </div>
+</header>
+
+<div class="app">
+
+  <div class="card">
+    <div class="card-title">📷 Camera Stage</div>
+
+    <div class="notice">
+      Uses your webcam and <strong>MediaPipe Hand Landmarker</strong> (runs locally in the browser — no video
+      is uploaded anywhere) to track your fingertips. Hold a fingertip over a colored key to play its note;
+      lift off to release it. Works best in good lighting, in <strong>Chrome</strong> or <strong>Edge</strong>.
+    </div>
+
+    <div id="stage-wrap">
+      <div class="stage-empty" id="stage-empty">
+        <div class="stage-icon">✋</div>
+        <p>Click "Start Camera" to begin</p>
+      </div>
+      <div id="media-mirror">
+        <video id="webcam" playsinline muted></video>
+        <canvas id="overlay"></canvas>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" id="start-btn">▶ Start Camera</button>
+      <button type="button" class="btn btn-danger" id="stop-btn" style="display:none">⏹ Stop Camera</button>
+    </div>
+
+    <div class="status-row">
+      <div class="dot" id="status-dot"></div>
+      <span id="status-text">Camera not started</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎛 Instrument Controls</div>
+    <div class="controls-grid">
+      <div class="ctrl">
+        <label>Scale / Key Layout</label>
+        <select id="scale-select">
+          <option value="major" selected>C Major (8 keys)</option>
+          <option value="pentatonic">Pentatonic (5 keys)</option>
+          <option value="chromatic">Chromatic (12 keys)</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>Waveform</label>
+        <select id="waveform-select">
+          <option value="sine" selected>Sine (soft)</option>
+          <option value="triangle">Triangle</option>
+          <option value="sawtooth">Sawtooth (bright)</option>
+          <option value="square">Square (buzzy)</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>Volume: <strong id="volume-val">70%</strong></label>
+        <input type="range" id="volume-slider" min="0" max="100" value="70">
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<div id="toast"></div>
+
+<script type="module">
+import {
+  HandLandmarker,
+  FilesetResolver,
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+/* ────────────────────────────────────────────────
+   Elements & state
+──────────────────────────────────────────────── */
+const startBtn    = document.getElementById('start-btn');
+const stopBtn     = document.getElementById('stop-btn');
+const stageEmpty  = document.getElementById('stage-empty');
+const mediaMirror = document.getElementById('media-mirror');
+const video       = document.getElementById('webcam');
+const canvas      = document.getElementById('overlay');
+const ctx         = canvas.getContext('2d');
+const statusDot   = document.getElementById('status-dot');
+const statusText  = document.getElementById('status-text');
+const scaleSelect = document.getElementById('scale-select');
+const waveSelect  = document.getElementById('waveform-select');
+const volSlider   = document.getElementById('volume-slider');
+const volVal      = document.getElementById('volume-val');
+
+let stream        = null;
+let handLandmarker = null;
+let running        = false;
+let rafId          = null;
+let lastVideoTime  = -1;
+
+/* ────────────────────────────────────────────────
+   Toast helper
+──────────────────────────────────────────────── */
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3200);
+}
+
+/* ────────────────────────────────────────────────
+   Musical scales
+──────────────────────────────────────────────── */
+const NOTE_FREQS = { // A4 = 440
+  C4: 261.63, Cs4: 277.18, D4: 293.66, Ds4: 311.13, E4: 329.63,
+  F4: 349.23, Fs4: 369.99, G4: 392.00, Gs4: 415.30, A4: 440.00,
+  As4: 466.16, B4: 493.88, C5: 523.25,
+};
+
+const SCALES = {
+  major: ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'],
+  pentatonic: ['C4', 'D4', 'E4', 'G4', 'A4'],
+  chromatic: ['C4', 'Cs4', 'D4', 'Ds4', 'E4', 'F4', 'Fs4', 'G4', 'Gs4', 'A4', 'As4', 'B4'],
+};
+
+const KEY_COLORS = [
+  '#c04fef', '#4f8ef7', '#2ecc71', '#f2c94c',
+  '#e94560', '#22c9c9', '#f28c3c', '#8e6fef',
+  '#5adbff', '#ff6bcb', '#a3e635', '#ff9f43',
+];
+
+let keys = buildKeys(scaleSelect.value);
+
+function buildKeys(scaleName) {
+  const notes = SCALES[scaleName];
+  return notes.map((note, i) => ({
+    label: note.replace('s', '#'),
+    freq: NOTE_FREQS[note],
+    color: KEY_COLORS[i % KEY_COLORS.length],
+  }));
+}
+
+scaleSelect.addEventListener('change', () => {
+  stopAllNotes();
+  keys = buildKeys(scaleSelect.value);
+});
+
+/* ────────────────────────────────────────────────
+   Audio engine — one sustained oscillator per key,
+   gain-ramped on touch/release to avoid clicks
+──────────────────────────────────────────────── */
+let audioCtx = null;
+let masterGain = null;
+const activeVoices = new Map(); // keyIndex -> { osc, gain }
+
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = volSlider.value / 100;
+    masterGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function noteOn(index) {
+  if (activeVoices.has(index) || !keys[index]) return;
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = waveSelect.value;
+  osc.frequency.value = keys[index].freq;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.35, now + 0.02);
+  osc.connect(gain);
+  gain.connect(masterGain);
+  osc.start();
+  activeVoices.set(index, { osc, gain });
+}
+
+function noteOff(index) {
+  const voice = activeVoices.get(index);
+  if (!voice) return;
+  const now = audioCtx.currentTime;
+  voice.gain.gain.cancelScheduledValues(now);
+  voice.gain.gain.setValueAtTime(voice.gain.gain.value, now);
+  voice.gain.gain.linearRampToValueAtTime(0, now + 0.08);
+  voice.osc.stop(now + 0.1);
+  activeVoices.delete(index);
+}
+
+function stopAllNotes() {
+  [...activeVoices.keys()].forEach(noteOff);
+}
+
+volSlider.addEventListener('input', () => {
+  volVal.textContent = volSlider.value + '%';
+  if (masterGain) masterGain.gain.value = volSlider.value / 100;
+});
+
+/* ────────────────────────────────────────────────
+   Hand landmark model setup
+──────────────────────────────────────────────── */
+async function initHandLandmarker() {
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+  );
+  handLandmarker = await HandLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+      delegate: "GPU",
+    },
+    runningMode: "VIDEO",
+    numHands: 2,
+  });
+}
+
+const HAND_CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[17,18],[18,19],[19,20],
+  [0,17],
+];
+const FINGERTIP_IDX = [4, 8, 12, 16, 20];
+
+/* ────────────────────────────────────────────────
+   Camera lifecycle
+──────────────────────────────────────────────── */
+startBtn.addEventListener('click', startCamera);
+stopBtn.addEventListener('click', stopCamera);
+
+async function startCamera() {
+  startBtn.disabled = true;
+  statusText.textContent = 'Loading hand-tracking model…';
+  try {
+    if (!handLandmarker) await initHandLandmarker();
+
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
+    video.srcObject = stream;
+    await video.play();
+
+    stageEmpty.style.display = 'none';
+    mediaMirror.style.display = 'block';
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-flex';
+
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    running = true;
+    statusDot.className = 'dot active';
+    statusText.textContent = 'Tracking hands…';
+    rafId = requestAnimationFrame(detectLoop);
+  } catch (err) {
+    console.error(err);
+    statusDot.className = 'dot error';
+    statusText.textContent = 'Failed to start camera';
+    toast('Could not start camera/model: ' + (err.message || err), 'error');
+  } finally {
+    startBtn.disabled = false;
+  }
+}
+
+function stopCamera() {
+  running = false;
+  if (rafId) cancelAnimationFrame(rafId);
+  stopAllNotes();
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  video.srcObject = null;
+  mediaMirror.style.display = 'none';
+  stageEmpty.style.display = 'flex';
+  startBtn.style.display = 'inline-flex';
+  stopBtn.style.display = 'none';
+  statusDot.className = 'dot';
+  statusText.textContent = 'Camera not started';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+/* ────────────────────────────────────────────────
+   Per-frame detection + rendering + note triggering
+──────────────────────────────────────────────── */
+function detectLoop() {
+  if (!running) return;
+
+  if (video.currentTime !== lastVideoTime) {
+    lastVideoTime = video.currentTime;
+    const result = handLandmarker.detectForVideo(video, performance.now());
+    render(result);
+  }
+
+  rafId = requestAnimationFrame(detectLoop);
+}
+
+function render(result) {
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const keyW = w / keys.length;
+  const touched = new Set();
+
+  // Collect fingertip points from every detected hand first, so we know
+  // which keys are touched before drawing (for highlight state).
+  const tips = [];
+  if (result && result.landmarks) {
+    for (const landmarks of result.landmarks) {
+      for (const idx of FINGERTIP_IDX) {
+        const pt = landmarks[idx];
+        tips.push({ x: pt.x * w, y: pt.y * h });
+      }
+      for (const idx of FINGERTIP_IDX) {
+        const pt = landmarks[idx];
+        const col = Math.floor((pt.x * w) / keyW);
+        if (col >= 0 && col < keys.length) touched.add(col);
+      }
+    }
+  }
+
+  // Draw keys
+  keys.forEach((key, i) => {
+    const x = i * keyW;
+    const isOn = touched.has(i);
+    ctx.fillStyle = key.color;
+    ctx.globalAlpha = isOn ? 0.55 : 0.22;
+    ctx.fillRect(x, 0, keyW, h);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, 0, keyW, h);
+
+    ctx.save();
+    ctx.translate(x + keyW / 2, h - 18);
+    ctx.scale(-1, 1); // undo the mirrored parent so text reads correctly
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(key.label, 0, 0);
+    ctx.restore();
+  });
+
+  // Draw hand skeletons
+  if (result && result.landmarks) {
+    for (const landmarks of result.landmarks) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      for (const [a, b] of HAND_CONNECTIONS) {
+        ctx.beginPath();
+        ctx.moveTo(landmarks[a].x * w, landmarks[a].y * h);
+        ctx.lineTo(landmarks[b].x * w, landmarks[b].y * h);
+        ctx.stroke();
+      }
+      for (const idx of FINGERTIP_IDX) {
+        const pt = landmarks[idx];
+        ctx.beginPath();
+        ctx.arc(pt.x * w, pt.y * h, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffe66d';
+        ctx.fill();
+      }
+    }
+  }
+
+  // Trigger / release notes based on which keys are currently touched
+  keys.forEach((_, i) => {
+    if (touched.has(i)) noteOn(i);
+    else noteOff(i);
+  });
+}
+
+/* Release audio + camera if the user navigates away */
+window.addEventListener('beforeunload', () => {
+  stopAllNotes();
+  if (stream) stream.getTracks().forEach(t => t.stop());
+});
+</script>
+
+</body>
+</html>
