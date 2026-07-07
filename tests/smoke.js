@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const pages = ['index.html', 'experience.html', 'projects.html', 'skills.html', 'contact.html', '404.html'];
+const pages = ['index.html', 'experience.html', 'projects.html', 'skills.html', 'contact.html', 'ieee-points.html', '404.html'];
 const mainJs = fs.readFileSync(path.join(root, 'main.js'), 'utf8');
 
 let failures = 0;
