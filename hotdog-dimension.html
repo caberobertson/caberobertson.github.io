@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hot Dog Dimension 🌭🐈</title>
+    <meta name="description" content="A highly scientific interactive 3D diagram featuring floppy spinning hot dogs, enormous cats, and sounds. Spin responsibly.">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#0a0014">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E%F0%9F%8C%AD%3C/text%3E%3C/svg%3E">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; background: #0a0014; font-family: "Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive, sans-serif; }
+        canvas { display: block; }
+
+        #overlay {
+            position: fixed; inset: 0; z-index: 10;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2rem;
+            background: radial-gradient(circle at 50% 40%, #2a0a4a 0%, #0a0014 70%);
+            color: #fff; text-align: center; padding: 2rem;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        #overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        #overlay h1 {
+            font-size: clamp(2rem, 7vw, 4.5rem); line-height: 1.1;
+            background: linear-gradient(90deg, #ff5ec4, #ffd75e, #5effa0, #5ec4ff, #ff5ec4);
+            background-size: 300% 100%;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            animation: raincycle 4s linear infinite;
+            filter: drop-shadow(0 0 18px rgba(255, 94, 196, 0.55));
+        }
+        @keyframes raincycle { to { background-position: 300% 0; } }
+        #overlay p { max-width: 34rem; font-size: 1.05rem; opacity: 0.85; }
+        #enter-btn {
+            font: inherit; font-size: 1.4rem; padding: 0.9rem 2.4rem; border-radius: 999px;
+            border: 3px solid #ffd75e; background: #ff5ec4; color: #1a0030; cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 94, 196, 0.8);
+            transition: transform 0.15s;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+        #enter-btn:hover { transform: scale(1.1) rotate(-2deg); }
+        @keyframes pulse { 50% { box-shadow: 0 0 55px rgba(94, 255, 160, 0.9); } }
+        .fine-print { font-size: 0.8rem; opacity: 0.5; }
+
+        #hud {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+            display: flex; justify-content: center; padding: 0.7rem; pointer-events: none;
+        }
+        #hud span {
+            background: rgba(10, 0, 20, 0.55); color: #ffd75e; padding: 0.4rem 1rem;
+            border-radius: 999px; font-size: 0.85rem; backdrop-filter: blur(4px);
+        }
+        #topbar { position: fixed; top: 0.7rem; left: 0.7rem; right: 0.7rem; z-index: 5; display: flex; justify-content: space-between; }
+        #topbar a, #topbar button {
+            font: inherit; font-size: 0.9rem; padding: 0.45rem 1rem; border-radius: 999px;
+            border: 2px solid rgba(255, 215, 94, 0.6); background: rgba(10, 0, 20, 0.55);
+            color: #ffd75e; text-decoration: none; cursor: pointer; backdrop-filter: blur(4px);
+        }
+        #err {
+            position: fixed; inset: 0; z-index: 20; display: none;
+            align-items: center; justify-content: center; text-align: center;
+            color: #ffd75e; background: #0a0014; padding: 2rem; font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <h1>THE HOT DOG DIMENSION</h1>
+        <p>A very serious interactive 3D diagram. Drag to spin the universe (it hums). Click the floppy hot dogs (they boing &amp; sizzle). Pet the extremely large cats (they meow). Scroll to zoom (it blips).</p>
+        <button id="enter-btn" type="button">🌭 ENTER 🐈</button>
+        <p class="fine-print">⚠️ contains sounds, wobbling meats, and cats of unreasonable size</p>
+    </div>
+    <div id="topbar">
+        <a href="index.html">← back to reality</a>
+        <button id="mute-btn" type="button">🔊 sound on</button>
+    </div>
+    <div id="hud"><span>drag = spin · click dogs = boing · click cats = meow · scroll = zoom</span></div>
+    <div id="err"><p>Your browser refused to open a portal to the hot dog dimension.<br>(WebGL is required.)</p></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { AfterimagePass } from 'three/addons/postprocessing/AfterimagePass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+    /* ============================== AUDIO ============================== */
+    const AudioEngine = {
+        ctx: null, master: null, muted: false,
+        droneGain: null, droneFilter: null, droneOscs: [],
+        sizzleGain: null,
+        init() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            this.ctx = ctx;
+            const comp = ctx.createDynamicsCompressor();
+            this.master = ctx.createGain();
+            this.master.gain.value = 0.9;
+            this.master.connect(comp).connect(ctx.destination);
+
+            // Spin drone: two detuned saws through a wah filter, volume driven by spin speed
+            this.droneFilter = ctx.createBiquadFilter();
+            this.droneFilter.type = 'lowpass';
+            this.droneFilter.frequency.value = 200;
+            this.droneFilter.Q.value = 6;
+            this.droneGain = ctx.createGain();
+            this.droneGain.gain.value = 0;
+            this.droneFilter.connect(this.droneGain).connect(this.master);
+            for (const mult of [1, 1.5, 2.02]) {
+                const o = ctx.createOscillator();
+                o.type = 'sawtooth';
+                o.frequency.value = 55 * mult;
+                o.connect(this.droneFilter);
+                o.start();
+                this.droneOscs.push(o);
+            }
+
+            // Hot dog sizzle: looping white noise through a highpass, driven by dog spin
+            const len = ctx.sampleRate * 2;
+            const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+            const noise = ctx.createBufferSource();
+            noise.buffer = buf;
+            noise.loop = true;
+            const hp = ctx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.value = 4000;
+            this.sizzleGain = ctx.createGain();
+            this.sizzleGain.gain.value = 0;
+            noise.connect(hp).connect(this.sizzleGain).connect(this.master);
+            noise.start();
+        },
+        setSpin(speed, azimuth) {
+            if (!this.ctx || this.muted) return;
+            const t = this.ctx.currentTime;
+            const g = Math.min(0.16, Math.max(0, speed - 0.004) * 3);
+            this.droneGain.gain.setTargetAtTime(g, t, 0.08);
+            this.droneFilter.frequency.setTargetAtTime(180 + Math.min(1, speed * 12) * 2800, t, 0.05);
+            this.droneOscs[0].frequency.setTargetAtTime(55 + 14 * Math.sin(azimuth), t, 0.1);
+        },
+        setSizzle(amount) {
+            if (!this.ctx || this.muted) return;
+            this.sizzleGain.gain.setTargetAtTime(Math.min(0.1, amount), this.ctx.currentTime, 0.1);
+        },
+        // "mrrreow" — sawtooth with a pitch arc, vibrato, and a formant-ish bandpass sweep
+        meow(base) {
+            if (!this.ctx || this.muted) return;
+            const ctx = this.ctx, t = ctx.currentTime, dur = 0.75 + Math.random() * 0.35;
+            const osc = ctx.createOscillator();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(base * 1.05, t);
+            osc.frequency.exponentialRampToValueAtTime(base * 1.6, t + dur * 0.22);
+            osc.frequency.exponentialRampToValueAtTime(base * 0.72, t + dur);
+            const lfo = ctx.createOscillator();
+            lfo.frequency.value = 6.5;
+            const lfoG = ctx.createGain();
+            lfoG.gain.value = 28;
+            lfo.connect(lfoG).connect(osc.detune);
+            const bp = ctx.createBiquadFilter();
+            bp.type = 'bandpass';
+            bp.Q.value = 2.2;
+            bp.frequency.setValueAtTime(900, t);
+            bp.frequency.exponentialRampToValueAtTime(2400, t + dur * 0.25);
+            bp.frequency.exponentialRampToValueAtTime(480, t + dur);
+            const g = ctx.createGain();
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.5, t + 0.06);
+            g.gain.setValueAtTime(0.5, t + dur * 0.6);
+            g.gain.linearRampToValueAtTime(0, t + dur);
+            osc.connect(bp).connect(g).connect(this.master);
+            osc.start(t); lfo.start(t);
+            osc.stop(t + dur + 0.1); lfo.stop(t + dur + 0.1);
+        },
+        // rubbery hot dog boing: falling pitch with a decaying wobble
+        boing() {
+            if (!this.ctx || this.muted) return;
+            const ctx = this.ctx, t = ctx.currentTime, dur = 0.45;
+            const osc = ctx.createOscillator();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(500 + Math.random() * 250, t);
+            osc.frequency.exponentialRampToValueAtTime(85, t + dur);
+            const wob = ctx.createOscillator();
+            wob.frequency.setValueAtTime(24, t);
+            wob.frequency.exponentialRampToValueAtTime(6, t + dur);
+            const wobG = ctx.createGain();
+            wobG.gain.setValueAtTime(280, t);
+            wobG.gain.exponentialRampToValueAtTime(8, t + dur);
+            wob.connect(wobG).connect(osc.detune);
+            const g = ctx.createGain();
+            g.gain.setValueAtTime(0.42, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            osc.connect(g).connect(this.master);
+            osc.start(t); wob.start(t);
+            osc.stop(t + dur); wob.stop(t + dur);
+        },
+        // zoom blip: random pentatonic pluck
+        blip() {
+            if (!this.ctx || this.muted) return;
+            const ctx = this.ctx, t = ctx.currentTime;
+            const scale = [0, 3, 5, 7, 10, 12, 15];
+            const f = 330 * Math.pow(2, scale[Math.floor(Math.random() * scale.length)] / 12);
+            const osc = ctx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = f;
+            const g = ctx.createGain();
+            g.gain.setValueAtTime(0.22, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+            osc.connect(g).connect(this.master);
+            osc.start(t);
+            osc.stop(t + 0.3);
+        },
+        toggleMute() {
+            this.muted = !this.muted;
+            if (this.master) {
+                this.master.gain.setTargetAtTime(this.muted ? 0 : 0.9, this.ctx.currentTime, 0.02);
+            }
+            return this.muted;
+        }
+    };
+
+    /* ============================== SCENE ============================== */
+    let renderer;
+    try {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+    } catch (e) {
+        document.getElementById('err').style.display = 'flex';
+        throw e;
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.9;
+    document.body.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(0, 7, 16);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 3, 0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 6;
+    controls.maxDistance = 40;
+    controls.maxPolarAngle = Math.PI * 0.55;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.6;
+
+    scene.add(new THREE.AmbientLight(0x8866ff, 0.5));
+    const orbitLights = [];
+    for (const [i, col] of [0xff2fb0, 0x2fffd0, 0xffe12f].entries()) {
+        const l = new THREE.PointLight(col, 60, 60, 1.7);
+        scene.add(l);
+        orbitLights.push({ light: l, phase: (i / 3) * Math.PI * 2 });
+    }
+
+    // Shared shader clock for all the floppy meat
+    const uTime = { value: 0 };
+
+    /* -------- psychedelic sky dome -------- */
+    const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(80, 48, 32),
+        new THREE.ShaderMaterial({
+            side: THREE.BackSide,
+            depthWrite: false,
+            uniforms: { uTime },
+            vertexShader: `
+                varying vec3 vPos;
+                void main() {
+                    vPos = position;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }`,
+            fragmentShader: `
+                uniform float uTime;
+                varying vec3 vPos;
+                vec3 hsv(float h, float s, float v) {
+                    vec3 k = mod(vec3(5.0, 3.0, 1.0) + h * 6.0, 6.0);
+                    return v - v * s * clamp(min(k, 4.0 - k), 0.0, 1.0);
+                }
+                void main() {
+                    vec3 p = normalize(vPos);
+                    float t = uTime * 0.12;
+                    float swirl = sin(p.x * 6.0 + t * 3.0) + sin(p.y * 7.0 - t * 2.0) + sin(p.z * 5.0 + t * 4.0);
+                    swirl += sin(length(p.xz) * 14.0 - t * 5.0) * 0.5;
+                    float h = fract(swirl * 0.15 + t * 0.3);
+                    float v = 0.18 + 0.14 * (0.5 + 0.5 * sin(swirl * 2.0 + t * 6.0));
+                    gl_FragColor = vec4(hsv(h, 0.9, v), 1.0);
+                }`
+        })
+    );
+    scene.add(dome);
+
+    /* -------- undulating rainbow floor -------- */
+    const floor = new THREE.Mesh(
+        new THREE.CircleGeometry(34, 90, 64),
+        new THREE.ShaderMaterial({
+            wireframe: true,
+            transparent: true,
+            uniforms: { uTime },
+            vertexShader: `
+                uniform float uTime;
+                varying float vWave;
+                varying vec2 vXY;
+                void main() {
+                    vec3 p = position;
+                    float d = length(p.xy);
+                    vWave = sin(d * 0.9 - uTime * 2.2) * cos(atan(p.y, p.x) * 6.0 + uTime);
+                    p.z += vWave * 0.9;
+                    vXY = position.xy;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+                }`,
+            fragmentShader: `
+                uniform float uTime;
+                varying float vWave;
+                varying vec2 vXY;
+                vec3 hsv(float h, float s, float v) {
+                    vec3 k = mod(vec3(5.0, 3.0, 1.0) + h * 6.0, 6.0);
+                    return v - v * s * clamp(min(k, 4.0 - k), 0.0, 1.0);
+                }
+                void main() {
+                    float h = fract(length(vXY) * 0.04 + uTime * 0.08 + vWave * 0.1);
+                    gl_FragColor = vec4(hsv(h, 1.0, 0.8), 0.55);
+                }`
+        })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    /* -------- giant hypno torus knot -------- */
+    const knot = new THREE.Mesh(
+        new THREE.TorusKnotGeometry(1.6, 0.5, 200, 32),
+        new THREE.MeshNormalMaterial()
+    );
+    knot.position.y = 4.2;
+    scene.add(knot);
+
+    /* -------- rainbow sprinkle particles -------- */
+    {
+        const N = 900;
+        const pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
+        const c = new THREE.Color();
+        for (let i = 0; i < N; i++) {
+            const r = 12 + Math.random() * 30;
+            const th = Math.random() * Math.PI * 2;
+            const ph = Math.acos(2 * Math.random() - 1);
+            pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
+            pos[i * 3 + 1] = Math.abs(r * Math.cos(ph)) * 0.7 + 0.5;
+            pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+            c.setHSL(Math.random(), 1, 0.6);
+            col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+        }
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        const sprinkles = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.22, vertexColors: true }));
+        sprinkles.name = 'sprinkles';
+        scene.add(sprinkles);
+    }
+
+    /* -------- floppy hot dogs -------- */
+    // Every hot dog part gets a vertex-shader bend so the whole dog flops like wet spaghetti.
+    function makeFloppy(mat, phase, flop) {
+        mat.onBeforeCompile = (shader) => {
+            shader.uniforms.uTime = uTime;
+            shader.uniforms.uPhase = { value: phase };
+            shader.uniforms.uFlop = flop;
+            shader.vertexShader = shader.vertexShader
+                .replace('#include <common>', '#include <common>\nuniform float uTime;\nuniform float uPhase;\nuniform float uFlop;')
+                .replace('#include <begin_vertex>', `#include <begin_vertex>
+                    transformed.x += sin(transformed.y * 2.1 + uTime * 6.0 + uPhase) * 0.28 * uFlop;
+                    transformed.z += cos(transformed.y * 1.6 + uTime * 4.6 + uPhase) * 0.22 * uFlop;`);
+        };
+        return mat;
+    }
+
+    function buildHotDog(phase) {
+        const flop = { value: 0.6 };
+        const group = new THREE.Group();
+        const sausageMat = makeFloppy(new THREE.MeshStandardMaterial({ color: 0xb0491c, roughness: 0.45 }), phase, flop);
+        const bunMat = makeFloppy(new THREE.MeshStandardMaterial({ color: 0xe8a95c, roughness: 0.8 }), phase, flop);
+        const mustardMat = makeFloppy(new THREE.MeshStandardMaterial({ color: 0xffd400, roughness: 0.3, emissive: 0xaa8800, emissiveIntensity: 0.7 }), phase, flop);
+
+        const sausage = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 2.6, 8, 20), sausageMat);
+        group.add(sausage);
+        for (const side of [-1, 1]) {
+            const bun = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 2.2, 8, 20), bunMat);
+            bun.position.set(side * 0.36, -0.12, 0);
+            group.add(bun);
+        }
+        const pts = [];
+        for (let i = 0; i <= 24; i++) {
+            const y = -1.3 + (i / 24) * 2.6;
+            pts.push(new THREE.Vector3(Math.sin(i * 1.1) * 0.16, y, 0.34));
+        }
+        const mustard = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.06, 6), mustardMat);
+        group.add(mustard);
+
+        group.userData = {
+            kind: 'dog',
+            flop,
+            spin: new THREE.Vector3((Math.random() - 0.5) * 1.4, (Math.random() - 0.5) * 1.4, (Math.random() - 0.5) * 1.4),
+            baseSpin: 0.7
+        };
+        group.traverse((o) => { o.userData.root = group; });
+        return group;
+    }
+
+    const dogs = [];
+    const dogPivots = [];
+    for (let i = 0; i < 7; i++) {
+        const pivot = new THREE.Group();
+        const dog = buildHotDog(i * 1.7);
+        const r = 7.5 + (i % 3) * 2.2;
+        dog.position.set(r, 3 + Math.sin(i * 2.4) * 2.2, 0);
+        pivot.rotation.y = (i / 7) * Math.PI * 2;
+        pivot.userData.orbitSpeed = 0.12 + (i % 3) * 0.07;
+        pivot.add(dog);
+        scene.add(pivot);
+        dogs.push(dog);
+        dogPivots.push(pivot);
+    }
+
+    /* -------- very big, very fat cats -------- */
+    function buildCat(furColor, bellyColor, meowPitch) {
+        const group = new THREE.Group();
+        const fur = new THREE.MeshStandardMaterial({ color: furColor, roughness: 0.9 });
+        const bellyMat = new THREE.MeshStandardMaterial({ color: bellyColor, roughness: 0.9 });
+        const pinkMat = new THREE.MeshStandardMaterial({ color: 0xff8fb0, roughness: 0.6 });
+
+        const body = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), fur);
+        body.scale.set(1.35, 1.05, 1.2);
+        body.position.y = 1.0;
+        group.add(body);
+
+        const belly = new THREE.Mesh(new THREE.SphereGeometry(0.92, 32, 24), bellyMat);
+        belly.scale.set(1.1, 0.95, 1.05);
+        belly.position.set(0, 0.88, 0.28);
+        group.add(belly);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.62, 32, 24), fur);
+        head.position.set(0, 2.05, 0.35);
+        group.add(head);
+
+        for (const side of [-1, 1]) {
+            const ear = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.42, 12), fur);
+            ear.position.set(side * 0.38, 2.62, 0.3);
+            ear.rotation.z = -side * 0.3;
+            group.add(ear);
+            const inner = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.24, 12), pinkMat);
+            inner.position.set(side * 0.37, 2.6, 0.36);
+            inner.rotation.z = -side * 0.3;
+            group.add(inner);
+
+            const eye = new THREE.Mesh(
+                new THREE.SphereGeometry(0.09, 12, 10),
+                new THREE.MeshStandardMaterial({ color: 0x22ff88, emissive: 0x22ff88, emissiveIntensity: 0.9 })
+            );
+            eye.position.set(side * 0.24, 2.14, 0.9);
+            group.add(eye);
+
+            const paw = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12), fur);
+            paw.position.set(side * 0.5, 0.22, 1.05);
+            paw.scale.set(1, 0.7, 1.3);
+            group.add(paw);
+
+            for (let w = 0; w < 3; w++) {
+                const whisker = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.85, 4), bellyMat);
+                whisker.position.set(side * 0.72, 1.96 - w * 0.06, 0.82);
+                whisker.rotation.z = side * (Math.PI / 2 + (w - 1) * 0.2);
+                group.add(whisker);
+            }
+        }
+
+        const nose = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.07, 8), pinkMat);
+        nose.position.set(0, 2.0, 0.96);
+        nose.rotation.x = Math.PI;
+        group.add(nose);
+
+        const tailPts = [];
+        for (let i = 0; i <= 10; i++) {
+            const s = i / 10;
+            tailPts.push(new THREE.Vector3(
+                Math.sin(s * 3.5) * 0.55,
+                0.35 + s * 1.6,
+                -1.1 - Math.sin(s * 2.4) * 0.35
+            ));
+        }
+        const tail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(tailPts), 32, 0.16, 8), fur);
+        tail.name = 'tail';
+        group.add(tail);
+
+        group.scale.setScalar(2.6); // "very big and fat" — non-negotiable
+        group.userData = { kind: 'cat', meowPitch, meowT: -99, phase: Math.random() * Math.PI * 2 };
+        group.traverse((o) => { o.userData.root = group; });
+        return group;
+    }
+
+    const cats = [];
+    const catSpecs = [
+        [0xf3923f, 0xffe3c2, 165], // colossal orange
+        [0x8d93a5, 0xe6e8ef, 210], // gigantic gray
+        [0x2b2b33, 0xf5f5f5, 130]  // absolute unit of a tuxedo
+    ];
+    for (const [i, [furC, bellyC, pitch]] of catSpecs.entries()) {
+        const cat = buildCat(furC, bellyC, pitch);
+        const a = (i / 3) * Math.PI * 2 + 0.6;
+        cat.position.set(Math.cos(a) * 8.5, 0, Math.sin(a) * 8.5);
+        cat.lookAt(0, 0, 0);
+        scene.add(cat);
+        cats.push(cat);
+    }
+
+    /* -------- post-processing: bloom + afterimage trails -------- */
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const afterimage = new AfterimagePass(0.82);
+    composer.addPass(afterimage);
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.45, 0.5, 0.7));
+    composer.addPass(new OutputPass());
+
+    /* ============================ INTERACTION ============================ */
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downX = 0, downY = 0;
+
+    renderer.domElement.addEventListener('pointerdown', (e) => { downX = e.clientX; downY = e.clientY; });
+    renderer.domElement.addEventListener('pointerup', (e) => {
+        if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return; // it was a drag
+        pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+        pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObjects([...dogs, ...cats], true);
+        if (!hits.length) return;
+        const root = hits[0].object.userData.root;
+        if (!root) return;
+        if (root.userData.kind === 'dog') {
+            AudioEngine.boing();
+            root.userData.spin.set(
+                (Math.random() - 0.5) * 22,
+                (Math.random() - 0.5) * 22,
+                (Math.random() - 0.5) * 22
+            );
+            root.userData.flop.value = 2.6;
+        } else if (root.userData.kind === 'cat') {
+            AudioEngine.meow(root.userData.meowPitch * (0.92 + Math.random() * 0.18));
+            root.userData.meowT = clock.elapsedTime;
+        }
+    });
+
+    let wheelCooldown = 0;
+    renderer.domElement.addEventListener('wheel', () => {
+        const now = performance.now();
+        if (now - wheelCooldown > 90) {
+            AudioEngine.blip();
+            wheelCooldown = now;
+        }
+    }, { passive: true });
+
+    // cats meow on their own sometimes, because cats
+    function scheduleAmbientMeow() {
+        setTimeout(() => {
+            if (started && !document.hidden) {
+                const cat = cats[Math.floor(Math.random() * cats.length)];
+                AudioEngine.meow(cat.userData.meowPitch * (0.92 + Math.random() * 0.18));
+                cat.userData.meowT = clock.elapsedTime;
+            }
+            scheduleAmbientMeow();
+        }, 7000 + Math.random() * 14000);
+    }
+
+    /* ============================== LOOP ============================== */
+    const clock = new THREE.Clock();
+    let prevAz = 0, prevPol = 0, spinSmooth = 0;
+    let started = false;
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        const t = clock.elapsedTime;
+        uTime.value = t;
+        controls.update();
+
+        // camera spin speed → drone
+        const az = controls.getAzimuthalAngle();
+        const pol = controls.getPolarAngle();
+        let dAz = Math.abs(az - prevAz);
+        if (dAz > Math.PI) dAz = Math.PI * 2 - dAz;
+        const speed = dAz + Math.abs(pol - prevPol);
+        prevAz = az; prevPol = pol;
+        spinSmooth += (speed - spinSmooth) * 0.15;
+        if (started) AudioEngine.setSpin(spinSmooth, az);
+
+        // hot dogs: orbit, tumble, flop, sizzle
+        let maxSpin = 0;
+        for (const pivot of dogPivots) pivot.rotation.y += pivot.userData.orbitSpeed * dt;
+        for (const dog of dogs) {
+            const u = dog.userData;
+            dog.rotation.x += u.spin.x * dt;
+            dog.rotation.y += u.spin.y * dt;
+            dog.rotation.z += u.spin.z * dt;
+            const mag = u.spin.length();
+            maxSpin = Math.max(maxSpin, mag);
+            if (mag > u.baseSpin) u.spin.multiplyScalar(Math.pow(0.45, dt)); // clicked dogs calm down
+            u.flop.value += ((0.6 + Math.min(mag * 0.12, 2)) - u.flop.value) * 0.04;
+        }
+        if (started) AudioEngine.setSizzle((maxSpin - 2) * 0.012);
+
+        // cats: breathe, jiggle when meowing, swish tails
+        for (const cat of cats) {
+            const u = cat.userData;
+            const breathe = 1 + Math.sin(t * 2 + u.phase) * 0.025;
+            const since = t - u.meowT;
+            const jiggle = Math.exp(-since * 3) * Math.sin(since * 22) * 0.16;
+            cat.scale.set(2.6 * breathe * (1 + jiggle * 0.6), 2.6 * (2 - breathe) * (1 - jiggle), 2.6 * breathe * (1 + jiggle * 0.6));
+            const tail = cat.getObjectByName('tail');
+            if (tail) tail.rotation.y = Math.sin(t * 1.3 + u.phase) * 0.5;
+        }
+
+        // hypno knot + lights + sprinkles
+        knot.rotation.x = t * 0.5;
+        knot.rotation.y = t * 0.8;
+        knot.scale.setScalar(1 + Math.sin(t * 2.4) * 0.12 + spinSmooth * 6);
+        for (const { light, phase } of orbitLights) {
+            light.position.set(Math.cos(t * 0.7 + phase) * 11, 6 + Math.sin(t * 1.1 + phase) * 3, Math.sin(t * 0.7 + phase) * 11);
+            light.color.setHSL((t * 0.05 + phase) % 1, 1, 0.6);
+        }
+        const sprinkles = scene.getObjectByName('sprinkles');
+        if (sprinkles) sprinkles.rotation.y = t * 0.03;
+
+        // trails get longer the faster you spin
+        afterimage.uniforms.damp.value = Math.min(0.9, 0.72 + spinSmooth * 4);
+
+        composer.render();
+    }
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    document.getElementById('enter-btn').addEventListener('click', () => {
+        document.getElementById('overlay').classList.add('hidden');
+        AudioEngine.init();
+        started = true;
+        scheduleAmbientMeow();
+        // welcome committee
+        setTimeout(() => AudioEngine.meow(150), 500);
+        setTimeout(() => AudioEngine.boing(), 1100);
+    });
+
+    document.getElementById('mute-btn').addEventListener('click', (e) => {
+        const muted = AudioEngine.toggleMute();
+        e.currentTarget.textContent = muted ? '🔇 sound off' : '🔊 sound on';
+    });
+
+    animate();
+    </script>
+</body>
+</html>
