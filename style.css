@@ -143,19 +143,6 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     padding-bottom: 0.85rem;
 }
 
-.logo {
-    font-family: var(--font-mono);
-    font-weight: 600;
-    font-size: 0.86rem;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--ink);
-    transition: color 0.2s ease;
-}
-
-.logo:hover { color: var(--accent); }
-
 .nav-links {
     list-style: none;
     display: flex;
@@ -182,7 +169,7 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     border-color: var(--accent);
 }
 
-.nav-actions { display: flex; align-items: center; gap: 0.5rem; }
+.nav-actions { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
 
 .icon-btn {
     display: inline-flex;
