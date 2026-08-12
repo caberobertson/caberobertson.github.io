@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finger Piano — Camera Instrument</title>
+  <title>Finger Piano, Camera Instrument</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -203,7 +203,7 @@
   <div class="logo">🎻</div>
   <div>
     <h1>Finger Piano</h1>
-    <p>Pull the strings with your fingers — computer vision hand tracking meets a physics-based plucked-string synth</p>
+    <p>Pull the strings with your fingers, computer vision hand tracking meets a physics-based plucked-string synth</p>
   </div>
 </header>
 
@@ -213,9 +213,9 @@
     <div class="card-title">📷 Camera Stage</div>
 
     <div class="notice">
-      Uses your webcam and <strong>MediaPipe Hand Landmarker</strong> (runs locally in the browser — no video
+      Uses your webcam and <strong>MediaPipe Hand Landmarker</strong> (runs locally in the browser, no video
       is uploaded anywhere) to track your fingertips. Drag a fingertip sideways through a string to bend it,
-      then lift off — it snaps back and rings out with real spring physics driving the animation and a
+      then lift off, it snaps back and rings out with real spring physics driving the animation and a
       Karplus-Strong plucked-string synth for the sound. Works best in good lighting, in <strong>Chrome</strong>
       or <strong>Edge</strong>.
     </div>
@@ -368,8 +368,7 @@ scaleSelect.addEventListener('change', () => {
    Spring-damper physics for each string.
    Grabbing and holding use different radii on purpose: you must aim
    at a string's own lane to grab it, but once grabbed it keeps
-   following your fingertip much further away (like a slingshot) —
-   otherwise the string lets go the instant you pull it past its own
+   following your fingertip much further away (like a slingshot), otherwise the string lets go the instant you pull it past its own
    lane, which both caps how far it can stretch and causes rapid
    grab/release flicker that stacks up overlapping plucks.
 ──────────────────────────────────────────────── */
@@ -380,11 +379,11 @@ const GRAB_RADIUS_RATIO = 0.5;      // fraction of column width to *start* holdi
 const RELEASE_RADIUS_RATIO = 3.5;   // fraction of column width to *keep* holding it while dragged away
 const STRETCH_LIMIT_RATIO = 3;      // fraction of column width the string can visually stretch
 const SETTLE_EPSILON = 0.4;
-const MIN_PLUCK_DISPLACEMENT = 6;   // px — ignore releases from tiny jitter
-const MIN_PLUCK_INTERVAL = 0.09;    // seconds — floor between plucks of the same string
+const MIN_PLUCK_DISPLACEMENT = 6;   // px, ignore releases from tiny jitter
+const MIN_PLUCK_INTERVAL = 0.09;    // seconds, floor between plucks of the same string
 
 /* ────────────────────────────────────────────────
-   Audio engine — Karplus-Strong plucked-string synthesis.
+   Audio engine, Karplus-Strong plucked-string synthesis.
    Each pluck excites a delay-line/lowpass feedback loop (a comb
    filter tuned to the string's period) with a single noise burst,
    which rings and decays the way a real plucked string does.
@@ -447,7 +446,7 @@ function pluckString(freq, strength) {
   const outGain = audioCtx.createGain();
   const now = audioCtx.currentTime;
   const peak = Math.max(0.05, Math.min(1, strength)) * 0.6; // headroom for overlapping voices
-  const ringDuration = 2.2; // seconds — plenty for this feedback gain to ring out and decay
+  const ringDuration = 2.2; // seconds, plenty for this feedback gain to ring out and decay
   outGain.gain.setValueAtTime(0, now);
   outGain.gain.linearRampToValueAtTime(peak, now + 0.005);
   outGain.gain.setValueAtTime(peak, now + ringDuration - 0.15);
@@ -646,7 +645,7 @@ function render(result, dt) {
       }
     }
 
-    // Just let go of a meaningfully pulled string — pluck it (with a
+    // Just let go of a meaningfully pulled string, pluck it (with a
     // cooldown so hand-tracking jitter can't stack up overlapping plucks)
     const nowSec = audioCtx ? audioCtx.currentTime : performance.now() / 1000;
     if (

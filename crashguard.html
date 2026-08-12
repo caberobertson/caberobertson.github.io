@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MYOSA CrashGuard | Cabe Robertson</title>
-    <meta name="description" content="MYOSA CrashGuard — IEEE MYOSA 6.0 finalist. Autonomous crash detection with AI emergency calling: ESP32/MPU6050 sensor fusion, BLE, Flask, and Twilio voice. Presenting live hardware at IEEE SENSORS 2026, Rotterdam.">
+    <meta name="description" content="MYOSA CrashGuard, IEEE MYOSA 6.0 finalist. Autonomous crash detection with AI emergency calling: ESP32/MPU6050 sensor fusion, BLE, Flask, and Twilio voice. Presenting live hardware at IEEE SENSORS 2026, Rotterdam.">
     <meta property="og:title" content="MYOSA CrashGuard | Cabe Robertson">
-    <meta property="og:description" content="Autonomous crash detection with AI emergency calling — ESP32, BLE, Twilio Voice, and a grounded Claude dispatcher agent, demoed on an RC car.">
+    <meta property="og:description" content="Autonomous crash detection with AI emergency calling, built on ESP32, BLE, Twilio Voice, and a grounded Claude dispatcher agent, demoed on an RC car.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://caberobertson.github.io/crashguard.html">
     <meta name="theme-color" content="#0e100b">
@@ -57,7 +57,7 @@
                     <span class="section-index">00</span>
                     <h1 class="section-title">MYOSA CrashGuard <span class="wip-badge">In Progress</span></h1>
                 </div>
-                <p class="section-sub reveal in">Autonomous crash detection with AI emergency calling — an OnStar-style guardian built on the MYOSA Mini kit and demonstrated on an RC car.</p>
+                <p class="section-sub reveal in">Autonomous crash detection with AI emergency calling, an OnStar-style guardian built on the MYOSA Mini kit and demonstrated on an RC car.</p>
 
                 <div class="chip-row reveal in">
                     <span class="chip"><strong>1 of 15</strong> teams selected worldwide</span>
@@ -68,7 +68,7 @@
                 <p class="doc-meta reveal in">
                     <strong>Competition:</strong> IEEE Sensors Council MYOSA 6.0 (2026) &middot; Finalist &middot; New Mexico State University<br>
                     <strong>Team:</strong> Aidan Garcia, Jacob Randall, Cabe Robertson, Vu Ha Nguyen<br>
-                    <strong>My role:</strong> Team lead &mdash; stack architecture &amp; test methodology<br>
+                    <strong>My role:</strong> Team lead, stack architecture &amp; test methodology<br>
                     <strong>Faculty mentor:</strong> Dr. Lavrova &middot; Klipsch School of Electrical &amp; Computer Engineering
                 </p>
 
@@ -78,7 +78,7 @@
                     <p>I served as <strong>team lead</strong> on CrashGuard, owning the technical direction of the build and the effort to make its measurements trustworthy.</p>
                     <ul class="doc-list">
                         <li><strong>Own the sensor-fusion firmware.</strong> Wrote and tuned the ESP32/MPU6050 firmware that detects impact events in real time from 6-axis IMU data and autonomously triggers the emergency call.</li>
-                        <li><strong>Architected the tech stack.</strong> Defined the full signal-to-action chain end to end &mdash; on-vehicle sensing, the BLE link to a phone with its Wi-Fi HTTP fallback, the Flask call server and dashboard, and the Twilio voice interface &mdash; resolving the threading and timeout failures that blocked reliable real-time dispatch.</li>
+                        <li><strong>Architected the tech stack.</strong> Defined the full signal-to-action chain end to end (on-vehicle sensing, the BLE link to a phone with its Wi-Fi HTTP fallback, the Flask call server and dashboard, and the Twilio voice interface), resolving the threading and timeout failures that blocked reliable real-time dispatch.</li>
                         <li><strong>Led the team.</strong> Coordinated four engineers across firmware, host software, and demo preparation, keeping the subsystems integrating cleanly against the competition deadline.</li>
                         <li><strong>Led the testing effort.</strong> Drove the work of getting accurate results rather than plausible ones: characterizing the accelerometer against a measured baseline, then tuning detection thresholds and GPS filtering to eliminate false positives in field testing.</li>
                     </ul>
@@ -87,7 +87,7 @@
                 <article class="panel reveal">
                     <span class="panel-tag">Problem</span>
                     <h2>Why it exists</h2>
-                    <p>Every year, thousands of car crash victims suffer preventable deaths because emergency response is delayed — most critically when the driver is incapacitated and cannot call for help. CrashGuard closes that gap: it identifies a collision on its own from a sudden change in acceleration, then contacts help without requiring any action from the occupant.</p>
+                    <p>Every year, thousands of car crash victims suffer preventable deaths because emergency response is delayed, most critically when the driver is incapacitated and cannot call for help. CrashGuard closes that gap: it identifies a collision on its own from a sudden change in acceleration, then contacts help without requiring any action from the occupant.</p>
                     <p>The board becomes the "brain" of an in-vehicle guardian. When it detects an impact, a live phone dashboard flashes a ten-second countdown while the onboard buzzer sounds. A conscious occupant taps one big red <strong>CANCEL</strong> button and the system re-arms. If nobody cancels, CrashGuard assumes the occupant is incapacitated and escalates to an AI voice call that reports who they are, where they are, and what a dispatcher needs to know.</p>
                 </article>
 
@@ -95,7 +95,7 @@
                 <article class="panel reveal" data-delay="1">
                     <span class="panel-tag">Prototype</span>
                     <h2>Work-in-progress demo</h2>
-                    <p>Current prototype running end to end — impact detection, the cancel countdown on the phone dashboard, and the outbound AI call.</p>
+                    <p>Current prototype running end to end, impact detection, the cancel countdown on the phone dashboard, and the outbound AI call.</p>
                     <div class="video-wrapper">
                         <iframe src="https://www.youtube.com/embed/vkzkJGDFFSU" title="MYOSA CrashGuard work-in-progress prototype demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                     </div>
@@ -116,7 +116,7 @@
                     <ol class="step-list">
                         <li><strong>Detect.</strong> The accelerometer is sampled at 100&nbsp;Hz; a normalized magnitude above the calibrated threshold declares a collision.</li>
                         <li><strong>Warn.</strong> The phone dashboard flashes <em>!! CRASH DETECTED !!</em> with a ten-second countdown and vibrates; the buzzer on the car beeps faster in the final three seconds.</li>
-                        <li><strong>Offer the override.</strong> One tap on <strong>CANCEL — I'M OK</strong> dismisses the alert and re-arms the system, exactly how a conscious driver waves off a pothole.</li>
+                        <li><strong>Offer the override.</strong> One tap on <strong>CANCEL - I'M OK</strong> dismisses the alert and re-arms the system, exactly how a conscious driver waves off a pothole.</li>
                         <li><strong>Escalate.</strong> If the countdown expires, the board pushes a Bluetooth alert to the host, which fires the call pipeline.</li>
                         <li><strong>Locate.</strong> A single batch of map lookups resolves the address, city, nearest cross streets, and closest hospitals from the live GPS fix.</li>
                         <li><strong>Call.</strong> Twilio places an outbound call that speaks the occupant's briefing, then a Claude agent answers the dispatcher's follow-up questions using only verified data.</li>
@@ -134,7 +134,7 @@
 
                         <!-- RC car grouping -->
                         <rect class="d-group" x="14" y="36" width="232" height="252"/>
-                        <text class="d-group-label" x="26" y="28">RC CAR — DEMO VEHICLE</text>
+                        <text class="d-group-label" x="26" y="28">RC CAR, DEMO VEHICLE</text>
 
                         <rect class="d-box d-box--accent" x="30" y="52" width="200" height="92"/>
                         <text class="d-title" x="130" y="82" text-anchor="middle">MYOSA Board</text>
@@ -210,9 +210,9 @@
 
                         <!-- Wi-Fi fallback -->
                         <path class="d-flow d-flow--dash" d="M 246 158 C 400 200, 470 180, 540 128"/>
-                        <text class="d-flow-label" x="272" y="205">Wi-Fi HTTP fallback — no bridge</text>
+                        <text class="d-flow-label" x="272" y="205">Wi-Fi HTTP fallback, no bridge</text>
                     </svg>
-                    <figcaption>End-to-end architecture — MYOSA board &rarr; BLE bridge &rarr; call server + Claude &rarr; Twilio &rarr; dispatcher. The dashed path is the Wi-Fi HTTP fallback, which removes the bridge entirely.</figcaption>
+                    <figcaption>End-to-end architecture, MYOSA board &rarr; BLE bridge &rarr; call server + Claude &rarr; Twilio &rarr; dispatcher. The dashed path is the Wi-Fi HTTP fallback, which removes the bridge entirely.</figcaption>
                 </figure>
             </div>
         </section>
@@ -235,7 +235,7 @@
                     <p>A collision is declared when <strong>G</strong> exceeds the calibrated detection threshold, set at <strong>50&nbsp;g</strong> for impact events. The threshold is tuned from labelled <em>normal</em> and <em>crash</em> runs recorded with the included calibration tool, and paired with GPS filtering to eliminate false positives in field testing.</p>
 
                     <div class="callout">
-                        <strong>Engineering lesson.</strong> A consumer accelerometer cannot give you trustworthy velocity by integration — drift swamps the signal. But a sudden high-magnitude change in acceleration is a robust, low-cost crash signature, and normalizing against a measured baseline is what makes the threshold portable between boards.
+                        <strong>Engineering lesson.</strong> A consumer accelerometer cannot give you trustworthy velocity by integration, drift swamps the signal. But a sudden high-magnitude change in acceleration is a robust, low-cost crash signature, and normalizing against a measured baseline is what makes the threshold portable between boards.
                     </div>
                 </article>
             </div>
@@ -248,29 +248,29 @@
                     <span class="section-index">03</span>
                     <h2 class="section-title">The phone dashboard</h2>
                 </div>
-                <p class="section-sub reveal">The demo vehicle is moving, so every result belongs on a phone — not on a screen bolted to the car.</p>
+                <p class="section-sub reveal">The demo vehicle is moving, so every result belongs on a phone, not on a screen bolted to the car.</p>
 
                 <article class="panel reveal">
                     <div class="doc-split">
                         <div>
-                            <p>The board streams its status — current G, session peak, state, and countdown seconds — off-board five times per second. The call server renders it as a mobile web dashboard on the local network, so any phone can open it with no app install.</p>
-                            <p>The instant an impact is confirmed the dashboard goes full-screen with the countdown and a large red <strong>CANCEL — I'M OK</strong> button, and the phone vibrates. One tap cancels and re-arms. The onboard pushbutton stays wired as a backup, and after an alert the dashboard offers a <strong>RE-ARM</strong> control.</p>
+                            <p>The board streams its status (current G, session peak, state, and countdown seconds) off-board five times per second. The call server renders it as a mobile web dashboard on the local network, so any phone can open it with no app install.</p>
+                            <p>The instant an impact is confirmed the dashboard goes full-screen with the countdown and a large red <strong>CANCEL - I'M OK</strong> button, and the phone vibrates. One tap cancels and re-arms. The onboard pushbutton stays wired as a backup, and after an alert the dashboard offers a <strong>RE-ARM</strong> control.</p>
                             <ul class="doc-list">
-                                <li><strong>Live telemetry</strong> — impact G and session peak, updated 5&times;/second</li>
-                                <li><strong>Ten-second cancel window</strong> — full-screen countdown with haptic feedback</li>
-                                <li><strong>Backup input</strong> — onboard hardware button mirrors the CANCEL action</li>
-                                <li><strong>Re-arm</strong> — return the system to monitoring after a cancelled or completed alert</li>
+                                <li><strong>Live telemetry</strong>: impact G and session peak, updated 5&times;/second</li>
+                                <li><strong>Ten-second cancel window</strong>: full-screen countdown with haptic feedback</li>
+                                <li><strong>Backup input</strong>: onboard hardware button mirrors the CANCEL action</li>
+                                <li><strong>Re-arm</strong>: return the system to monitoring after a cancelled or completed alert</li>
                             </ul>
                         </div>
                         <figure class="figure figure--narrow">
-                            <div class="phone" role="img" aria-label="Dashboard layout during a cancel countdown: a CRASH DETECTED banner, a ten-second countdown showing 7, a large red CANCEL — I'M OK button, a 5.12 G impact force readout, and a row showing session peak and occupant name.">
+                            <div class="phone" role="img" aria-label="Dashboard layout during a cancel countdown: a CRASH DETECTED banner, a ten-second countdown showing 7, a large red CANCEL - I'M OK button, a 5.12 G impact force readout, and a row showing session peak and occupant name.">
                                 <div class="phone-bar"><span>CrashGuard</span><span class="phone-live">board live</span></div>
                                 <div class="phone-tile phone-alert">!! CRASH DETECTED !!</div>
                                 <div class="phone-tile">
                                     <div class="phone-label">Cancel window</div>
                                     <div class="phone-count">7</div>
                                 </div>
-                                <div class="phone-cancel">CANCEL — I'M OK</div>
+                                <div class="phone-cancel">CANCEL - I'M OK</div>
                                 <div class="phone-tile">
                                     <div class="phone-label">Impact force</div>
                                     <div class="phone-g">5.12 <span>G</span></div>
@@ -280,7 +280,7 @@
                                     <div class="phone-tile"><div class="phone-label">Occupant</div><strong>Profile</strong></div>
                                 </div>
                             </div>
-                            <figcaption>Dashboard layout mid-countdown — live impact reading and the cancel control. See the video above for the running system.</figcaption>
+                            <figcaption>Dashboard layout mid-countdown, live impact reading and the cancel control. See the video above for the running system.</figcaption>
                         </figure>
                     </div>
                 </article>
@@ -305,7 +305,7 @@
                             <span class="tag">ESP32</span>
                             <span class="tag">Wi-Fi fallback</span>
                         </div>
-                        <p>The ESP32 runs a BLE GATT server with three characteristics: crash alerts out, live status out, and phone commands (CANCEL / REARM) in. A Python bridge relays alerts upward and button presses back down. For noisy conference radio environments, a compile-time flag switches the board onto a phone hotspot and talks to the server over HTTP instead — each status POST returns any pending command, so no bridge is needed at all.</p>
+                        <p>The ESP32 runs a BLE GATT server with three characteristics: crash alerts out, live status out, and phone commands (CANCEL / REARM) in. A Python bridge relays alerts upward and button presses back down. For noisy conference radio environments, a compile-time flag switches the board onto a phone hotspot and talks to the server over HTTP instead; each status POST returns any pending command, so no bridge is needed at all.</p>
                     </article>
 
                     <article class="panel project-card reveal" data-delay="1">
@@ -316,7 +316,7 @@
                             <span class="tag">Nominatim</span>
                             <span class="tag">Overpass</span>
                         </div>
-                        <p>A dispatcher asks things no profile can hold: <em>what's the nearest cross street? what city is this? where's the closest ER?</em> At the moment of the crash CrashGuard runs one batch of key-less OpenStreetMap lookups against the live GPS fix — address, city and county, nearest named roads, and closest hospitals with distance and compass direction — and injects the bundle into the AI's context. Fetching once keeps answers fast and grounded in real map data instead of guesswork.</p>
+                        <p>A dispatcher asks things no profile can hold: <em>what's the nearest cross street? what city is this? where's the closest ER?</em> At the moment of the crash CrashGuard runs one batch of key-less OpenStreetMap lookups against the live GPS fix (address, city and county, nearest named roads, and closest hospitals with distance and compass direction) and injects the bundle into the AI's context. Fetching once keeps answers fast and grounded in real map data instead of guesswork.</p>
                     </article>
 
                     <article class="panel project-card reveal" data-delay="2">
@@ -327,7 +327,7 @@
                             <span class="tag">Claude API</span>
                             <span class="tag">Flask</span>
                         </div>
-                        <p>The Flask call server receives the crash event and uses Twilio to place the outbound call. It opens with a spoken briefing — name, GPS coordinates and nearest address, peak impact force, blood type, medical conditions, primary emergency contact — then listens. The dispatcher's speech is transcribed and handed to a Claude agent whose system prompt contains <em>only</em> the occupant profile and live crash data, instructed to answer in one to three short sentences, read numbers digit by digit, and say <em>"I don't have that information"</em> rather than ever guess.</p>
+                        <p>The Flask call server receives the crash event and uses Twilio to place the outbound call. It opens with a spoken briefing (name, GPS coordinates and nearest address, peak impact force, blood type, medical conditions, primary emergency contact), then listens. The dispatcher's speech is transcribed and handed to a Claude agent whose system prompt contains <em>only</em> the occupant profile and live crash data, instructed to answer in one to three short sentences, read numbers digit by digit, and say <em>"I don't have that information"</em> rather than ever guess.</p>
                     </article>
 
                     <article class="panel project-card reveal" data-delay="3">
@@ -357,12 +357,12 @@
                         <span class="panel-tag">Stack</span>
                         <h3>What it is built from</h3>
                         <ul class="doc-list">
-                            <li><strong>MYOSA Mini Kit</strong> — ESP32 motherboard, MPU6050 accelerometer/gyro, buzzer and pushbutton on the I<sup>2</sup>C chain</li>
-                            <li><strong>Arduino (C++)</strong> — firmware, official MYOSA sensor libraries, ESP32 BLE stack</li>
-                            <li><strong>Python 3 + HTML/JS</strong> — Flask call server, live mobile dashboard, <code>bleak</code> BLE bridge, <code>pyserial</code> calibration tooling</li>
-                            <li><strong>OpenStreetMap</strong> — Nominatim and Overpass for reverse geocoding, cross streets, and nearby hospitals (free, no API key)</li>
-                            <li><strong>Twilio Programmable Voice</strong> — outbound calling, speech recognition, neural text-to-speech</li>
-                            <li><strong>Claude API</strong> — grounded conversational dispatcher agent</li>
+                            <li><strong>MYOSA Mini Kit</strong>: ESP32 motherboard, MPU6050 accelerometer/gyro, buzzer and pushbutton on the I<sup>2</sup>C chain</li>
+                            <li><strong>Arduino (C++)</strong>: firmware, official MYOSA sensor libraries, ESP32 BLE stack</li>
+                            <li><strong>Python 3 + HTML/JS</strong>: Flask call server, live mobile dashboard, <code>bleak</code> BLE bridge, <code>pyserial</code> calibration tooling</li>
+                            <li><strong>OpenStreetMap</strong>: Nominatim and Overpass for reverse geocoding, cross streets, and nearby hospitals (free, no API key)</li>
+                            <li><strong>Twilio Programmable Voice</strong>: outbound calling, speech recognition, neural text-to-speech</li>
+                            <li><strong>Claude API</strong>: grounded conversational dispatcher agent</li>
                         </ul>
                     </article>
 
@@ -383,7 +383,7 @@
                 </div>
 
                 <div class="callout reveal">
-                    <strong>Safety.</strong> This is a demonstration system. The call is placed to a team member's phone that plays the dispatcher role — never to 911 or any real emergency service — and a demo-mode flag makes the AI disclose that no real emergency exists if it is asked.
+                    <strong>Safety.</strong> This is a demonstration system. The call is placed to a team member's phone that plays the dispatcher role, never to 911 or any real emergency service, and a demo-mode flag makes the AI disclose that no real emergency exists if it is asked.
                 </div>
             </div>
         </section>
@@ -398,7 +398,7 @@
 
                 <article class="panel reveal">
                     <span class="panel-tag">Roadmap</span>
-                    <p>The full chain — detection, cancel window, BLE alert, AI call, map lookups, and incident reporting — runs end to end on the prototype above. Work continues on hardening the demo and extending the system:</p>
+                    <p>The full chain (detection, cancel window, BLE alert, AI call, map lookups, and incident reporting) runs end to end on the prototype above. Work continues on hardening the demo and extending the system:</p>
                     <ul class="doc-list">
                         <li><strong>Rollover detection</strong> using the gyroscope alongside the acceleration threshold</li>
                         <li><strong>Phone app to replace the laptop bridge</strong>, which would bring real phone GPS into the alert</li>

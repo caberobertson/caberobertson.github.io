@@ -469,7 +469,7 @@
     <div class="card-title"><span class="badge">2</span> Record Voice Caption</div>
 
     <div class="notice">
-      Voice-to-text uses the Web Speech API — works best in <strong>Chrome</strong> or <strong>Edge</strong>. You can also type your caption directly.
+      Voice-to-text uses the Web Speech API, works best in <strong>Chrome</strong> or <strong>Edge</strong>. You can also type your caption directly.
     </div>
 
     <div class="voice-row">
@@ -481,7 +481,7 @@
       <button type="button" class="btn btn-record" id="rec-btn" onclick="toggleRecording()">🎤 Start Recording</button>
     </div>
 
-    <textarea id="caption-box" placeholder="Caption appears here after recording — or type / edit directly…"></textarea>
+    <textarea id="caption-box" placeholder="Caption appears here after recording, or type / edit directly…"></textarea>
   </div>
 
   <!-- ── STEP 3: Format ── -->
@@ -533,7 +533,7 @@
       <button type="button" class="btn btn-outline" style="font-size:.8rem;padding:.35rem .75rem" onclick="clearAll()">Clear All</button>
     </div>
     <div id="items-list">
-      <div class="empty">No items yet — capture a photo and click "Add to Document" to get started.</div>
+      <div class="empty">No items yet, capture a photo and click "Add to Document" to get started.</div>
     </div>
   </div>
 
@@ -579,7 +579,7 @@ function toast(msg, type = '') {
 }
 
 /* ────────────────────────────────────────────────
-   Camera — uses native Android camera via input[capture].
+   Camera, uses native Android camera via input[capture].
    All photos are normalised through a canvas → JPEG so that
    HEIC, WebP, odd JPEG variants, and EXIF rotation all work.
 ──────────────────────────────────────────────── */
@@ -594,7 +594,7 @@ function handlePhoto(e) {
   img.onload = () => {
     URL.revokeObjectURL(objURL);
 
-    // Resize to max 2400 px on the longest side — keeps docx manageable
+    // Resize to max 2400 px on the longest side, keeps docx manageable
     const MAX = 2400;
     let w = img.naturalWidth, h = img.naturalHeight;
     if (w > MAX || h > MAX) {
@@ -620,7 +620,7 @@ function handlePhoto(e) {
 
   img.onerror = () => {
     URL.revokeObjectURL(objURL);
-    toast('Could not load photo — try again.', 'error');
+    toast('Could not load photo, try again.', 'error');
   };
 
   img.src = objURL;
@@ -663,7 +663,7 @@ function toggleRecording() {
 function startRecording() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
-    toast('Speech API not supported — use Chrome or Edge, or type manually.', 'error');
+    toast('Speech API not supported, use Chrome or Edge, or type manually.', 'error');
     return;
   }
   isRecording = true;
@@ -680,7 +680,7 @@ function spawnSession() {
   if (!isRecording) return;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const r = new SR();
-  r.continuous     = false;   // single-utterance — avoids Android replay bug
+  r.continuous     = false;   // single-utterance, avoids Android replay bug
   r.interimResults = true;
   r.lang           = 'en-US';
   activeRec        = r;
@@ -718,7 +718,7 @@ function spawnSession() {
       setRecordingUI(false);
       return;
     }
-    // 'no-speech' and 'aborted' are non-fatal — onend will restart
+    // 'no-speech' and 'aborted' are non-fatal, onend will restart
   };
 
   try { r.start(); } catch (_) { /* already started, ignore */ }
@@ -741,7 +741,7 @@ function setRecordingUI(on) {
   document.getElementById('rec-btn').textContent = on ? '⏹ Stop Recording' : '🎤 Start Recording';
   document.getElementById('rec-btn').className   = 'btn btn-record' + (on ? ' active' : '');
   document.getElementById('rec-dot').classList.toggle('active', on);
-  document.getElementById('voice-status').textContent = on ? 'Listening…' : 'Recording stopped — grammar corrected';
+  document.getElementById('voice-status').textContent = on ? 'Listening…' : 'Recording stopped, grammar corrected';
 }
 
 /* Fix common speech-to-text issues: capitalisation, punctuation */
@@ -792,7 +792,7 @@ function addToDocument() {
 function renderPreview() {
   const list = document.getElementById('items-list');
   if (docItems.length === 0) {
-    list.innerHTML = '<div class="empty">No items yet — capture a photo and click "Add to Document" to get started.</div>';
+    list.innerHTML = '<div class="empty">No items yet, capture a photo and click "Add to Document" to get started.</div>';
     return;
   }
   list.innerHTML = docItems.map((item, i) => `
@@ -846,7 +846,7 @@ function resetCapture() {
 
 /* ────────────────────────────────────────────────
    Build .docx from scratch with JSZip + raw XML.
-   No external docx library — avoids the "permission denied"
+   No external docx library, avoids the "permission denied"
    error that the docx npm package throws on Android Chrome.
 ──────────────────────────────────────────────── */
 function xmlEsc(s) {
@@ -955,7 +955,7 @@ ${imgRels}
       </w:drawing></w:r>
     </w:p>`;
 
-    // Caption paragraph — left-aligned
+    // Caption paragraph, left-aligned
     body += `<w:p>
       <w:pPr><w:jc w:val="left"/><w:spacing w:after="200"/></w:pPr>
       <w:r>
@@ -1018,7 +1018,7 @@ async function downloadDoc() {
   btn.textContent = 'Building…';
 
   try {
-    if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded — please refresh the page.');
+    if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded, please refresh the page.');
 
     const docTitle   = document.getElementById('doc-title').value.trim();
     const fontSize   = parseInt(document.getElementById('font-size').value);

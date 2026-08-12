@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Cabe Robertson — Portfolio interactions
+   Cabe Robertson, Portfolio interactions
    Theme toggle · mobile nav · scroll reveal · typed hero · scroll progress ·
    photo slider · command palette · back-to-top · clipboard
    ========================================================================== */

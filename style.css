@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Cabe Robertson — Portfolio
+   Cabe Robertson, Portfolio
    Design system: editorial engineering datasheet / lab logbook aesthetic.
    Warm paper light theme, CRT-phosphor dark theme. Zero glass, zero glow.
    ========================================================================== */
@@ -64,7 +64,7 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Faint graph-paper grid — pure CSS, no canvas */
+/* Faint graph-paper grid, pure CSS, no canvas */
 body {
     background-image:
         linear-gradient(var(--grid-line) 1px, transparent 1px),
@@ -92,7 +92,7 @@ a { color: var(--accent); }
 
 main { flex: 1 0 auto; padding-bottom: 4rem; }
 
-/* ---------- Ruler / tick divider — recurring motif ---------- */
+/* ---------- Ruler / tick divider, recurring motif ---------- */
 .ruler {
     height: 10px;
     border-top: 1px solid var(--border-strong);
@@ -261,7 +261,7 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     max-width: 32ch;
 }
 
-/* Spec block — datasheet-style parameter table */
+/* Spec block, datasheet-style parameter table */
 .spec-block {
     border: 1px solid var(--border-strong);
     font-family: var(--font-mono);
@@ -372,7 +372,7 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
 .centered .section-head { justify-content: center; }
 .centered .section-sub { margin-left: auto; margin-right: auto; }
 
-/* ---------- Panels (flat, bordered — replaces glass cards) ---------- */
+/* ---------- Panels (flat, bordered, replaces glass cards) ---------- */
 .panel {
     position: relative;
     background: var(--surface);
@@ -696,19 +696,41 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     min-width: 100%;
     margin: 0; /* override the browser's default figure margins, which skew the 100%-per-slide transform */
     position: relative;
+    overflow: hidden;
 }
 
 .slide img {
     width: 100%;
-    height: 420px;
-    object-fit: cover;
+    aspect-ratio: 3 / 2;
+    object-fit: contain;   /* show the whole photo; aspect ratios vary 1.04-1.71 */
     object-position: center;
     display: block;
-    background: var(--surface);
+    position: relative;
+    z-index: 1;
     filter: grayscale(0.1) contrast(1.02);
 }
 
+/* Blurred enlargement of the same photo fills the letterbox area,
+   so nothing is cropped and the frame still reads as full-bleed. */
+.slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    aspect-ratio: 3 / 2;
+    background-image: var(--slide-bg);
+    background-size: cover;
+    background-position: center;
+    filter: blur(30px) brightness(0.55) saturate(1.1);
+    transform: scale(1.15);
+    z-index: 0;
+}
+
 .slide-caption {
+    position: relative;
+    z-index: 2;
+    background: var(--surface);
     display: flex;
     align-items: baseline;
     gap: 10px;
@@ -984,7 +1006,7 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
 
     .hero { padding: 2.2rem 0 0; }
     .project-grid { grid-template-columns: 1fr; }
-    .slide img { height: 260px; }
+    .slide img, .slide::before { aspect-ratio: 4 / 3; }
     .panel { padding: 1.4rem; }
     .log-entry { grid-template-columns: 36px 1fr; }
     .log-index { font-size: 1.15rem; }
