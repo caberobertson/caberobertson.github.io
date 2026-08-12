@@ -10,7 +10,8 @@ Personal portfolio of **Cabe Robertson** — Electrical Engineering student at N
 |---|---|
 | `index.html` | Hero with animated stats, about, education & leadership, photo gallery |
 | `experience.html` | Interactive timeline of internships, research, and leadership |
-| `projects.html` | Featured engineering projects (computer vision, embedded, FPGA) |
+| `projects.html` | Featured engineering projects (computer vision, embedded, FPGA) plus an In Progress section |
+| `crashguard.html` | Full documentation for MYOSA CrashGuard — crash detection with AI emergency calling |
 | `skills.html` | Software, hardware/lab, and language skills |
 | `contact.html` | Contact cards with copy-to-clipboard |
 | `404.html` | Custom "Signal Not Found" error page |
