@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skills | Cabe Robertson</title>
-    <meta name="description" content="Technical skills of Cabe Robertson — Python, C/C++, MATLAB, VHDL, PCB design, FPGA development, and electronics lab equipment.">
+    <meta name="description" content="Technical skills of Cabe Robertson — RF and electronic warfare, 6-axis IMU sensor fusion, ESP32 firmware, BLE, EAGLE PCB design, FPGA/VHDL, Python, MATLAB, and lab test instrumentation.">
     <meta property="og:title" content="Skills | Cabe Robertson">
     <meta property="og:description" content="Software, hardware, and lab skills for electrical engineering.">
     <meta property="og:type" content="website">
@@ -15,6 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,900;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="docs.css?v=2">
     <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;})();</script>
 </head>
 <body>
@@ -30,6 +31,7 @@
                 <li><a href="projects.html">Projects</a></li>
                 <li><a href="skills.html">Skills</a></li>
                 <li><a href="contact.html">Contact</a></li>
+                <li><a href="Cabe_Robertson_Resume.pdf" target="_blank" class="nav-resume">Resume</a></li>
             </ul>
             <div class="nav-actions">
                 <button type="button" id="cmdk-btn" class="icon-btn" aria-label="Open command palette" title="Command palette (Ctrl+K)">
@@ -54,49 +56,97 @@
                     <span class="section-index">01</span>
                     <h1 class="section-title">Technical Skills</h1>
                 </div>
-                <p class="section-sub reveal in">The languages, tools, and equipment I work with — in the lab and at the keyboard.</p>
+                <p class="section-sub reveal in">Grouped the way engineering roles are scoped — RF, signal processing, embedded, and lab &amp; test.</p>
 
                 <div class="skills-grid">
-                    <!-- Software -->
+                    <!-- RF & EW -->
                     <div class="panel skill-card reveal">
                         <h3>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                            Software &amp; Programming
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/><path d="M7.76 16.24a6 6 0 0 1 0-8.48"/><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.48"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                            RF &amp; Electronic Warfare
                         </h3>
                         <div class="tags tags--accent">
-                            <span class="tag">Python</span>
-                            <span class="tag">C / C++</span>
-                            <span class="tag">MATLAB</span>
+                            <span class="tag">RF Communication-Jamming Systems</span>
+                            <span class="tag">Spectrum Analysis</span>
+                            <span class="tag">Antenna Handling &amp; Field Setup</span>
+                            <span class="tag">RF Test Procedures</span>
+                        </div>
+                    </div>
+
+                    <!-- Sensors & DSP -->
+                    <div class="panel skill-card reveal" data-delay="1">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 12 6 12 9 4 15 20 18 12 22 12"/></svg>
+                            Sensors &amp; Signal Processing
+                        </h3>
+                        <div class="tags tags--accent">
+                            <span class="tag">6-Axis IMU Sensor Fusion</span>
+                            <span class="tag">Channel Coding &amp; BER Analysis</span>
+                            <span class="tag">Detection Threshold Tuning</span>
+                            <span class="tag">GPS Filtering</span>
+                            <span class="tag">False-Positive Rejection</span>
+                            <span class="tag">Signal Conditioning</span>
+                            <span class="tag">Design of Experiments</span>
+                        </div>
+                    </div>
+
+                    <!-- Embedded -->
+                    <div class="panel skill-card reveal" data-delay="2">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>
+                            Embedded &amp; Hardware
+                        </h3>
+                        <div class="tags tags--accent2">
+                            <span class="tag">ESP32 Firmware (C/C++)</span>
+                            <span class="tag">BLE</span>
+                            <span class="tag">I2C / SPI</span>
+                            <span class="tag">ADC / DAC Interfacing</span>
+                            <span class="tag">PWM / BLDC Motor Drive</span>
+                            <span class="tag">EAGLE PCB Design</span>
                             <span class="tag">VHDL</span>
-                            <span class="tag">OpenCV</span>
+                            <span class="tag">FPGA</span>
+                            <span class="tag">Soldering &amp; Rework</span>
+                        </div>
+                    </div>
+
+                    <!-- Programming -->
+                    <div class="panel skill-card reveal" data-delay="3">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                            Programming &amp; Software
+                        </h3>
+                        <div class="tags tags--accent2">
+                            <span class="tag">Python (NumPy, OpenCV)</span>
+                            <span class="tag">C</span>
+                            <span class="tag">C++</span>
+                            <span class="tag">MATLAB</span>
+                            <span class="tag">Flask</span>
+                            <span class="tag">Git</span>
                             <span class="tag">Arduino IDE</span>
-                            <span class="tag">Git / GitHub</span>
-                            <span class="tag">EAGLE (PCB Design)</span>
                             <span class="tag">LaTeX (Overleaf)</span>
                         </div>
                     </div>
 
-                    <!-- Hardware -->
-                    <div class="panel skill-card reveal" data-delay="1">
+                    <!-- Lab & test -->
+                    <div class="panel skill-card reveal">
                         <h3>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg>
-                            Hardware &amp; Lab Equipment
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4.2 17A2 2 0 0 0 6 20h12a2 2 0 0 0 1.8-3L15 8.5V2"/><line x1="8" y1="2" x2="16" y2="2"/></svg>
+                            Lab &amp; Test
                         </h3>
-                        <div class="tags tags--accent2">
-                            <span class="tag">FPGA</span>
-                            <span class="tag">ESP32 &amp; Microcontrollers</span>
-                            <span class="tag">BLDC Motor Control (PWM)</span>
+                        <div class="tags">
                             <span class="tag">Oscilloscope</span>
+                            <span class="tag">Spectrum Analyzer</span>
                             <span class="tag">Function Generator</span>
-                            <span class="tag">Power Supply</span>
-                            <span class="tag">Soldering</span>
-                            <span class="tag">Anemometer</span>
+                            <span class="tag">DC Power Supply</span>
                             <span class="tag">Multimeter</span>
+                            <span class="tag">Anemometer</span>
+                            <span class="tag">AutoCAD (DWG/DXF)</span>
+                            <span class="tag">Blue UAS / NDAA Sourcing</span>
                         </div>
                     </div>
 
                     <!-- Languages -->
-                    <div class="panel skill-card reveal" data-delay="2">
+                    <div class="panel skill-card reveal" data-delay="1">
                         <h3>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                             Languages
@@ -106,6 +156,26 @@
                             <span class="tag">Spanish (Native)</span>
                         </div>
                     </div>
+                </div>
+
+                <div class="panel reveal" style="margin-top:1.6rem">
+                    <span class="panel-tag">&sect; Coursework</span>
+                    <h3>Relevant coursework</h3>
+                    <span class="course-label">Completed</span>
+                    <ul class="course-list">
+                        <li>Digital Logic</li>
+                        <li>DC &amp; AC Circuit Analysis</li>
+                        <li>Programming &amp; Embedded Systems</li>
+                        <li>Linear Algebra with Probability &amp; Statistics</li>
+                    </ul>
+                    <span class="course-label">In progress / planned</span>
+                    <ul class="course-list is-planned">
+                        <li>Signals &amp; Systems</li>
+                        <li>Digital Signal Processing</li>
+                        <li>Communication Systems</li>
+                        <li>Control Systems</li>
+                        <li>Electromagnetics</li>
+                    </ul>
                 </div>
             </div>
         </section>
