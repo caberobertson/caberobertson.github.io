@@ -49,70 +49,18 @@
     </nav>
 
     <main id="main">
+        <!-- In Progress -->
         <section class="section">
             <div class="container">
                 <div class="section-head reveal in">
                     <span class="section-index">01</span>
-                    <h1 class="section-title">Featured Projects</h1>
+                    <h1 class="section-title">In Progress</h1>
                 </div>
-                <p class="section-sub reveal in">Hands-on builds across computer vision, embedded systems, and digital logic.</p>
+                <p class="section-sub reveal in">Active builds, documented as they evolve.</p>
 
                 <div class="project-grid">
-                    <!-- Face Tracking Project -->
-                    <article class="panel project-card full-width reveal">
-                        <span class="panel-tag">Fig. 01</span>
-                        <h3>Face Tracking with Arduino &amp; Python</h3>
-                        <div class="tags">
-                            <span class="tag">Python (OpenCV)</span>
-                            <span class="tag">Arduino</span>
-                            <span class="tag">Pan-Tilt Servos</span>
-                            <span class="tag">Serial Communication</span>
-                        </div>
-                        <p>Built a real-time computer-vision system in Python (OpenCV) that detects faces and streams positional data over serial to an Arduino, driving pan-tilt servos to keep the subject centered at 30&nbsp;FPS.</p>
-                        <div class="video-wrapper">
-                            <iframe src="https://www.youtube.com/embed/a23yNcI4UtQ" title="Face Tracking Project Video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>
-                    </article>
-
-                    <!-- Self-Navigating Robot -->
-                    <article class="panel project-card reveal" data-delay="1">
-                        <span class="panel-tag">Fig. 02</span>
-                        <h3>Self-Navigating Robot</h3>
-                        <div class="tags">
-                            <span class="tag">Arduino</span>
-                            <span class="tag">Ultrasonic Sensors</span>
-                            <span class="tag">C++</span>
-                        </div>
-                        <p>Programmed an autonomous obstacle-avoidance robot in Arduino IDE using ultrasonic sensors, refining the control logic over repeated trials to achieve a 100% obstacle-avoidance rate in testing.</p>
-                    </article>
-
-                    <!-- FPGA Display -->
-                    <article class="panel project-card reveal" data-delay="2">
-                        <span class="panel-tag">Fig. 03</span>
-                        <h3>Seven-Segment Display</h3>
-                        <div class="tags">
-                            <span class="tag">VHDL</span>
-                            <span class="tag">FPGA</span>
-                            <span class="tag">Karnaugh Maps</span>
-                        </div>
-                        <p>Designed a VHDL display driver decoding all 16 BCD/HEX inputs (0–9, A–F) on an FPGA board, optimizing the Boolean logic with truth tables and Karnaugh maps to minimize gate count.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <!-- In Progress -->
-        <section class="section">
-            <div class="container">
-                <div class="section-head reveal">
-                    <span class="section-index">02</span>
-                    <h2 class="section-title">In Progress</h2>
-                </div>
-                <p class="section-sub reveal">Active builds, documented as they evolve.</p>
-
-                <div class="project-grid">
-                    <article class="panel project-card full-width reveal">
-                        <span class="panel-tag">Fig. 04 &middot; Active</span>
+                    <article class="panel project-card full-width reveal in">
+                        <span class="panel-tag">Fig. 01 &middot; Active</span>
                         <h3>MYOSA CrashGuard <span class="wip-badge">In Progress</span></h3>
                         <div class="tags tags--accent2">
                             <span class="tag">ESP32</span>
@@ -130,6 +78,59 @@
                         <div class="hero-cta" style="margin-top:1.6rem">
                             <a href="crashguard.html" class="btn btn-primary">Read the documentation</a>
                         </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Completed -->
+        <section class="section">
+            <div class="container">
+                <div class="section-head reveal">
+                    <span class="section-index">02</span>
+                    <h2 class="section-title">Featured Projects</h2>
+                </div>
+                <p class="section-sub reveal">Hands-on builds across computer vision, embedded systems, and digital logic.</p>
+
+                <div class="project-grid">
+                    <!-- Face Tracking Project -->
+                    <article class="panel project-card full-width reveal">
+                        <span class="panel-tag">Fig. 02</span>
+                        <h3>Face Tracking with Arduino &amp; Python</h3>
+                        <div class="tags">
+                            <span class="tag">Python (OpenCV)</span>
+                            <span class="tag">Arduino</span>
+                            <span class="tag">Pan-Tilt Servos</span>
+                            <span class="tag">Serial Communication</span>
+                        </div>
+                        <p>Built a real-time computer-vision system in Python (OpenCV) that detects faces and streams positional data over serial to an Arduino, driving pan-tilt servos to keep the subject centered at 30&nbsp;FPS.</p>
+                        <div class="video-wrapper">
+                            <iframe src="https://www.youtube.com/embed/a23yNcI4UtQ" title="Face Tracking Project Video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                    </article>
+
+                    <!-- Self-Navigating Robot -->
+                    <article class="panel project-card reveal" data-delay="1">
+                        <span class="panel-tag">Fig. 03</span>
+                        <h3>Self-Navigating Robot</h3>
+                        <div class="tags">
+                            <span class="tag">Arduino</span>
+                            <span class="tag">Ultrasonic Sensors</span>
+                            <span class="tag">C++</span>
+                        </div>
+                        <p>Programmed an autonomous obstacle-avoidance robot in Arduino IDE using ultrasonic sensors, refining the control logic over repeated trials to achieve a 100% obstacle-avoidance rate in testing.</p>
+                    </article>
+
+                    <!-- FPGA Display -->
+                    <article class="panel project-card reveal" data-delay="2">
+                        <span class="panel-tag">Fig. 04</span>
+                        <h3>Seven-Segment Display</h3>
+                        <div class="tags">
+                            <span class="tag">VHDL</span>
+                            <span class="tag">FPGA</span>
+                            <span class="tag">Karnaugh Maps</span>
+                        </div>
+                        <p>Designed a VHDL display driver decoding all 16 BCD/HEX inputs (0–9, A–F) on an FPGA board, optimizing the Boolean logic with truth tables and Karnaugh maps to minimize gate count.</p>
                     </article>
                 </div>
             </div>
