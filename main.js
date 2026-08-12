@@ -200,6 +200,7 @@
         { label: 'Go to Experience', icon: icons.briefcase, keywords: 'experience work internship jobs timeline leadership ieee', run: () => location.assign('experience.html') },
         { label: 'Go to Projects', icon: icons.cpu, keywords: 'projects portfolio arduino fpga robot face tracking', run: () => location.assign('projects.html') },
         { label: 'Go to Skills', icon: icons.zap, keywords: 'skills tools languages python matlab vhdl', run: () => location.assign('skills.html') },
+        { label: 'CrashGuard documentation', icon: icons.zap, keywords: 'crashguard crash guard myosa in progress wip esp32 ble twilio claude accelerometer emergency detection', run: () => location.assign('crashguard.html') },
         { label: 'Go to Contact', icon: icons.mail, keywords: 'contact connect reach', run: () => location.assign('contact.html') },
         { label: 'Download Resume (PDF)', icon: icons.file, keywords: 'resume cv pdf download', run: () => window.open('Cabe_Robertson_Resume.pdf', '_blank') },
         { label: 'Email Cabe', icon: icons.mail, keywords: 'email mail message caberobertson gmail', run: () => location.assign('mailto:caberobertson@gmail.com') },
