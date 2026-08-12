@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,900;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=5">
-    <link rel="stylesheet" href="docs.css?v=1">
+    <link rel="stylesheet" href="docs.css?v=2">
     <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;})();</script>
 </head>
 <body>
@@ -31,6 +31,7 @@
                 <li><a href="projects.html">Projects</a></li>
                 <li><a href="skills.html">Skills</a></li>
                 <li><a href="contact.html">Contact</a></li>
+                <li><a href="Cabe_Robertson_Resume.pdf" target="_blank" class="nav-resume">Resume</a></li>
             </ul>
             <div class="nav-actions">
                 <button type="button" id="cmdk-btn" class="icon-btn" aria-label="Open command palette" title="Command palette (Ctrl+K)">
@@ -60,17 +61,19 @@
 
                 <div class="project-grid">
                     <article class="panel project-card full-width reveal in">
-                        <span class="panel-tag">Fig. 01 &middot; Active</span>
+                        <span class="panel-tag">Fig. 01 &middot; IEEE MYOSA 6.0 Finalist</span>
                         <h3>MYOSA CrashGuard <span class="wip-badge">In Progress</span></h3>
                         <div class="tags tags--accent2">
                             <span class="tag">ESP32</span>
                             <span class="tag">MPU6050</span>
+                            <span class="tag">Sensor Fusion</span>
                             <span class="tag">BLE</span>
                             <span class="tag">Python (Flask)</span>
                             <span class="tag">Twilio Voice</span>
                             <span class="tag">Claude API</span>
                         </div>
-                        <p>An OnStar-style in-vehicle guardian built on the MYOSA Mini kit for MYOSA Event 6.0 at NMSU. The board watches for the acceleration spike of a collision at 100&nbsp;Hz, then gives the occupant a ten-second window to cancel from a live phone dashboard. If nobody cancels, it assumes the occupant is incapacitated and places an AI voice call that reports their name, blood type, GPS location, and medical information — then answers the dispatcher's follow-up questions, grounded strictly in verified data.</p>
+                        <p><strong>Selected as 1 of 15 teams worldwide</strong> in the IEEE Sensors Council's international MYOSA 6.0 competition, then <strong>1 of 7 advanced to the final round</strong> — presenting a live hardware demonstration at <strong>IEEE SENSORS 2026</strong> (Rotterdam, October 2026).</p>
+                        <p>An OnStar-style in-vehicle guardian: ESP32/MPU6050 sensor-fusion firmware detects impact events in real time from 6-axis IMU data, then gives the occupant a ten-second window to cancel from a live phone dashboard. If nobody cancels, it autonomously places an AI voice call reporting identity, blood type, GPS location, and medical information — then answers the dispatcher's follow-up questions, grounded strictly in verified data.</p>
                         <p class="doc-meta">My role: Team lead &mdash; stack architecture &amp; test methodology<br>Team: Aidan Garcia, Jacob Randall, Cabe Robertson, Vu Ha Nguyen &middot; Mentor: Dr. Lavrova</p>
                         <div class="video-wrapper">
                             <iframe src="https://www.youtube.com/embed/vkzkJGDFFSU" title="MYOSA CrashGuard work-in-progress prototype demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -153,6 +156,6 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
     </button>
 
-    <script src="main.js?v=5"></script>
+    <script src="main.js?v=4"></script>
 </body>
 </html>
