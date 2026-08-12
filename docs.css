@@ -1,0 +1,194 @@
+/* ==========================================================================
+   Documentation & in-progress project pages
+   Loaded only by projects.html and crashguard.html.
+   ========================================================================== */
+
+/* Live "in progress" status pill */
+.wip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    vertical-align: middle;
+    margin-left: 10px;
+    padding: 3px 10px;
+    border: 1px solid var(--accent-2);
+    color: var(--accent-2);
+    background: var(--accent-2-soft);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.wip-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    animation: pulse 2.4s infinite;
+}
+
+/* Byline for team/event credit */
+.doc-meta {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.9;
+    margin: 0 0 1.6rem;
+}
+
+.doc-meta strong { color: var(--ink); font-weight: 500; }
+
+/* Breadcrumb back-link on documentation pages */
+.doc-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 1.4rem;
+    transition: color 0.2s ease;
+}
+
+.doc-back:hover { color: var(--accent); }
+
+/* Figures */
+.figure { margin: 1.8rem 0 0; }
+
+.figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--border-strong);
+}
+
+.figure--narrow { max-width: 330px; }
+
+.figure figcaption {
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+/* Two-up layout for a screenshot beside prose */
+.doc-split {
+    display: grid;
+    grid-template-columns: 1fr 330px;
+    gap: 28px;
+    align-items: start;
+}
+
+.doc-split .figure { margin-top: 0; }
+
+/* Callout for safety / notes */
+.callout {
+    border: 1px solid var(--accent);
+    border-left-width: 3px;
+    background: var(--accent-soft);
+    padding: 1.1rem 1.3rem;
+    margin: 1.8rem 0 0;
+    font-size: 0.94rem;
+}
+
+.callout strong { color: var(--accent); }
+
+/* Feature list inside documentation panels */
+.doc-list { padding-left: 1.1rem; margin: 0.6rem 0 0; }
+.doc-list li { margin-bottom: 9px; color: var(--muted); }
+.doc-list li::marker { color: var(--accent); }
+.doc-list strong { color: var(--ink); font-weight: 600; }
+
+/* Inline formula / value emphasis */
+.formula {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--accent);
+    padding: 0.9rem 1.1rem;
+    margin: 1rem 0;
+    border-left: 2px solid var(--accent);
+    background: var(--accent-soft);
+    overflow-x: auto;
+}
+
+@media (max-width: 760px) {
+    .doc-split { grid-template-columns: 1fr; }
+    .figure--narrow { max-width: 100%; }
+    .wip-badge { margin-left: 0; margin-top: 8px; }
+}
+
+/* --- Inline architecture diagram (theme-aware SVG) --- */
+.diagram {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    padding: 6px;
+}
+
+.diagram .d-box { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1; }
+.diagram .d-box--accent { fill: var(--accent-soft); stroke: var(--accent); }
+.diagram .d-box--accent2 { fill: var(--accent-2-soft); stroke: var(--accent-2); }
+.diagram .d-group { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 3; }
+
+.diagram .d-title { fill: var(--ink); font-family: var(--font-body); font-size: 14px; font-weight: 600; }
+.diagram .d-sub { fill: var(--muted); font-family: var(--font-mono); font-size: 10.5px; }
+.diagram .d-group-label { fill: var(--accent); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.5px; }
+.diagram .d-flow-label { fill: var(--accent); font-family: var(--font-mono); font-size: 10px; }
+
+.diagram .d-flow { stroke: var(--muted); stroke-width: 1.6; fill: none; marker-end: url(#cg-arrow); }
+.diagram .d-flow--both { marker-start: url(#cg-arrow); }
+.diagram .d-flow--dash { stroke-dasharray: 5 4; opacity: 0.75; }
+.diagram .d-arrowhead { fill: var(--muted); }
+
+/* --- Phone dashboard mock-up --- */
+.phone {
+    width: 100%;
+    max-width: 300px;
+    border: 1px solid var(--border-strong);
+    background: #0b0d10;
+    padding: 14px 12px 16px;
+    font-family: var(--font-body);
+    color: #eef2f6;
+}
+
+.phone-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.phone-live { display: inline-flex; align-items: center; gap: 5px; font-weight: 400; font-size: 0.62rem; color: #8a94a2; font-family: var(--font-mono); }
+.phone-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #5fbe8d; animation: pulse 2.4s infinite; }
+
+.phone-tile { background: #151a21; padding: 10px 12px; margin-bottom: 8px; text-align: center; }
+.phone-alert { color: #ff4438; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.5px; }
+.phone-label { font-size: 0.58rem; letter-spacing: 1px; color: #8a94a2; text-transform: uppercase; font-family: var(--font-mono); }
+.phone-count { font-size: 3.2rem; line-height: 1.05; font-weight: 800; color: #ff4438; }
+
+.phone-cancel {
+    background: #ff4438;
+    color: #fff;
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 14px 8px;
+    margin-bottom: 8px;
+}
+
+.phone-g { font-size: 2.4rem; font-weight: 800; line-height: 1.1; }
+.phone-g span { font-size: 0.9rem; color: #8a94a2; font-weight: 600; }
+.phone-split { display: flex; gap: 8px; margin-bottom: 0; }
+.phone-split .phone-tile { flex: 1; margin-bottom: 0; }
+.phone-split strong { display: block; font-size: 0.92rem; margin-top: 2px; }
