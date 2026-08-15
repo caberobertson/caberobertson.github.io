@@ -71,8 +71,11 @@ const hasOg = Boolean(ogTitle || ogDescription);
     <slot name="head" />
 </head>
 <body>
-    <a class="skip-link" href="#main">Skip to content</a>
-    <div id="scroll-progress" aria-hidden="true"></div>
+    {/* Skip link and progress bar belong to the full page chrome. The 404
+        has no nav to skip past and its <main> carries no #main anchor, so
+        rendering them there would ship a link to nothing. */}
+    {chrome && <a class="skip-link" href="#main">Skip to content</a>}
+    {chrome && <div id="scroll-progress" aria-hidden="true"></div>}
 
     {chrome && <SiteNav />}
 
