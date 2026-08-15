@@ -54,6 +54,19 @@ for (const page of pages) {
         if (!fs.existsSync(path.join(root, file))) errs.push(`missing asset: ${src}`);
     }
 
+    // Assets referenced from inline style attributes, e.g. the gallery's
+    // --slide-bg custom property. These resolve against the *stylesheet's*
+    // URL once var() is substituted, not the document's, so they must be
+    // root-relative. A bare "photo1.jpg" silently 404s from /_astro/.
+    for (const el of doc.querySelectorAll('[style*="url("]')) {
+        for (const m of el.getAttribute('style').matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/g)) {
+            const u = m[1];
+            if (/^(https?:|data:)/.test(u)) continue;
+            if (!u.startsWith('/')) { errs.push(`inline-style url() must be root-relative: ${u}`); continue; }
+            if (!fs.existsSync(path.join(root, u.replace(/^\//, '')))) errs.push(`missing inline-style asset: ${u}`);
+        }
+    }
+
     // Internal links must resolve to something that shipped
     for (const a of doc.querySelectorAll('a[href]')) {
         const href = a.getAttribute('href');

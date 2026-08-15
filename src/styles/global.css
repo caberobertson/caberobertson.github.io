@@ -202,7 +202,10 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
 }
 
 .hero h1 {
-    font-size: clamp(2.6rem, 7vw, 5rem);
+    /* Capped at 4.5rem: Space Grotesk sets wider than the Fraunces this
+       replaced, and 5rem wrapped "Cabe Robertson" onto two lines once the
+       hero grid goes two-column at >=1200px. Measured across 390-1440px. */
+    font-size: clamp(2.6rem, 7vw, 4.5rem);
     font-weight: 600;
     letter-spacing: -1px;
     margin: 0;
