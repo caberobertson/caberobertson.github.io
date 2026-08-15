@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroScan from '../components/HeroScan.astro';
+import FlagshipVideo from '../components/FlagshipVideo.astro';
 
 // Person schema, carried over verbatim from the hand-written site.
 const personSchema = {
@@ -45,54 +47,24 @@ const personSchema = {
 >
     <script type="application/ld+json" slot="head" set:html={JSON.stringify(personSchema)} />
 <main id="main">
-        <!-- Hero -->
-        <header class="hero">
-            <div class="container">
-                <p class="hero-meta reveal in"><span class="pulse" aria-hidden="true"></span> Seeking Summer 2027 internship &middot; RF, embedded &amp; sensor systems</p>
-                <div class="hero-grid">
-                    <div>
-                        <h1 class="reveal in">Cabe <span class="accent-word">Robertson</span></h1>
-                        <div class="hero-cta reveal in">
-                            <a href="Cabe_Robertson_Resume.pdf" target="_blank" class="btn btn-primary">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                Resume
-                            </a>
-                            <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" rel="noopener" class="btn">LinkedIn</a>
-                            <a href="mailto:caberobertson@gmail.com" class="btn">Email</a>
-                        </div>
-                    </div>
-                    <dl class="spec-block reveal in" data-delay="1">
-                        <div class="spec-row">
-                            <dt>Role</dt>
-                            <dd><span class="live-dot" aria-hidden="true"></span><span class="typed-line"><span id="typed-text" data-phrases='["RF &amp; Embedded Systems","Sensor Fusion &amp; Signal Processing","EE Student @ NMSU","IEEE NMSU Vice President"]'></span><span class="caret">&nbsp;</span></span></dd>
-                        </div>
-                        <div class="spec-row">
-                            <dt>Seeking</dt>
-                            <dd>Summer 2027 internship</dd>
-                        </div>
-                        <div class="spec-row">
-                            <dt>Graduation</dt>
-                            <dd>December 2027</dd>
-                        </div>
-                        <div class="spec-row">
-                            <dt>Clearance</dt>
-                            <dd>U.S. Person &middot; ITAR/EAR</dd>
-                        </div>
-                        <div class="spec-row">
-                            <dt>Location</dt>
-                            <dd>Las Cruces, NM &middot; will relocate</dd>
-                        </div>
-                    </dl>
-                </div>
-            </div>
-            <div class="ruler" aria-hidden="true"></div>
-        </header>
+        <!-- Scan strip. Replaces the previous two-column hero + spec block: the
+             old layout pushed the metrics and the flagship demo below the fold
+             on a phone. PROPOSED CHANGE, for review: the rotating typed role
+             line was retired in favour of one fixed identity line, since a
+             cycling string is harder to read in a 7-second scan. Its phrases
+             were: "RF & Embedded Systems" / "Sensor Fusion & Signal Processing"
+             / "EE Student @ NMSU" / "IEEE NMSU Vice President". The spec-block
+             rows (Role/Seeking/Graduation/Clearance/Location) are now the
+             single mono status line. -->
+        <HeroScan />
+
+        <FlagshipVideo />
 
         <!-- At a glance -->
         <section class="section">
             <div class="container">
                 <div class="section-head reveal">
-                    <span class="section-index">01</span>
+                    <span class="section-index">02</span>
                     <h2 class="section-title">At a Glance</h2>
                 </div>
                 <p class="section-sub reveal">Electrical Engineering student concentrating in Communications &amp; Signal Processing, with hands-on RF, embedded, and sensor-fusion work across four engineering roles.</p>
@@ -104,24 +76,6 @@ const personSchema = {
                     <span class="chip">Open to relocation</span>
                 </div>
 
-                <div class="metrics reveal">
-                    <div class="metric">
-                        <div class="metric-value">1 of 7</div>
-                        <div class="metric-label">IEEE MYOSA 6.0 finalist teams worldwide, presenting live hardware at IEEE SENSORS 2026, Rotterdam</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value">$168K</div>
-                        <div class="metric-label">Capital equipment &amp; production BOM I specified for the new production floor</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value">$2.5M</div>
-                        <div class="metric-label">NASA SBIR/STTR proposal co-authored for on-orbit inspection &amp; repair</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value">4</div>
-                        <div class="metric-label">Engineering internships &amp; research roles since 2025</div>
-                    </div>
-                </div>
 
                 <ul class="highlight-list reveal">
                     <li><span class="hl-mark">RF</span><span>Built and fielded a <strong>$219 RF communication-jamming demonstrator</strong> for law-enforcement and defense clients, ~56% cheaper than the $500 setup it replaced.</span></li>
@@ -137,7 +91,7 @@ const personSchema = {
         <section class="section">
             <div class="container">
                 <div class="section-head reveal">
-                    <span class="section-index">02</span>
+                    <span class="section-index">03</span>
                     <h2 class="section-title">About Me</h2>
                 </div>
                 <div class="grid-2">
@@ -217,7 +171,7 @@ const personSchema = {
         <section class="section">
             <div class="container">
                 <div class="section-head reveal">
-                    <span class="section-index">03</span>
+                    <span class="section-index">04</span>
                     <h2 class="section-title">Where to Go Next</h2>
                 </div>
                 <p class="section-sub reveal">Short on time? Each page below stands on its own.</p>

@@ -103,8 +103,16 @@ for (const page of pages) {
     }
 
     if (page === 'index.html') {
-        const phrases = JSON.parse(doc.querySelector('#typed-text').dataset.phrases);
-        if (!Array.isArray(phrases) || !phrases.length) errs.push('typed phrases malformed');
+        // Scan strip: the seven-second read must be present and complete.
+        if (!doc.querySelector('.scan-name')) errs.push('hero scan strip missing');
+        const metrics = doc.querySelectorAll('.scan-metric').length;
+        if (metrics < 3) errs.push(`expected 3-4 hero metrics, found ${metrics}`);
+        if (!/ITAR/.test(doc.querySelector('.scan-facts')?.textContent || '')) errs.push('eligibility line missing from hero');
+        // Flagship demo is a click-to-play facade, never a bare third-party iframe.
+        const facade = doc.querySelector('.video-facade');
+        if (!facade) errs.push('flagship video facade missing');
+        if (!facade?.getAttribute('data-video-id')) errs.push('facade has no video id');
+        if (/youtube\.com\/embed/.test(html)) errs.push('home page ships a YouTube iframe before interaction');
         const slides = doc.querySelectorAll('.slide').length;
         const dots = doc.querySelectorAll('.dots-container .dot').length;
         if (dots !== slides) errs.push(`slider dots (${dots}) != slides (${slides})`);

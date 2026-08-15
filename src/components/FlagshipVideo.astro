@@ -1,0 +1,171 @@
+---
+// Click-to-play facade for the CrashGuard demo.
+//
+// The YouTube iframe is NOT in the initial HTML: embedding it directly costs
+// roughly half a megabyte of third-party script and several cross-origin
+// requests on every home-page load, before the visitor has asked to watch
+// anything. The iframe is injected on click (or Enter/Space) instead, so the
+// cost is paid only by people who actually press play, and no third-party
+// cookies are set for anyone who does not.
+//
+// TODO (Cabe): drop a real poster frame at public/crashguard-poster.jpg and
+// set POSTER below. Until then this renders as a deliberate title card rather
+// than a broken image. A still from the prototype run reads best: the RC car
+// mid-demo, or the phone dashboard mid-countdown.
+const POSTER: string | null = null;
+const VIDEO_ID = 'vkzkJGDFFSU';
+---
+
+<section class="section flagship">
+    <div class="container">
+        <div class="section-head reveal">
+            <span class="section-index">01</span>
+            <h2 class="section-title">Flagship</h2>
+        </div>
+        <p class="section-sub reveal">
+            OnStar-style autonomous crash detection with AI emergency calling. IEEE MYOSA 6.0 finalist,
+            presenting live hardware at IEEE SENSORS 2026 in Rotterdam.
+        </p>
+
+        <div class="flagship-frame reveal">
+            <button
+                type="button"
+                class="video-facade"
+                data-video-id={VIDEO_ID}
+                data-poster={POSTER}
+                aria-label="Play the MYOSA CrashGuard prototype demo video"
+                style={POSTER ? `background-image:url('${POSTER}')` : undefined}
+            >
+                <span class={POSTER ? 'facade-inner' : 'facade-inner facade-inner--empty'} aria-hidden="true">
+                    {!POSTER && <span class="facade-tag">FIG.01</span>}
+                    <span class="facade-play">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </span>
+                    {!POSTER && <span class="facade-title">MYOSA CrashGuard</span>}
+                    {!POSTER && <span class="facade-note">prototype demo &middot; poster frame pending</span>}
+                </span>
+            </button>
+        </div>
+
+        <div class="flagship-actions reveal">
+            <a href="crashguard.html" class="btn btn-primary">Read the full write-up</a>
+            <a href="projects.html" class="btn">All projects</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .flagship-frame {
+        margin-top: var(--space-5);
+        border: 1px solid var(--border-strong);
+    }
+
+    .video-facade {
+        position: relative;
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        padding: 0;
+        border: none;
+        cursor: pointer;
+        background: var(--bg-elev) center / cover no-repeat;
+        color: var(--ink);
+        font: inherit;
+    }
+
+    /* One centred column holds everything, so the play control never lands on
+       top of the title. With a real poster set it collapses to just the
+       control; without one it becomes a deliberate title card. */
+    .facade-inner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-3);
+        text-align: center;
+        padding: var(--space-4);
+    }
+
+    .facade-inner--empty {
+        /* Faint instrument grid so the empty state still reads as designed. */
+        background-image:
+            linear-gradient(var(--grid-line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+
+    .facade-tag {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 1px;
+        color: var(--accent);
+    }
+
+    .facade-inner--empty .facade-title,
+    .facade-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.2rem, 3vw, 1.7rem);
+        font-weight: 600;
+    }
+
+    .facade-note {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--ink-dim);
+    }
+
+    .facade-play {
+        width: 68px;
+        height: 68px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        background: var(--accent);
+        color: var(--accent-ink);
+        transition: transform 0.2s var(--ease-out);
+    }
+
+    .facade-play svg { width: 30px; height: 30px; margin-left: 3px; }
+
+    .video-facade:hover .facade-play,
+    .video-facade:focus-visible .facade-play { transform: scale(1.06); }
+
+    .flagship-frame :global(iframe) {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: none;
+    }
+
+    .flagship-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: var(--space-5);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .facade-play { transition: none; }
+        .video-facade:hover .facade-play,
+        .video-facade:focus-visible .facade-play { transform: none; }
+    }
+</style>
+
+<script>
+    // Swap the facade for the real player only once the visitor asks for it.
+    document.querySelectorAll('.video-facade').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-video-id');
+            if (!id) return;
+            const frame = document.createElement('iframe');
+            frame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+            frame.title = 'MYOSA CrashGuard work-in-progress prototype demo';
+            frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            frame.allowFullscreen = true;
+            btn.replaceWith(frame);
+            frame.focus();
+        });
+    });
+</script>

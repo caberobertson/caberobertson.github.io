@@ -1,0 +1,170 @@
+---
+// Scan strip: the seven-second read. Identity, availability, eligibility and
+// four hard numbers, sized to clear the fold on a 390x844 phone.
+//
+// Every metric below is moved from the "At a Glance" block, not newly written,
+// so the numbers still trace back to the resume.
+const metrics = [
+    { value: '1 of 7',  label: 'IEEE MYOSA 6.0 finalist teams worldwide' },
+    { value: '$168K',   label: 'Capital equipment &amp; production BOM specified' },
+    { value: '$2.5M',   label: 'NASA SBIR/STTR proposal co-authored' },
+    { value: '~10 dB',  label: 'Acoustic noise cut in benchtop DoE' },
+];
+---
+
+<header class="hero-scan">
+    <div class="container">
+        <p class="scan-status reveal in">
+            <span class="pulse" aria-hidden="true"></span> Seeking Summer 2027 internship
+        </p>
+
+        <h1 class="scan-name reveal in">Cabe <span class="accent-word">Robertson</span></h1>
+
+        <p class="scan-identity reveal in">
+            Electrical Engineering &middot; RF, embedded &amp; sensor-fusion hardware
+        </p>
+
+        <p class="scan-facts reveal in">
+            Grad Dec 2027 &middot; U.S. Person, ITAR/EAR eligible &middot; Las Cruces, NM, will relocate
+        </p>
+
+        <div class="scan-actions reveal in">
+            <a href="Cabe_Robertson_Resume.pdf" target="_blank" class="btn btn-primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Resume
+            </a>
+            <a href="https://www.linkedin.com/in/caberobertson/" target="_blank" rel="noopener" class="btn">LinkedIn</a>
+            <a href="mailto:caberobertson@gmail.com" class="btn">Email</a>
+        </div>
+
+        <dl class="scan-metrics reveal in">
+            {metrics.map((m) => (
+                <div class="scan-metric">
+                    <dt class="scan-metric-value">{m.value}</dt>
+                    <dd class="scan-metric-label" set:html={m.label} />
+                </div>
+            ))}
+        </dl>
+    </div>
+    <div class="ruler" aria-hidden="true"></div>
+</header>
+
+<style>
+    .hero-scan {
+        padding: var(--space-6) 0 0;
+    }
+
+    .scan-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 var(--space-4);
+    }
+
+    .scan-status .pulse {
+        width: 7px;
+        height: 7px;
+        background: var(--accent);
+        flex-shrink: 0;
+        animation: pulse 2.4s infinite;
+    }
+
+    .scan-name {
+        font-family: var(--font-display);
+        font-size: clamp(2.6rem, 9vw, 4.5rem);
+        font-weight: 600;
+        letter-spacing: -1px;
+        line-height: 1.02;
+        margin: 0;
+    }
+
+    .scan-name .accent-word {
+        color: var(--accent);
+    }
+
+    .scan-identity {
+        font-size: clamp(1rem, 3.6vw, 1.25rem);
+        color: var(--ink);
+        margin: var(--space-3) 0 0;
+        max-width: 46ch;
+    }
+
+    .scan-facts {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        line-height: 1.7;
+        color: var(--ink-dim);
+        margin: var(--space-2) 0 0;
+        max-width: 62ch;
+    }
+
+    .scan-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: var(--space-5);
+    }
+
+    /* Mono data strip: the numbers a recruiter scans before reading anything. */
+    .scan-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin: var(--space-6) 0 var(--space-6);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+    }
+
+    .scan-metric {
+        padding: var(--space-4) var(--space-4) var(--space-4) 0;
+        border-right: 1px solid var(--line);
+    }
+
+    .scan-metric:last-child {
+        border-right: none;
+    }
+
+    .scan-metric-value {
+        font-family: var(--font-display);
+        font-size: clamp(1.35rem, 3.4vw, 1.9rem);
+        font-weight: 600;
+        color: var(--accent);
+        line-height: 1.05;
+        margin: 0;
+    }
+
+    .scan-metric-label {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        line-height: 1.5;
+        color: var(--ink-dim);
+        margin: 8px 0 0;
+    }
+
+    /* Two-up on phones keeps all four numbers above the fold. */
+    @media (max-width: 720px) {
+        .scan-metrics {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .scan-metric {
+            padding: var(--space-3) var(--space-3) var(--space-3) 0;
+        }
+
+        .scan-metric:nth-child(2n) {
+            border-right: none;
+        }
+
+        .scan-metric:nth-child(-n + 2) {
+            border-bottom: 1px solid var(--line);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .scan-status .pulse { animation: none; }
+    }
+</style>
