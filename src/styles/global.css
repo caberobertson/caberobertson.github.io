@@ -37,7 +37,12 @@ body {
 
 ::selection { background: var(--accent); color: var(--accent-ink); }
 
-img { max-width: 100%; }
+/* height:auto is required, not cosmetic: every <img> now carries intrinsic
+   width/height attributes for layout stability, and those map to presentational
+   hints on the CSS width/height properties. Author CSS overrides the width hint
+   but nothing overrode the height hint, so images rendered at their attribute
+   height against a constrained width, distorting every ratio. */
+img { max-width: 100%; height: auto; }
 
 h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weight: 600; margin: 0; }
 
@@ -437,6 +442,7 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
 .log-body li::marker { color: var(--accent); }
 
 .log-media {
+    align-items: flex-start;
     display: flex;
     gap: 16px;
     margin-top: 1.4rem;
