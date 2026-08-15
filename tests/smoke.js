@@ -14,11 +14,12 @@ const here = import.meta.dirname;
 const root = path.resolve(here, '..', 'dist');
 // Static pages plus every generated project detail page, so a new entry in
 // the collection is covered automatically instead of silently untested.
-const staticPages = ['index.html', 'experience.html', 'projects.html', 'skills.html', 'contact.html', 'crashguard.html', 'ieee-points.html', '404.html'];
-const projectPages = fs.existsSync(path.join(root, 'projects'))
-    ? fs.readdirSync(path.join(root, 'projects')).filter((f) => f.endsWith('.html')).map((f) => 'projects/' + f)
-    : [];
-const pages = [...staticPages, ...projectPages];
+const staticPages = ['index.html', 'experience.html', 'projects.html', 'notes.html', 'skills.html', 'contact.html', 'crashguard.html', 'ieee-points.html', 'og-preview.html', '404.html'];
+const collectionPages = (dir) =>
+    fs.existsSync(path.join(root, dir))
+        ? fs.readdirSync(path.join(root, dir)).filter((f) => f.endsWith('.html')).map((f) => `${dir}/${f}`)
+        : [];
+const pages = [...staticPages, ...collectionPages('projects'), ...collectionPages('notes')];
 
 if (!fs.existsSync(root)) {
     console.error('dist/ not found. Run `npm run build` first.');
@@ -73,23 +74,39 @@ for (const page of pages) {
         }
     }
 
+    // Deferred gallery assets: the slider sets these from JS, so they get the
+    // same root-relative treatment and existence check as the inline styles.
+    for (const el of doc.querySelectorAll('[data-bg], img[data-src]')) {
+        const u = el.getAttribute('data-bg') || el.getAttribute('data-src');
+        if (/^(https?:|data:)/.test(u)) continue;
+        const file = u.replace(/^\//, '');
+        if (!fs.existsSync(path.join(root, file))) errs.push(`missing deferred asset: ${u}`);
+        if (el.hasAttribute('data-bg') && !u.startsWith('/')) errs.push(`data-bg must be root-relative: ${u}`);
+    }
+
     // Internal links must resolve to something that shipped. Relative hrefs
     // resolve against the page's own directory, which matters for /projects/*.
     const pageDir = path.dirname(path.join(root, page));
     for (const a of doc.querySelectorAll('a[href]')) {
         const href = a.getAttribute('href');
         if (/^(https?:|mailto:|tel:|#)/.test(href)) continue;
-        const rel = href.split('#')[0];
+        // Strip the query too: /projects.html?lens=defense is a real link to a
+        // real file, and the lens is read from the query at runtime.
+        const rel = href.split('#')[0].split('?')[0];
         if (!rel) continue;
         const target = rel.startsWith('/') ? path.join(root, rel.slice(1)) : path.join(pageDir, rel);
         if (!fs.existsSync(target)) errs.push(`broken link: ${href}`);
     }
 
-    // Exactly one <h1> per page
-    const h1s = doc.querySelectorAll('h1');
-    if (h1s.length !== 1) errs.push(`expected 1 <h1>, found ${h1s.length}`);
+    // Exactly one <h1> per page. og-preview is a build tool whose whole body
+    // is card frames, not a document, so it is exempt from the outline rules.
+    const isBuildTool = page === 'og-preview.html';
+    if (!isBuildTool) {
+        const h1s = doc.querySelectorAll('h1');
+        if (h1s.length !== 1) errs.push(`expected 1 <h1>, found ${h1s.length}`);
+    }
 
-    // Command palette mounts everywhere
+    // Command palette mounts everywhere the site chrome does.
     if (!doc.querySelector('.cmdk-overlay')) errs.push('command palette not injected');
 
     // Indexable pages carry a canonical URL; noindex pages deliberately do not.
@@ -105,8 +122,8 @@ for (const page of pages) {
     // Nav active-state is baked in at build time so it survives with JS off.
     // Only pages that are themselves nav entries highlight; detail pages
     // (crashguard, ieee-points) highlight nothing, matching prior behaviour.
-    const NAV_PAGES = ['index.html', 'experience.html', 'projects.html', 'skills.html', 'contact.html'];
-    if (page !== '404.html') {
+    const NAV_PAGES = ['index.html', 'experience.html', 'projects.html', 'notes.html', 'skills.html', 'contact.html'];
+    if (page !== '404.html' && page !== 'og-preview.html') {
         const active = doc.querySelectorAll('.nav-links a.active').length;
         const want = NAV_PAGES.includes(page) ? 1 : 0;
         if (active !== want) errs.push(`expected ${want} active nav link(s), found ${active}`);
@@ -117,6 +134,59 @@ for (const page of pages) {
     const bodyText = doc.body.textContent || '';
     for (const phrase of ['coming soon', 'TBD', 'placeholder', 'lorem ipsum', 'image pending', 'photo pending']) {
         if (bodyText.toLowerCase().includes(phrase.toLowerCase())) errs.push(`placeholder text on page: "${phrase}"`);
+    }
+
+    // Third-party requests: the site must not contact anything on load. The
+    // only external endpoint is the YouTube embed, and that is injected by the
+    // facade after a click. Update this list deliberately, never by accident.
+    const THIRD_PARTY_OK = [/youtube-nocookie\.com/, /youtube\.com\/embed/, /linkedin\.com/, /mitchellcoding\.com/, /syndetix\.com/, /github\.com/];
+    for (const el of doc.querySelectorAll('script[src], link[rel=stylesheet][href], img[src]')) {
+        const src = el.getAttribute('src') || el.getAttribute('href');
+        if (!/^https?:/.test(src)) continue;
+        if (!THIRD_PARTY_OK.some((re) => re.test(src))) errs.push(`unexpected third-party request on load: ${src}`);
+    }
+
+    // Heading levels must not skip: an h1 followed by an h4 is a broken
+    // outline for anyone navigating by heading.
+    const levels = isBuildTool ? [] : [...doc.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => Number(h.tagName[1]));
+    for (let i = 1; i < levels.length; i++) {
+        if (levels[i] > levels[i - 1] + 1) {
+            errs.push(`heading level skip: h${levels[i - 1]} followed by h${levels[i]}`);
+            break;
+        }
+    }
+
+    // Social card: every indexable page advertises one, and it has to exist.
+    if (!isNoindex) {
+        const og = doc.querySelector('meta[property="og:image"]')?.getAttribute('content');
+        if (!og) errs.push('missing og:image');
+        else {
+            const file = og.replace('https://caberobertson.github.io/', '');
+            if (!fs.existsSync(path.join(root, file))) errs.push(`og:image does not exist in the build: ${og}`);
+        }
+    }
+
+    if (page.startsWith('notes/')) {
+        if (!doc.querySelector('.doc-back')) errs.push('note missing back link');
+        if (!doc.querySelector('time[datetime]')) errs.push('note missing machine-readable date');
+        // Traceability: a note must point at the project carrying its numbers.
+        if (!doc.querySelector('.note-foot a')) errs.push('note does not link back to its project');
+    }
+
+    if (page === 'projects.html') {
+        // The lens is progressive enhancement: the chips must be real links
+        // and every project must still be in the document unfiltered.
+        const chips = doc.querySelectorAll('.lens-chip');
+        if (chips.length < 4) errs.push(`expected 4 lens chips, found ${chips.length}`);
+        for (const c of chips) {
+            if (c.tagName !== 'A' || !c.getAttribute('href')) errs.push('lens chip is not a real link');
+            if (!c.getAttribute('data-lens')) errs.push('lens chip missing data-lens');
+        }
+        const items = doc.querySelectorAll('[data-audiences]');
+        if (!items.length) errs.push('project items carry no audience data');
+        for (const it of items) {
+            if (it.hasAttribute('hidden')) errs.push('a project ships hidden: the no-JS view must show everything');
+        }
     }
 
     if (page.startsWith('projects/')) {

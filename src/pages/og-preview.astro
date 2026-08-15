@@ -1,0 +1,121 @@
+---
+// Source frames for the social preview cards.
+//
+// This page exists so `npm run og` can screenshot real DOM, with the site's
+// self-hosted fonts and the real token palette, instead of approximating the
+// design in an image library. It is noindex, Disallow-ed in robots.txt, kept
+// out of the sitemap, and linked from nowhere. It ships in the build only
+// because a headless browser has to be able to load it over HTTP.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { OG_CARDS } from '../lib/og';
+---
+
+<BaseLayout title="OG card frames (build tool)" chrome={false} noindex>
+    <main>
+        {OG_CARDS.map((c) => (
+            <div class="og-card" id={`og-${c.slug}`} data-og={c.slug}>
+                <div class="og-grid" aria-hidden="true"></div>
+                <div class="og-inner">
+                    <p class="og-kicker">{c.kicker}</p>
+                    <h2 class="og-title">{c.title}</h2>
+                    <p class="og-sub">{c.subtitle}</p>
+                    {c.facts && (
+                        <ul class="og-facts">
+                            {c.facts.map((f) => <li>{f}</li>)}
+                        </ul>
+                    )}
+                </div>
+                <p class="og-sig">caberobertson.github.io</p>
+            </div>
+        ))}
+    </main>
+</BaseLayout>
+
+<style>
+    main { display: flex; flex-direction: column; gap: 24px; padding: 24px; }
+
+    /* Exactly the size the crawlers expect. Do not make this responsive: the
+       screenshot has to be 1200x630 regardless of the viewport it renders in. */
+    .og-card {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        flex: 0 0 auto;
+        background: var(--bg);
+        border-bottom: 10px solid var(--accent);
+        overflow: hidden;
+    }
+
+    .og-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(var(--grid-line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+        background-size: 48px 48px;
+    }
+
+    .og-inner {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 22px;
+        padding: 0 76px;
+    }
+
+    .og-kicker {
+        font-family: var(--font-mono);
+        font-size: 24px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0;
+    }
+
+    .og-title {
+        font-family: var(--font-display);
+        font-size: 84px;
+        font-weight: 600;
+        line-height: 1.02;
+        letter-spacing: -2px;
+        color: var(--ink);
+        margin: 0;
+    }
+
+    .og-sub {
+        font-size: 30px;
+        line-height: 1.4;
+        color: var(--ink-dim);
+        margin: 0;
+        max-width: 880px;
+    }
+
+    .og-facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        list-style: none;
+        padding: 0;
+        margin: 10px 0 0;
+    }
+
+    .og-facts li {
+        font-family: var(--font-mono);
+        font-size: 21px;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        padding: 9px 16px;
+    }
+
+    .og-sig {
+        position: absolute;
+        right: 76px;
+        bottom: 44px;
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 21px;
+        color: var(--ink-dim);
+    }
+</style>

@@ -178,7 +178,11 @@
 .phone-count { font-size: 3.2rem; line-height: 1.05; font-weight: 800; color: #ff4438; }
 
 .phone-cancel {
-    background: #ff4438;
+    /* White on #ff4438 measured 3.42:1, under the 4.5:1 AA floor for text this
+       size. Darkening the fill to #c8281a takes it to 5.56:1 and leaves the
+       brighter #ff4438 to the alert line and the countdown, which clear AA
+       against the tile at 5.11:1. */
+    background: #c8281a;
     color: #fff;
     text-align: center;
     font-weight: 800;
@@ -409,3 +413,31 @@
     .scan-metric:nth-child(2n) { border-right: none; }
     .scan-metric:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
 }
+
+/* ---------- Build-log crossrefs ----------
+   Rendered on project pages and on the hand-authored CrashGuard page, so the
+   rules live here rather than scoped to either template. */
+.related-notes { margin-top: var(--space-6); }
+
+.related-title {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 var(--space-3);
+}
+
+.related-notes ul { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+
+.related-notes li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.related-notes li a { color: var(--ink); font-weight: 600; text-decoration: none; }
+.related-notes li a:hover { color: var(--accent); }
+.related-notes li span { color: var(--ink-dim); font-size: 0.92rem; }

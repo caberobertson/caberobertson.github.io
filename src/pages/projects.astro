@@ -1,18 +1,53 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import LensFilter from '../components/LensFilter.astro';
+import { LENSES } from '../lib/lenses';
+import { PERSON_REF, breadcrumbs, graph } from '../lib/schema';
 
 const all = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 const active = all.filter((p) => p.data.status === 'active');
 const complete = all.filter((p) => p.data.status !== 'active');
 
+// Counted at build time so a lens chip never advertises a result set it does
+// not have. A project can carry more than one audience, so these sum past the
+// total on purpose.
+const counts = Object.fromEntries(
+    LENSES.filter((l) => l.id !== 'all').map((l) => [
+        l.id,
+        all.filter((p) => (p.data.audiences as readonly string[]).includes(l.id)).length,
+    ]),
+);
+
 // externalPage lets CrashGuard keep its hand-authored write-up while still
 // living in the collection, so it appears here and in the Phase 4 lens.
 const href = (p: (typeof all)[number]) => p.data.externalPage ?? `/projects/${p.id}.html`;
 
+const schema = graph(
+    {
+        '@type': 'CollectionPage',
+        name: 'Projects',
+        description: 'Hardware, RF, embedded and signal-processing work, each documented with constraints, tradeoffs and results.',
+        url: 'https://caberobertson.github.io/projects.html',
+        author: PERSON_REF,
+        mainEntity: {
+            '@type': 'ItemList',
+            numberOfItems: all.length,
+            itemListElement: all.map((p, i) => ({
+                '@type': 'ListItem',
+                position: i + 1,
+                name: p.data.title,
+                description: p.data.outcome,
+                url: `https://caberobertson.github.io${p.data.externalPage ?? `/projects/${p.id}.html`}`,
+            })),
+        },
+    },
+    breadcrumbs([{ name: 'Home', href: '/' }, { name: 'Projects' }]),
+);
+
 const groups = [
-    { index: '01', title: 'In Progress', sub: 'Active builds, documented as they evolve.', items: active },
-    { index: '02', title: 'Selected Projects', sub: 'Hardware, signal processing, and embedded work, each with the numbers behind it.', items: complete },
+    { index: '02', title: 'In Progress', sub: 'Active builds, documented as they evolve.', items: active },
+    { index: '03', title: 'Selected Projects', sub: 'Hardware, signal processing, and embedded work, each with the numbers behind it.', items: complete },
 ];
 ---
 
@@ -21,22 +56,42 @@ const groups = [
     description="Engineering projects by Cabe Robertson: MYOSA CrashGuard crash detection with AI emergency calling, an unmanned systems production floor, a $219 RF jamming demonstrator, a BLDC airflow design of experiments, channel-decoding simulations, and EEG biopotential analysis."
     ogTitle="Projects | Cabe Robertson"
     ogDescription="Hardware, RF, embedded and signal-processing projects, each documented with constraints, tradeoffs and measured results."
+    ogCard="projects"
 >
+    <script is:inline type="application/ld+json" slot="head" set:html={schema} />
+
     <main id="main">
+        <section class="section section--lens">
+            <div class="container">
+                <div class="section-head reveal in">
+                    <span class="section-index">01</span>
+                    <h1 class="section-title">Projects</h1>
+                </div>
+                <p class="section-sub reveal in">
+                    Hardware, RF, embedded and signal-processing work, each documented with the
+                    constraints it was built under and the numbers it produced.
+                </p>
+                <LensFilter counts={counts} total={all.length} />
+            </div>
+        </section>
+
+        <div data-lens-list>
         {groups.map((g, gi) => g.items.length > 0 && (
-            <section class="section">
+            <section class="section section--group" data-lens-group>
                 <div class="container">
-                    <div class={gi === 0 ? 'section-head reveal in' : 'section-head reveal'}>
+                    <div class="section-head reveal in">
                         <span class="section-index">{g.index}</span>
-                        {gi === 0
-                            ? <h1 class="section-title">{g.title}</h1>
-                            : <h2 class="section-title">{g.title}</h2>}
+                        <h2 class="section-title">{g.title}</h2>
                     </div>
-                    <p class={gi === 0 ? 'section-sub reveal in' : 'section-sub reveal'}>{g.sub}</p>
+                    <p class="section-sub reveal in">{g.sub}</p>
 
                     <ul class="proj-list">
                         {g.items.map((p, i) => (
-                            <li class="proj-item reveal" data-delay={String(Math.min(i, 3))}>
+                            <li
+                                class="proj-item reveal in"
+                                data-delay={String(Math.min(i, 3))}
+                                data-audiences={p.data.audiences.join(' ')}
+                            >
                                 <a class="proj-link" href={href(p)}>
                                     <span class="proj-index" aria-hidden="true">{String(p.data.order).padStart(2, '0')}</span>
                                     <span class="proj-body">
@@ -68,10 +123,36 @@ const groups = [
                 </div>
             </section>
         ))}
+        </div>
+
+        <p class="lens-none" data-lens-none hidden>
+            No projects carry that tag. <a href="/projects.html">Show everything</a>.
+        </p>
     </main>
+
 </BaseLayout>
 
+<script>
+    import '../scripts/lens.js';
+</script>
+
 <style>
+    /* The lens sits directly above the first group, so the usual section
+       rhythm would open a gap the eye reads as a break in the page. */
+    .section--lens { padding-bottom: 0; }
+    .section--group { padding-top: var(--space-6); }
+
+    .lens-none {
+        max-width: 1140px;
+        margin: 0 auto var(--space-8);
+        padding: 0 var(--space-4);
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--ink-dim);
+    }
+
+    .lens-none a { color: var(--accent); }
+
     .proj-list { list-style: none; padding: 0; margin: var(--space-5) 0 0; border-top: 1px solid var(--line); }
 
     .proj-link {

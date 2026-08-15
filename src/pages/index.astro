@@ -7,6 +7,7 @@ import FlagshipVideo from '../components/FlagshipVideo.astro';
 const personSchema = {
         "@context": "https://schema.org",
         "@type": "Person",
+        "@id": "https://caberobertson.github.io/#cabe",
         "name": "Cabe Robertson",
         "givenName": "Cabe",
         "familyName": "Robertson",
@@ -45,7 +46,7 @@ const personSchema = {
     ogTitle="Cabe Robertson | Electrical Engineering Portfolio"
     ogDescription="EE student at NMSU seeking a Summer 2027 internship in RF, embedded, and sensor fusion. IEEE MYOSA 6.0 finalist presenting at IEEE SENSORS 2026."
 >
-    <script type="application/ld+json" slot="head" set:html={JSON.stringify(personSchema)} />
+    <script is:inline type="application/ld+json" slot="head" set:html={JSON.stringify(personSchema)} />
 <main id="main">
         <!-- Scan strip. Replaces the previous two-column hero + spec block: the
              old layout pushed the metrics and the flagship demo below the fold
@@ -139,28 +140,32 @@ const personSchema = {
                     <div class="slider-container" role="group" aria-label="Photo gallery">
                         <div class="slider-track">
                             <figure class="slide" style="--slide-bg:url('/photo5.jpg')">
-                                <img src="photo5.jpg" alt="Attending the 2026 E-Council Banquet representing IEEE" loading="lazy" width="1800" height="1440">
+                                <img src="photo5.jpg" alt="Attending the 2026 E-Council Banquet representing IEEE" loading="lazy" decoding="async" width="1400" height="1120">
                                 <figcaption class="slide-caption"><span class="fig-num">FIG.01</span> Most Improved Student Organization Award</figcaption>
                             </figure>
-                            <figure class="slide" style="--slide-bg:url('/photo4.jpg')">
-                                <img src="photo4.jpg" alt="Demonstrating my Brain-Computer Interface kit to attendees" loading="lazy" width="1800" height="1350">
+                            <figure class="slide" data-bg="/photo4.jpg">
+                                <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="photo4.jpg" alt="Demonstrating my Brain-Computer Interface kit to attendees" decoding="async" width="1400" height="1050">
                                 <figcaption class="slide-caption"><span class="fig-num">FIG.02</span> El Paso Science Festival 2026</figcaption>
                             </figure>
-                            <figure class="slide" style="--slide-bg:url('/photo1.jpg')">
-                                <img src="photo1.jpg" alt="A resume workshop I hosted for students prior to a career fair" loading="lazy" width="1080" height="630">
+                            <figure class="slide" data-bg="/photo1.jpg">
+                                <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="photo1.jpg" alt="A resume workshop I hosted for students prior to a career fair" decoding="async" width="1080" height="630">
                                 <figcaption class="slide-caption"><span class="fig-num">FIG.03</span> Resume Workshop</figcaption>
                             </figure>
-                            <figure class="slide" style="--slide-bg:url('/photo2.jpg')">
-                                <img src="photo2.jpg" alt="IEEE Rising Stars Conference 2026" loading="lazy" width="1049" height="1010">
+                            <figure class="slide" data-bg="/photo2.jpg">
+                                <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="photo2.jpg" alt="IEEE Rising Stars Conference 2026" decoding="async" width="1049" height="1010">
                                 <figcaption class="slide-caption"><span class="fig-num">FIG.04</span> IEEE Rising Stars Conference 2026</figcaption>
                             </figure>
-                            <figure class="slide" style="--slide-bg:url('/photo3.jpg')">
-                                <img src="photo3.jpg" alt="IEEE chapter meeting with over 30 attendees" loading="lazy" width="896" height="616">
+                            <figure class="slide" data-bg="/photo3.jpg">
+                                <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="photo3.jpg" alt="IEEE chapter meeting with over 30 attendees" decoding="async" width="896" height="616">
                                 <figcaption class="slide-caption"><span class="fig-num">FIG.05</span> IEEE Meeting: 30+ Attendees</figcaption>
                             </figure>
                         </div>
-                        <button type="button" class="slider-btn prev" aria-label="Previous slide">&#10094;</button>
-                        <button type="button" class="slider-btn next" aria-label="Next slide">&#10095;</button>
+                        <button type="button" class="slider-btn prev" aria-label="Previous slide">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <button type="button" class="slider-btn next" aria-label="Next slide">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
                         <div class="dots-container"></div>
                     </div>
                 </div>
@@ -176,6 +181,16 @@ const personSchema = {
                 </div>
                 <p class="section-sub reveal">Short on time? Each page below stands on its own.</p>
 
+                <!-- Three audiences, weighted equally. These are ordinary links,
+                     so they work with or without scripting; the projects page
+                     reads the lens on load. -->
+                <p class="lens-jump reveal">
+                    <span class="lens-jump-label">Hiring for</span>
+                    <a href="/projects.html?lens=defense">defense &amp; aerospace</a>
+                    <a href="/projects.html?lens=bigtech">big tech hardware</a>
+                    <a href="/projects.html?lens=neurotech">neurotech &amp; BCI</a>
+                </p>
+
                 <div class="jump-grid reveal">
                     <a href="/crashguard.html" class="jump-card">
                         <span class="jump-index">01 &middot; Flagship</span>
@@ -187,13 +202,18 @@ const personSchema = {
                         <h3>Experience</h3>
                         <p>Four engineering roles across defense RF, unmanned systems production, motor drive, and communications research.</p>
                     </a>
+                    <a href="/notes.html" class="jump-card">
+                        <span class="jump-index">03 &middot; How I work</span>
+                        <h3>Build Log</h3>
+                        <p>One engineering decision per entry: what I got wrong, the evidence that showed it, and what replaced it.</p>
+                    </a>
                     <a href="/skills.html" class="jump-card">
-                        <span class="jump-index">03 &middot; Capability</span>
+                        <span class="jump-index">04 &middot; Capability</span>
                         <h3>Skills</h3>
                         <p>RF and electronic warfare, sensor fusion and DSP, embedded firmware, PCB design, and lab &amp; test instrumentation.</p>
                     </a>
                     <a href="/Cabe_Robertson_Resume.pdf" target="_blank" class="jump-card">
-                        <span class="jump-index">04 &middot; One page</span>
+                        <span class="jump-index">05 &middot; One page</span>
                         <h3>Resume (PDF)</h3>
                         <p>The same track record on a single page, for application uploads and quick reference.</p>
                     </a>
@@ -202,3 +222,37 @@ const personSchema = {
         </section>
     </main>
 </BaseLayout>
+
+<style>
+    .lens-jump {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        margin: 0 0 var(--space-5);
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+    }
+
+    .lens-jump-label {
+        color: var(--accent);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+    }
+
+    .lens-jump a {
+        color: var(--ink-dim);
+        text-decoration: none;
+        border: 1px solid var(--line);
+        padding: 5px 10px;
+        transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+    }
+
+    .lens-jump a:hover,
+    .lens-jump a:focus-visible { border-color: var(--accent); color: var(--ink); }
+
+    @media (prefers-reduced-motion: reduce) {
+        .lens-jump a { transition: none; }
+    }
+</style>

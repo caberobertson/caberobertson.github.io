@@ -1,0 +1,137 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { PERSON_REF, breadcrumbs, graph } from '../../lib/schema';
+
+export async function getStaticPaths() {
+    const notes = await getCollection('notes');
+    return notes
+        .filter((n) => !n.data.draft)
+        .map((n) => ({ params: { slug: n.id }, props: { entry: n } }));
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+const iso = d.date.toISOString().slice(0, 10);
+const human = d.date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+});
+
+const schema = graph(
+    {
+        '@type': 'TechArticle',
+        headline: d.title,
+        description: d.summary,
+        datePublished: iso,
+        author: PERSON_REF,
+        keywords: d.tags.join(', '),
+        isPartOf: { '@type': 'Blog', name: 'Build Log', url: 'https://caberobertson.github.io/notes.html' },
+        mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href,
+    },
+    breadcrumbs([
+        { name: 'Home', href: '/' },
+        { name: 'Build Log', href: '/notes.html' },
+        { name: d.title },
+    ]),
+);
+---
+
+<BaseLayout
+    title={`${d.title} | Build Log`}
+    description={d.summary}
+    ogTitle={d.title}
+    ogDescription={d.summary}
+    ogType="article"
+>
+    <script is:inline type="application/ld+json" slot="head" set:html={schema} />
+
+    <main id="main">
+        <section class="section">
+            <div class="container container--reading">
+                <a href="/notes.html" class="doc-back">&larr; Build Log</a>
+
+                <div class="section-head reveal in">
+                    <span class="section-index">&sect;</span>
+                    <h1 class="section-title">{d.title}</h1>
+                </div>
+
+                <p class="section-sub reveal in">{d.summary}</p>
+
+                <p class="doc-meta reveal in">
+                    <time datetime={iso}>{human}</time> &middot;
+                    Project: <a href={d.projectHref}>{d.project}</a>
+                </p>
+
+                <div class="tags tags--accent2 reveal in">
+                    {d.tags.map((t) => <span class="tag">{t}</span>)}
+                </div>
+
+                <article class="panel note-prose reveal in">
+                    <Content />
+                </article>
+
+                <p class="note-foot">
+                    The numbers in this note come from the
+                    <a href={d.projectHref}>{d.project}</a> write-up.
+                </p>
+            </div>
+        </section>
+    </main>
+</BaseLayout>
+
+<style is:global>
+    /* Notes are read, not scanned, so the measure is tighter than the rest of
+       the site: roughly 70 characters rather than the full 1140px grid. */
+    .container--reading { max-width: 780px; }
+
+    .note-prose { margin-top: var(--space-6); }
+    .note-prose > :first-child { margin-top: 0; }
+
+    .note-prose h2 {
+        font-size: 1.2rem;
+        margin: var(--space-6) 0 var(--space-3);
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--line);
+    }
+
+    .note-prose p { color: var(--ink-dim); }
+    .note-prose strong { color: var(--ink); font-weight: 600; }
+    .note-prose em { color: var(--ink); font-style: italic; }
+    .note-prose ul { padding-left: 1.1rem; }
+    .note-prose li { color: var(--ink-dim); margin-bottom: 10px; }
+    .note-prose li::marker { color: var(--accent); }
+
+    .note-prose pre {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-left: 2px solid var(--accent);
+        padding: var(--space-4);
+        overflow-x: auto;
+        margin: var(--space-4) 0;
+    }
+
+    .note-prose code {
+        font-family: var(--font-mono);
+        font-size: 0.86rem;
+        color: var(--ink);
+    }
+
+    .note-prose :not(pre) > code {
+        background: var(--accent-soft);
+        padding: 1px 5px;
+    }
+
+    .note-foot {
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        color: var(--ink-dim);
+        margin-top: var(--space-5);
+    }
+
+    .note-foot a, .doc-meta a { color: var(--accent); }
+</style>

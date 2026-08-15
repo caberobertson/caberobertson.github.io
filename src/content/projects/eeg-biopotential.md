@@ -16,8 +16,8 @@ figureData:
   caption: "Demonstrating the brain-computer interface kit to attendees at the El Paso Science Festival 2026."
   src: "/photo4.jpg"
   alt: "Demonstrating a brain-computer interface kit to attendees at the El Paso Science Festival"
-  width: 1800
-  height: 1350
+  width: 1400
+  height: 1050
 ---
 
 ## Problem and context

@@ -3,9 +3,10 @@
 // subset only. The site renders exactly three non-ASCII glyphs (U+00B1, U+00B7,
 // U+2013), all inside 'latin', so shipping cyrillic/greek/vietnamese subsets
 // would be dead weight in the build. Never hotlink a third-party font host.
-import '@fontsource/space-grotesk/latin-500.css';
+// Only the 600 weight: a browser sweep over every page found Space Grotesk
+// 500 and 700 rendering on zero elements, so shipping them was 26 KB of font
+// nobody sees. Add a weight back here the moment a rule actually asks for one.
 import '@fontsource/space-grotesk/latin-600.css';
-import '@fontsource/space-grotesk/latin-700.css';
 import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-600.css';
@@ -21,12 +22,16 @@ import '../styles/docs.css';
 import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 
+import { ogImageFor } from '../lib/og';
+
 interface Props {
     title: string;
     description?: string;
     ogTitle?: string;
     ogDescription?: string;
     ogType?: string;
+    /** Social card slug in public/og. Falls back to the default card. */
+    ogCard?: string;
     /** Page chrome: nav, footer, back-to-top. The 404 page opts out. */
     chrome?: boolean;
     noindex?: boolean;
@@ -38,6 +43,7 @@ const {
     ogTitle,
     ogDescription,
     ogType = 'website',
+    ogCard = 'default',
     chrome = true,
     noindex = false,
 } = Astro.props;
@@ -49,6 +55,7 @@ const canonical = new URL(Astro.url.pathname.replace(/index\.html$/, ''), Astro.
 // points program) is still shared by link and deserves a preview. Only the
 // canonical tag is withheld, since there is nothing to canonicalise.
 const hasOg = Boolean(ogTitle || ogDescription);
+const ogImage = ogImageFor(ogCard, Astro.site!);
 ---
 
 <!DOCTYPE html>
@@ -63,11 +70,43 @@ const hasOg = Boolean(ogTitle || ogDescription);
     {ogDescription && <meta property="og:description" content={ogDescription} />}
     {hasOg && <meta property="og:type" content={ogType} />}
     {hasOg && <meta property="og:url" content={canonical} />}
+    {hasOg && <meta property="og:site_name" content="Cabe Robertson" />}
+    {/* Absolute URL and explicit dimensions: crawlers do not resolve relative
+        paths and several will skip a card whose size they cannot determine
+        without fetching the file. */}
+    {hasOg && <meta property="og:image" content={ogImage} />}
+    {hasOg && <meta property="og:image:width" content="1200" />}
+    {hasOg && <meta property="og:image:height" content="630" />}
+    {hasOg && <meta property="og:image:alt" content={ogTitle ?? title} />}
+    {hasOg && <meta name="twitter:card" content="summary_large_image" />}
     {!noindex && <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content="#0e100b">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231b1a17'/%3E%3Cpolyline points='10,68 30,68 30,32 50,32 50,68 70,68 70,32 90,32' fill='none' stroke='%23c6ff3a' stroke-width='8' stroke-linecap='square'/%3E%3C/svg%3E">
-    <!-- Applied before paint so a stored light-theme choice never flashes dark. -->
-    <script is:inline>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;})();</script>
+    <!-- Applied before paint: a stored light-theme choice must never flash
+         dark, and the `js` class gates controls that cannot work unscripted
+         (the audience lens) so they are hidden rather than broken. -->
+    <script is:inline>(function(){var d=document.documentElement;d.classList.add('js');var t=localStorage.getItem('theme');if(t)d.dataset.theme=t;})();</script>
+    {/*
+        ANALYTICS (not enabled, on purpose).
+
+        Nothing on this site sets a cookie, stores an identifier, or contacts a
+        third party on load. If you ever want visit counts, use a cookieless,
+        no-fingerprint provider that keeps the data in the EU or the US and
+        publishes a DPA, and add one line here. Two that fit:
+
+          <script defer data-domain="caberobertson.github.io"
+                  src="https://plausible.io/js/script.js"></script>
+
+          <script defer data-website-id="YOUR-ID"
+                  src="https://cloud.umami.is/script.js"></script>
+
+        Do NOT add Google Analytics. It is not cookieless, it needs a consent
+        banner in several jurisdictions, and a portfolio does not need to know
+        who visited badly enough to justify either.
+
+        Whatever goes here must also be added to the smoke test's third-party
+        request check, so it stays a deliberate choice rather than drift.
+    */}
     <slot name="head" />
 </head>
 <body>

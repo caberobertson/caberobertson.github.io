@@ -1,0 +1,11 @@
+# caberobertson.github.io
+# Everything here is public and meant to be indexed. The two exceptions carry
+# their own noindex meta tag, which is the authoritative signal; they are
+# listed here as well so crawlers do not spend budget on them.
+
+User-agent: *
+Allow: /
+Disallow: /ieee-points.html
+Disallow: /og-preview.html
+
+Sitemap: https://caberobertson.github.io/sitemap.xml

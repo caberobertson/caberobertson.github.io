@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectFigure from '../../components/ProjectFigure.astro';
+import { PERSON_REF, breadcrumbs, graph } from '../../lib/schema';
 
 export async function getStaticPaths() {
     const projects = await getCollection('projects');
@@ -17,6 +18,30 @@ const d = entry.data;
 const { Content } = await render(entry);
 
 const statusLabel = { active: 'In progress', complete: 'Complete', archived: 'Archived' }[d.status];
+
+// Build-log entries that argue a decision made on this project. Matched on the
+// note's projectHref so the link can only exist where the note actually points.
+const here = `/projects/${entry.id}.html`;
+const notes = (await getCollection('notes'))
+    .filter((n) => !n.data.draft && n.data.projectHref === here)
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const schema = graph(
+    {
+        '@type': 'CreativeWork',
+        name: d.title,
+        description: d.outcome,
+        url: new URL(Astro.url.pathname, Astro.site).href,
+        author: PERSON_REF,
+        keywords: d.tags.join(', '),
+        ...(d.context ? { sourceOrganization: { '@type': 'Organization', name: d.context } } : {}),
+        ...(d.status === 'active' ? { creativeWorkStatus: 'In progress' } : {}),
+    },
+    breadcrumbs([
+        { name: 'Home', href: '/' },
+        { name: 'Projects', href: '/projects.html' },
+        { name: d.title },
+    ]),
+);
 ---
 
 <BaseLayout
@@ -26,6 +51,8 @@ const statusLabel = { active: 'In progress', complete: 'Complete', archived: 'Ar
     ogDescription={d.outcome}
     ogType="article"
 >
+    <script is:inline type="application/ld+json" slot="head" set:html={schema} />
+
     <main id="main">
         <section class="section">
             <div class="container">
@@ -77,6 +104,20 @@ const statusLabel = { active: 'In progress', complete: 'Complete', archived: 'Ar
                 <article class="panel project-body reveal">
                     <Content />
                 </article>
+
+                {notes.length > 0 && (
+                    <section class="related-notes reveal">
+                        <h2 class="related-title">From the build log</h2>
+                        <ul>
+                            {notes.map((n) => (
+                                <li>
+                                    <a href={`/notes/${n.id}.html`}>{n.data.title}</a>
+                                    <span>{n.data.summary}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
             </div>
         </section>
     </main>
@@ -98,4 +139,5 @@ const statusLabel = { active: 'In progress', complete: 'Complete', archived: 'Ar
     .project-body ul { padding-left: 1.1rem; }
     .project-body li { color: var(--ink-dim); margin-bottom: 8px; }
     .project-body li::marker { color: var(--accent); }
+
 </style>

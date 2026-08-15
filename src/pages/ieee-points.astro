@@ -19,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                 <p class="section-sub reveal in">How members earn points toward a seat at the IEEE Rising Stars Conference, and the spreadsheet templates used to track it all.</p>
 
                 <div class="panel reveal">
-                    <h3>Ways to earn points</h3>
+                    <h2>Ways to earn points</h2>
                     <table class="points-table">
                         <thead>
                             <tr><th>Activity</th><th>Points</th><th>Notes</th></tr>
@@ -37,7 +37,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <section class="section">
             <div class="container">
                 <div class="panel reveal">
-                    <h3>Rising Stars Conference selection</h3>
+                    <h2>Rising Stars Conference selection</h2>
                     <ul class="step-list">
                         <li>All current chapter officers attend the IEEE Rising Stars Conference.</li>
                         <li>The <strong>2 non-officer members with the highest point totals</strong> for the semester earn a seat alongside them.</li>
@@ -51,7 +51,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <section class="section">
             <div class="container">
                 <div class="panel reveal">
-                    <h3>The Legacy Brick Project</h3>
+                    <h2>The Legacy Brick Project</h2>
                     <p class="section-sub" style="margin-bottom: 1.2rem;">Alumni sponsor an engraved brick for $250. Members earn points by taking a brick from order to finished product.</p>
                     <ol class="step-list">
                         <li>An alum orders a brick ($250) and is added to the Brick Claims sheet as <strong>Unclaimed</strong>.</li>
@@ -67,7 +67,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <section class="section">
             <div class="container">
                 <div class="section-head reveal">
-                    <h3 class="section-title" style="font-size: 1.3rem;">Spreadsheet templates</h3>
+                    <h2 class="section-title" style="font-size: 1.3rem;">Spreadsheet templates</h2>
                 </div>
                 <p class="section-sub">Download each CSV and import it into its own tab in a Google Sheet named something like "IEEE NMSU Chapter Points Tracker."</p>
 
@@ -90,7 +90,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                 </div>
 
                 <div class="panel reveal">
-                    <h3>Setting up the Standings tab</h3>
+                    <h2>Setting up the Standings tab</h2>
                     <p class="section-sub" style="margin-bottom: 1rem;">After importing the three sheets above, add a fourth tab named <strong>Standings</strong> and list your current members in column A. These two formulas do the rest:</p>
                     <div class="code-block">
                         B2: =IF(COUNTIF(Officers!$A$2:$A,A2)&gt;0,"Yes","No")<br>

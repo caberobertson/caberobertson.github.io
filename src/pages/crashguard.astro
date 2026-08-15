@@ -1,5 +1,33 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { PERSON_REF, breadcrumbs, graph } from '../lib/schema';
+
+// Build-log entries arguing decisions made on this project.
+const notes = (await getCollection('notes'))
+    .filter((n) => !n.data.draft && n.data.projectHref === '/crashguard.html')
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const schema = graph(
+    {
+        '@type': 'CreativeWork',
+        name: 'MYOSA CrashGuard',
+        description: 'Autonomous crash detection with AI emergency calling, built on ESP32 and MPU6050 with a BLE link, a Flask call server, and a Twilio voice interface.',
+        url: 'https://caberobertson.github.io/crashguard.html',
+        author: PERSON_REF,
+        creativeWorkStatus: 'In progress',
+        keywords: 'ESP32, MPU6050, sensor fusion, BLE, Twilio Voice, crash detection, IEEE MYOSA',
+        award: 'IEEE MYOSA 6.0 finalist, 1 of 7 teams worldwide',
+        // A VideoObject node is deliberately omitted: schema.org requires
+        // uploadDate for it to be eligible for rich results, and inventing a
+        // date to satisfy a validator is exactly the kind of unverifiable
+        // claim this site does not make. Add it once the real date is known.
+    },
+    breadcrumbs([
+        { name: 'Home', href: '/' },
+        { name: 'Projects', href: '/projects.html' },
+        { name: 'MYOSA CrashGuard' },
+    ]),
+);
 ---
 
 <BaseLayout
@@ -8,7 +36,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     ogTitle="MYOSA CrashGuard | Cabe Robertson"
     ogDescription="Autonomous crash detection with AI emergency calling, built on ESP32, BLE, Twilio Voice, and a grounded Claude dispatcher agent, demoed on an RC car."
     ogType="article"
+    ogCard="crashguard"
 >
+    <script is:inline type="application/ld+json" slot="head" set:html={schema} />
+
 <main id="main">
         <!-- Overview -->
         <section class="section">
@@ -406,6 +437,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                         <li><strong>Additional language support</strong> for the dispatcher agent</li>
                     </ul>
                 </article>
+
+                {notes.length > 0 && (
+                    <section class="related-notes reveal">
+                        <h3 class="related-title">From the build log</h3>
+                        <ul>
+                            {notes.map((n) => (
+                                <li>
+                                    <a href={`/notes/${n.id}.html`}>{n.data.title}</a>
+                                    <span>{n.data.summary}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
             </div>
         </section>
     </main>

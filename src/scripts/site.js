@@ -93,11 +93,34 @@
         });
         const dots = $$('.dot', dotsBox);
 
+        // Only the first slide ships its photo and blurred backdrop in the
+        // HTML. The rest carry data-src / data-bg and are fetched when they are
+        // about to be shown, which took roughly 600 KB off the initial home
+        // page load. Nothing visible is deferred: slides 2 onward sit
+        // off-screen behind a translate until the visitor asks for them.
+        const hydrate = (i) => {
+            const slide = slides[(i + slides.length) % slides.length];
+            if (!slide || slide.dataset.loaded) return;
+            slide.dataset.loaded = '1';
+            const img = slide.querySelector('img[data-src]');
+            if (img) { img.src = img.dataset.src; img.removeAttribute('data-src'); }
+            if (slide.dataset.bg) slide.style.setProperty('--slide-bg', `url('${slide.dataset.bg}')`);
+        };
+
         const goTo = (i) => {
             index = (i + slides.length) % slides.length;
+            // The next one too, so an advance never waits on a fetch.
+            hydrate(index);
+            hydrate(index + 1);
             track.style.transform = `translateX(-${index * 100}%)`;
             dots.forEach((d, j) => d.classList.toggle('active', j === index));
         };
+
+        // Prefetch the second slide, but only once the page has gone quiet.
+        // Doing it during load put a 225 KB image on the wire alongside the
+        // fonts and pushed first paint out by roughly a second.
+        const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
+        idle(() => hydrate(1));
 
         const startAutoplay = () => {
             if (reducedMotion) return;
@@ -189,15 +212,24 @@
         github: icon('<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>'),
     };
 
+    // Root-relative on purpose: these run from /projects/*.html and
+    // /notes/*.html too, where a bare "index.html" would resolve inside the
+    // subdirectory and 404.
+    const go = (path) => () => location.assign(path);
+
     const commands = [
-        { label: 'Go to Home', icon: icons.home, keywords: 'home index about', run: () => location.assign('index.html') },
-        { label: 'Go to Experience', icon: icons.briefcase, keywords: 'experience work internship jobs timeline leadership ieee', run: () => location.assign('experience.html') },
-        { label: 'Go to Projects', icon: icons.cpu, keywords: 'projects portfolio arduino fpga robot face tracking', run: () => location.assign('projects.html') },
-        { label: 'Go to Skills', icon: icons.zap, keywords: 'skills tools languages python matlab vhdl', run: () => location.assign('skills.html') },
-        { label: 'CrashGuard documentation', icon: icons.zap, keywords: 'crashguard crash guard myosa in progress wip esp32 ble twilio claude accelerometer emergency detection', run: () => location.assign('crashguard.html') },
-        { label: 'Go to Contact', icon: icons.mail, keywords: 'contact connect reach', run: () => location.assign('contact.html') },
-        { label: 'Download Resume (PDF)', icon: icons.file, keywords: 'resume cv pdf download', run: () => window.open('Cabe_Robertson_Resume.pdf', '_blank') },
-        { label: 'Email Cabe', icon: icons.mail, keywords: 'email mail message caberobertson gmail', run: () => location.assign('mailto:caberobertson@gmail.com') },
+        { label: 'Go to Home', icon: icons.home, keywords: 'home index about', run: go('/index.html') },
+        { label: 'Go to Experience', icon: icons.briefcase, keywords: 'experience work internship jobs timeline leadership ieee', run: go('/experience.html') },
+        { label: 'Go to Projects', icon: icons.cpu, keywords: 'projects portfolio arduino fpga robot face tracking', run: go('/projects.html') },
+        { label: 'Go to Build Log', icon: icons.file, keywords: 'build log notes blog writing engineering decisions debugging', run: go('/notes.html') },
+        { label: 'Go to Skills', icon: icons.zap, keywords: 'skills tools languages python matlab vhdl', run: go('/skills.html') },
+        { label: 'CrashGuard documentation', icon: icons.zap, keywords: 'crashguard crash guard myosa in progress wip esp32 ble twilio claude accelerometer emergency detection', run: go('/crashguard.html') },
+        { label: 'Go to Contact', icon: icons.mail, keywords: 'contact connect reach', run: go('/contact.html') },
+        { label: 'Filter projects: defense & aerospace', icon: icons.cpu, keywords: 'lens filter defense aerospace rf electronic warfare uas itar clearance', run: go('/projects.html?lens=defense') },
+        { label: 'Filter projects: big tech hardware', icon: icons.cpu, keywords: 'lens filter big tech hardware embedded firmware bring-up test doe', run: go('/projects.html?lens=bigtech') },
+        { label: 'Filter projects: neurotech & BCI', icon: icons.cpu, keywords: 'lens filter neurotech bci eeg biopotential brain computer interface', run: go('/projects.html?lens=neurotech') },
+        { label: 'Download Resume (PDF)', icon: icons.file, keywords: 'resume cv pdf download', run: () => window.open('/Cabe_Robertson_Resume.pdf', '_blank') },
+        { label: 'Email Cabe', icon: icons.mail, keywords: 'email mail message caberobertson gmail', run: go('mailto:caberobertson@gmail.com') },
         { label: 'Open LinkedIn', icon: icons.link, keywords: 'linkedin social network connect', run: () => window.open('https://www.linkedin.com/in/caberobertson/', '_blank') },
         { label: 'View site source on GitHub', icon: icons.github, keywords: 'github source code repository', run: () => window.open('https://github.com/caberobertson/caberobertson.github.io', '_blank') },
         { label: 'Toggle light / dark theme', icon: icons.moon, keywords: 'theme dark light mode toggle appearance', run: toggleTheme },
@@ -240,7 +272,13 @@
         list.children[selected]?.scrollIntoView({ block: 'nearest' });
     };
 
+    // Where focus was before the dialog opened, so Escape returns the visitor
+    // to the control they were on rather than dumping them at the top of the
+    // document.
+    let lastFocused = null;
+
     const openPalette = () => {
+        lastFocused = document.activeElement;
         filtered = commands;
         selected = 0;
         input.value = '';
@@ -249,7 +287,32 @@
         input.focus();
     };
 
-    const closePalette = () => overlay.classList.remove('open');
+    const closePalette = () => {
+        if (!overlay.classList.contains('open')) return;
+        overlay.classList.remove('open');
+        // Restoring is unconditional: if the command navigates, the document
+        // unloads and this is a no-op; if it opens a new tab or flips the
+        // theme, the visitor is back on the control they came from.
+        if (lastFocused && document.contains(lastFocused)) lastFocused.focus();
+        lastFocused = null;
+    };
+
+    // aria-modal tells assistive tech the rest of the page is inert, but it
+    // does not stop Tab from walking out of the dialog into the page behind
+    // it. Cycle focus between the first and last focusable elements instead.
+    const trapFocus = (e) => {
+        const focusable = [input, ...$$('.cmdk-item', overlay)];
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+        }
+    };
 
     input.addEventListener('input', () => {
         const q = input.value.trim().toLowerCase();
@@ -273,6 +336,7 @@
         if (e.key === 'Escape') closePalette();
         if (e.key === 'ArrowDown') { e.preventDefault(); selected = Math.min(selected + 1, filtered.length - 1); render(); }
         if (e.key === 'ArrowUp') { e.preventDefault(); selected = Math.max(selected - 1, 0); render(); }
+        if (e.key === 'Tab') trapFocus(e);
         if (e.key === 'Enter' && filtered[selected]) { closePalette(); filtered[selected].run(); }
     });
 

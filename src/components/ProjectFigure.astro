@@ -69,12 +69,12 @@ const maxBar = bars.length ? Math.max(...bars.map((b) => b.value)) : 1;
     <figure class="pfig">
         <div class="doe-grid">
             <div class="doe-col">
-                <h4>Factors swept</h4>
+                <p class="pfig-colhead">Factors swept</p>
                 <ul>{(data.factors ?? []).map((f: string) => <li>{f}</li>)}</ul>
             </div>
             <div class="doe-arrow" aria-hidden="true">&rarr;</div>
             <div class="doe-col">
-                <h4>Responses measured</h4>
+                <p class="pfig-colhead">Responses measured</p>
                 <ul>{(data.responses ?? []).map((r: string) => <li>{r}</li>)}</ul>
             </div>
         </div>
@@ -150,7 +150,7 @@ const maxBar = bars.length ? Math.max(...bars.map((b) => b.value)) : 1;
         padding: var(--space-5);
     }
 
-    .doe-col h4 {
+    .doe-col .pfig-colhead {
         font-family: var(--font-mono);
         font-size: 0.7rem;
         letter-spacing: 1px;

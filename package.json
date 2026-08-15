@@ -11,15 +11,19 @@
     "check": "astro check",
     "validate": "html-validate \"dist/**/*.html\"",
     "test": "node tests/smoke.js",
-    "ci": "npm run build && npm run validate && npm test"
+    "ci": "npm run build && npm run check && npm run validate && npm test",
+    "og": "node scripts/og.mjs",
+    "lighthouse": "node scripts/lighthouse.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/space-grotesk": "^5.3.0",
-    "astro": "^7.2.2"
+    "astro": "^7.2.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "html-validate": "^11.5.3",
     "jsdom": "^29.1.1",
     "typescript": "^5.9.2"

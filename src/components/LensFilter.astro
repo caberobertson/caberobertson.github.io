@@ -1,0 +1,121 @@
+---
+// Audience lens.
+//
+// Three audiences are weighted equally on this site, and a recruiter from any
+// one of them should not have to read past work aimed at the other two. The
+// lens narrows the project list to what their team actually hires for.
+//
+// No-JS behaviour: the chips are real links, so they are crawlable and
+// shareable, but the control only becomes visible once the inline `js` class
+// lands on <html>. Without scripting the visitor sees every project rather
+// than a filter that cannot filter. Hiding a dead control beats shipping one.
+//
+// The counts are computed at build time so a chip never promises results it
+// cannot deliver.
+import { LENSES } from '../lib/lenses';
+
+interface Props {
+    counts: Record<string, number>;
+    total: number;
+}
+
+const { counts, total } = Astro.props;
+---
+
+<div class="lens" data-lens-root>
+    <div class="lens-head">
+        <span class="lens-label">Filter by what you hire for</span>
+        <p class="lens-count" role="status" aria-live="polite" data-lens-count>
+            Showing all {total} projects.
+        </p>
+    </div>
+
+    <div class="lens-chips" role="group" aria-label="Filter projects by audience">
+        {LENSES.map((l) => (
+            <a
+                class="lens-chip"
+                href={l.id === 'all' ? '/projects.html' : `/projects.html?lens=${l.id}`}
+                data-lens={l.id}
+                data-lens-label={l.label}
+                aria-current={l.id === 'all' ? 'true' : undefined}
+                title={l.blurb}
+            >
+                {l.label}
+                <span class="lens-n">{l.id === 'all' ? total : (counts[l.id] ?? 0)}</span>
+            </a>
+        ))}
+    </div>
+</div>
+
+<style>
+    /* The whole control is inert without scripting, so it stays out of the
+       layout and out of the tab order until the js class proves otherwise. */
+    .lens { display: none; }
+    :global(html.js) .lens { display: block; margin: var(--space-5) 0 0; }
+
+    .lens-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: var(--space-2);
+    }
+
+    .lens-label,
+    .lens-count {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin: 0;
+    }
+
+    .lens-label { color: var(--accent); }
+    .lens-count { color: var(--ink-dim); text-transform: none; letter-spacing: 0; }
+
+    .lens-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: var(--space-3);
+    }
+
+    .lens-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--ink-dim);
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+    }
+
+    .lens-chip:hover { border-color: var(--accent); color: var(--ink); }
+
+    .lens-chip[aria-current='true'] {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--accent-ink);
+    }
+
+    .lens-n {
+        font-size: 0.68rem;
+        opacity: 0.75;
+        border-left: 1px solid currentColor;
+        padding-left: 8px;
+    }
+
+    /* Nothing matched: only reachable if a hand-typed ?lens= value is unknown. */
+    :global(.proj-list[data-lens-empty]) { border-bottom: 1px solid var(--line); }
+
+    @media (prefers-reduced-motion: reduce) {
+        .lens-chip { transition: none; }
+    }
+</style>
