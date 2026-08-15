@@ -1,15 +1,27 @@
 {
   "name": "caberobertson-portfolio",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Personal portfolio of Cabe Robertson — built with hand-written HTML, CSS, and vanilla JavaScript.",
+  "type": "module",
+  "description": "Personal engineering portfolio of Cabe Robertson. Astro static site deployed to GitHub Pages.",
   "scripts": {
-    "validate": "html-validate \"*.html\"",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "validate": "html-validate \"dist/**/*.html\"",
     "test": "node tests/smoke.js",
-    "ci": "npm run validate && npm test"
+    "ci": "npm run build && npm run validate && npm test"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/space-grotesk": "^5.3.0",
+    "astro": "^7.2.2"
   },
   "devDependencies": {
     "html-validate": "^11.5.3",
-    "jsdom": "^29.1.1"
+    "jsdom": "^29.1.1",
+    "typescript": "^5.9.2"
   }
 }

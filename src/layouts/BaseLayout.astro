@@ -1,0 +1,92 @@
+---
+// Self-hosted fonts. Three deliberate roles, specific weights only, so we
+// ship the minimum and never hotlink a third-party font host.
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/600.css';
+import '@fontsource/space-grotesk/700.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/600.css';
+
+import '../styles/tokens.css';
+import '../styles/global.css';
+import '../styles/docs.css';
+
+import SiteNav from '../components/SiteNav.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+
+interface Props {
+    title: string;
+    description?: string;
+    ogTitle?: string;
+    ogDescription?: string;
+    ogType?: string;
+    /** Page chrome: nav, footer, back-to-top. The 404 page opts out. */
+    chrome?: boolean;
+    noindex?: boolean;
+}
+
+const {
+    title,
+    description,
+    ogTitle,
+    ogDescription,
+    ogType = 'website',
+    chrome = true,
+    noindex = false,
+} = Astro.props;
+
+// build.format is 'file', so the home page resolves to "/index.html". Strip it
+// so the canonical and og:url for the site root stay "https://…github.io/".
+const canonical = new URL(Astro.url.pathname.replace(/index\.html$/, ''), Astro.site).href;
+// Open Graph and indexing are separate concerns: a noindex page (the chapter
+// points program) is still shared by link and deserves a preview. Only the
+// canonical tag is withheld, since there is nothing to canonicalise.
+const hasOg = Boolean(ogTitle || ogDescription);
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    {ogTitle && <meta property="og:title" content={ogTitle} />}
+    {ogDescription && <meta property="og:description" content={ogDescription} />}
+    {hasOg && <meta property="og:type" content={ogType} />}
+    {hasOg && <meta property="og:url" content={canonical} />}
+    {!noindex && <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" content="#0e100b">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231b1a17'/%3E%3Cpolyline points='10,68 30,68 30,32 50,32 50,68 70,68 70,32 90,32' fill='none' stroke='%23c6ff3a' stroke-width='8' stroke-linecap='square'/%3E%3C/svg%3E">
+    <!-- Applied before paint so a stored light-theme choice never flashes dark. -->
+    <script is:inline>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t;})();</script>
+    <slot name="head" />
+</head>
+<body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div id="scroll-progress" aria-hidden="true"></div>
+
+    {chrome && <SiteNav />}
+
+    <slot />
+
+    {chrome && (
+        <>
+            <SiteFooter />
+            <button type="button" id="back-to-top" aria-label="Back to top">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            </button>
+        </>
+    )}
+
+    <script>
+        import '../scripts/site.js';
+    </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+/* ==========================================================================
+   Design tokens
+   Instrument-panel identity: near-black base, hairline rules, one signal
+   accent. Dark is the default; the "paper" light theme is an opt-in override.
+   Every pairing below was checked against WCAG AA (see Phase 1 report).
+   ========================================================================== */
+
+:root {
+    /* ---- Core palette ---- */
+    --bg: #0e100b;          /* base                                   */
+    --bg-elev: #16180f;     /* elevated panels                        */
+    --ink: #f2f4ea;         /* primary text        17.2:1 on --bg     */
+    --ink-dim: #a7ad98;     /* secondary text       8.3:1 on --bg     */
+    --line: #2b2f22;        /* hairlines / grid rules                 */
+    --accent: #c6ff3a;      /* single signal accent 16.2:1 on --bg    */
+    --accent-ink: #0e100b;  /* text on accent       16.2:1            */
+    --danger: #ff5c4d;      /* impact / alert only  6.3:1 on --bg     */
+
+    /* ---- Typography: three deliberate roles, never one font for everything ---- */
+    --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    /* ---- Spacing scale, 8px base ---- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+    --space-8: 64px;
+    --space-9: 96px;
+    --space-10: 128px;
+    --measure: 1200px;
+
+    /* ---- Motion ---- */
+    --ease-out: cubic-bezier(0.2, 0.6, 0.2, 1);
+
+    /* ---- Aliases consumed by the ported stylesheet ----------------------
+       The hand-written CSS refers to --surface/--muted/--border etc. Mapping
+       them here means ~1200 lines of working CSS port unchanged, and the
+       canonical names above stay the single source of truth. ------------- */
+    --surface: var(--bg-elev);
+    --muted: var(--ink-dim);
+    --border: var(--line);
+    --border-strong: var(--ink);
+    --accent-soft: rgba(198, 255, 58, 0.14);
+    --accent-2: #5fbe8d;          /* secondary signal: tags, "in progress" */
+    --accent-2-ink: #0e1a14;
+    --accent-2-soft: rgba(95, 190, 141, 0.14);
+    --grid-line: rgba(242, 244, 234, 0.06);
+    --shadow: none;
+    --radius: 0px;                /* sharp corners are part of the identity */
+
+    color-scheme: dark;
+}
+
+/* Warm "paper" light theme. Accent shifts to a deep olive so the signal
+   colour stays in the same family while clearing AA on a light ground
+   (6.6:1); #c6ff3a on paper would be unreadable. */
+[data-theme="light"] {
+    --bg: #f4efe3;
+    --bg-elev: #fbf8ef;
+    --ink: #1b1a17;
+    --ink-dim: #6b6557;
+    --line: #d9d2bd;
+    --accent: #415c00;
+    --accent-ink: #fbf8ef;
+    --danger: #a32b1e;
+
+    --border-strong: #1b1a17;
+    --accent-soft: rgba(65, 92, 0, 0.1);
+    --accent-2: #2f4538;
+    --accent-2-ink: #fbf8ef;
+    --accent-2-soft: rgba(47, 69, 56, 0.1);
+    --grid-line: rgba(27, 26, 23, 0.05);
+
+    color-scheme: light;
+}

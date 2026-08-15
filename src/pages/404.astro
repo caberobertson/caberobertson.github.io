@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+    title="404: Signal Not Found | Cabe Robertson"
+    chrome={false}
+    noindex
+>
+<main class="error-page">
+        <p class="error-code">404</p>
+        <h1>Signal Not Found</h1>
+        <p>The page you requested has dropped below the noise floor. Check the URL, or head back to a known-good channel.</p>
+        <div class="hero-cta">
+            <a href="index.html" class="btn btn-primary">Back to Home</a>
+            <a href="contact.html" class="btn">Contact Me</a>
+        </div>
+    </main>
+</BaseLayout>

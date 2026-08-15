@@ -1,30 +1,24 @@
 name: CI
 
 on:
-  push:
   pull_request:
+  push:
+    branches-ignore: [main]   # main is covered by the deploy workflow
   workflow_dispatch:
 
 jobs:
   build:
-    name: Validate & smoke test
+    name: Build, validate & smoke test
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Validate HTML
-        run: npm run validate
-
-      - name: Run smoke tests
-        run: npm test
+      - run: npm ci
+      - run: npm run build
+      - run: npm run validate
+      - run: npm test

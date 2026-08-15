@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Cabe Robertson, Portfolio interactions
+   Cabe Robertson, portfolio interactions
    Theme toggle · mobile nav · scroll reveal · typed hero · scroll progress ·
    photo slider · command palette · back-to-top · clipboard
    ========================================================================== */
@@ -34,12 +34,6 @@
     burger?.addEventListener('click', () => {
         const open = navLinks.classList.toggle('open');
         burger.setAttribute('aria-expanded', String(open));
-    });
-
-    // Highlight the current page in the nav
-    const page = location.pathname.split('/').pop() || 'index.html';
-    $$('.nav-links a').forEach((a) => {
-        if (a.getAttribute('href') === page) a.classList.add('active');
     });
 
     /* ---------- Scroll reveal ---------- */

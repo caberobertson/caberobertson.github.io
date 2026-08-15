@@ -1,49 +1,10 @@
 /* ==========================================================================
-   Cabe Robertson, Portfolio
+   Cabe Robertson, portfolio
    Design system: editorial engineering datasheet / lab logbook aesthetic.
-   Warm paper light theme, CRT-phosphor dark theme. Zero glass, zero glow.
+   Warm paper light theme, near-black instrument-panel dark theme.
+   Tokens live in tokens.css.
    ========================================================================== */
 
-/* ---------- Design tokens ---------- */
-/* CRT-phosphor dark theme is the default; light "paper" theme is the opt-in override. */
-:root {
-    --bg: #0e100b;
-    --surface: #161811;
-    --ink: #ece6d2;
-    --muted: #978f76;
-    --border: #34362a;
-    --border-strong: #ece6d2;
-    --accent: #f2a93c;
-    --accent-ink: #15110a;
-    --accent-soft: rgba(242, 169, 60, 0.14);
-    --accent-2: #5fbe8d;
-    --accent-2-ink: #0e1a14;
-    --accent-2-soft: rgba(95, 190, 141, 0.14);
-    --grid-line: rgba(236, 230, 210, 0.06);
-    --shadow: none;
-    --radius: 0px;
-    --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
-    --font-body: 'Inter', system-ui, sans-serif;
-    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
-    color-scheme: dark;
-}
-
-[data-theme="light"] {
-    --bg: #f4efe3;
-    --surface: #fbf8ef;
-    --ink: #1b1a17;
-    --muted: #6b6557;
-    --border: #d9d2bd;
-    --border-strong: #1b1a17;
-    --accent: #a8430d;
-    --accent-ink: #fbf8ef;
-    --accent-soft: rgba(168, 67, 13, 0.1);
-    --accent-2: #2f4538;
-    --accent-2-ink: #fbf8ef;
-    --accent-2-soft: rgba(47, 69, 56, 0.1);
-    --grid-line: rgba(27, 26, 23, 0.05);
-    color-scheme: light;
-}
 
 /* ---------- Base ---------- */
 * { box-sizing: border-box; }
