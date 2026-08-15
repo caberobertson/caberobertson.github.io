@@ -441,24 +441,31 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
 .log-body li { margin-bottom: 8px; color: var(--muted); }
 .log-body li::marker { color: var(--accent); }
 
+/* These are ~1000px-wide MATLAB figures whose axis text is sized for a
+   full-width figure. Side by side they rendered at 45% scale, which reads as
+   squeezed even though the aspect ratio was correct. Stack them and let each
+   one take its own intrinsic size, shrinking only when the column is narrower
+   than the file. No grayscale filter either: these are plots, and desaturating
+   the traces is exactly the kind of styling that makes data look wrong. */
 .log-media {
-    align-items: flex-start;
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
     margin-top: 1.4rem;
-    flex-wrap: wrap;
 }
 
 .log-media img {
-    width: calc(50% - 8px);
-    min-width: 260px;
-    flex: 1;
+    /* width:100% rather than auto: the column is ~920px at its widest, always
+       narrower than these files, and a percentage keeps the width/height
+       attributes reserving space before the lazy load lands. */
+    width: 100%;
+    height: auto;
     border: 1px solid var(--border-strong);
-    filter: grayscale(0.15);
-    transition: filter 0.2s ease, border-color 0.2s ease;
+    transition: border-color 0.2s ease;
 }
 
-.log-media img:hover { filter: grayscale(0); border-color: var(--accent); cursor: zoom-in; }
+.log-media img:hover { border-color: var(--accent); cursor: zoom-in; }
 
 /* ---------- Tags ---------- */
 .tags { display: flex; flex-wrap: wrap; gap: 7px; margin: 0.9rem 0; }
@@ -987,7 +994,6 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     .log-entry { grid-template-columns: 36px 1fr; }
     .log-index { font-size: 1.15rem; }
     .log-body { padding-left: 1rem; }
-    .log-media img { width: 100%; min-width: 100%; }
     .footer-inner { flex-direction: column; text-align: center; }
     .contact-row { padding: 1rem 0; }
 }
