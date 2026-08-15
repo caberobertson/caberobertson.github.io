@@ -1,114 +1,132 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const all = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const active = all.filter((p) => p.data.status === 'active');
+const complete = all.filter((p) => p.data.status !== 'active');
+
+// externalPage lets CrashGuard keep its hand-authored write-up while still
+// living in the collection, so it appears here and in the Phase 4 lens.
+const href = (p: (typeof all)[number]) => p.data.externalPage ?? `/projects/${p.id}.html`;
+
+const groups = [
+    { index: '01', title: 'In Progress', sub: 'Active builds, documented as they evolve.', items: active },
+    { index: '02', title: 'Selected Projects', sub: 'Hardware, signal processing, and embedded work, each with the numbers behind it.', items: complete },
+];
 ---
 
 <BaseLayout
     title="Projects | Cabe Robertson"
-    description="Engineering projects by Cabe Robertson: MYOSA CrashGuard crash detection with AI emergency calling, EEG biopotential signal analysis, real-time face tracking with OpenCV, a self-navigating robot, and FPGA development in VHDL."
+    description="Engineering projects by Cabe Robertson: MYOSA CrashGuard crash detection with AI emergency calling, an unmanned systems production floor, a $219 RF jamming demonstrator, a BLDC airflow design of experiments, channel-decoding simulations, and EEG biopotential analysis."
     ogTitle="Projects | Cabe Robertson"
-    ogDescription="Computer vision, embedded systems, and FPGA projects, plus CrashGuard, an in-progress crash detection system with AI emergency calling."
+    ogDescription="Hardware, RF, embedded and signal-processing projects, each documented with constraints, tradeoffs and measured results."
 >
-<main id="main">
-        <!-- In Progress -->
-        <section class="section">
-            <div class="container">
-                <div class="section-head reveal in">
-                    <span class="section-index">01</span>
-                    <h1 class="section-title">In Progress</h1>
+    <main id="main">
+        {groups.map((g, gi) => g.items.length > 0 && (
+            <section class="section">
+                <div class="container">
+                    <div class={gi === 0 ? 'section-head reveal in' : 'section-head reveal'}>
+                        <span class="section-index">{g.index}</span>
+                        {gi === 0
+                            ? <h1 class="section-title">{g.title}</h1>
+                            : <h2 class="section-title">{g.title}</h2>}
+                    </div>
+                    <p class={gi === 0 ? 'section-sub reveal in' : 'section-sub reveal'}>{g.sub}</p>
+
+                    <ul class="proj-list">
+                        {g.items.map((p, i) => (
+                            <li class="proj-item reveal" data-delay={String(Math.min(i, 3))}>
+                                <a class="proj-link" href={href(p)}>
+                                    <span class="proj-index" aria-hidden="true">{String(p.data.order).padStart(2, '0')}</span>
+                                    <span class="proj-body">
+                                        <span class="proj-head">
+                                            <span class="proj-title">
+                                                {p.data.title}
+                                                {p.data.status === 'active' && <span class="wip-badge">In progress</span>}
+                                            </span>
+                                            <span class="proj-period">{p.data.period}</span>
+                                        </span>
+                                        <span class="proj-outcome">{p.data.outcome}</span>
+                                        <span class="tags">
+                                            {p.data.tags.slice(0, 5).map((t) => <span class="tag">{t}</span>)}
+                                        </span>
+                                        {p.data.metrics.length > 0 && (
+                                            <span class="proj-metrics">
+                                                {p.data.metrics.slice(0, 3).map((m) => (
+                                                    <span class="proj-metric">
+                                                        <b>{m.value}</b> {m.label}
+                                                    </span>
+                                                ))}
+                                            </span>
+                                        )}
+                                    </span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-                <p class="section-sub reveal in">Active builds, documented as they evolve.</p>
-
-                <div class="project-grid">
-                    <article class="panel project-card full-width reveal in">
-                        <span class="panel-tag">Fig. 01 &middot; IEEE MYOSA 6.0 Finalist</span>
-                        <h3>MYOSA CrashGuard <span class="wip-badge">In Progress</span></h3>
-                        <div class="tags tags--accent2">
-                            <span class="tag">ESP32</span>
-                            <span class="tag">MPU6050</span>
-                            <span class="tag">Sensor Fusion</span>
-                            <span class="tag">BLE</span>
-                            <span class="tag">Python</span>
-                            <span class="tag">Twilio Voice</span>
-                            <span class="tag">Claude API</span>
-                        </div>
-                        <p><strong>Selected as 1 of 15 teams worldwide</strong> in the IEEE Sensors Council's international MYOSA 6.0 competition, then <strong>1 of 7 advanced to the final round</strong>, presenting a live hardware demonstration at <strong>IEEE SENSORS 2026</strong> (Rotterdam, October 2026).</p>
-                        <p>An OnStar-style in-vehicle guardian: ESP32/MPU6050 firmware detects impact events in real time from dynamic acceleration, then gives the occupant a ten-second window to cancel from a live phone dashboard. If nobody cancels, it autonomously places an AI voice call reporting identity, blood type, GPS location, and medical information, then answers the dispatcher's follow-up questions, grounded strictly in verified data.</p>
-                        <p class="doc-meta">My role: Team lead, stack architecture &amp; test methodology<br>Team: Aidan Garcia, Jacob Randall, Cabe Robertson, Vu Ha Nguyen &middot; Mentor: Dr. Lavrova</p>
-                        <div class="video-wrapper">
-                            <iframe src="https://www.youtube.com/embed/vkzkJGDFFSU" title="MYOSA CrashGuard work-in-progress prototype demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>
-                        <div class="hero-cta" style="margin-top:1.6rem">
-                            <a href="crashguard.html" class="btn btn-primary">Read the documentation</a>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <!-- Completed -->
-        <section class="section">
-            <div class="container">
-                <div class="section-head reveal">
-                    <span class="section-index">02</span>
-                    <h2 class="section-title">Featured Projects</h2>
-                </div>
-                <p class="section-sub reveal">Hands-on builds across computer vision, embedded systems, and digital logic.</p>
-
-                <div class="project-grid">
-                    <!-- Face Tracking Project -->
-                    <article class="panel project-card full-width reveal">
-                        <span class="panel-tag">Fig. 02</span>
-                        <h3>Face Tracking with Arduino &amp; Python</h3>
-                        <div class="tags">
-                            <span class="tag">Python (OpenCV)</span>
-                            <span class="tag">Arduino</span>
-                            <span class="tag">Pan-Tilt Servos</span>
-                            <span class="tag">Serial Communication</span>
-                        </div>
-                        <p>Built a real-time computer-vision system in Python (OpenCV) that detects faces and streams positional data over serial to an Arduino, driving pan-tilt servos to keep the subject centered at 30&nbsp;FPS.</p>
-                        <div class="video-wrapper">
-                            <iframe src="https://www.youtube.com/embed/a23yNcI4UtQ" title="Face Tracking Project Video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>
-                    </article>
-
-                    <!-- EEG Signal Analysis -->
-                    <article class="panel project-card reveal" data-delay="1">
-                        <span class="panel-tag">Fig. 03</span>
-                        <h3>EEG Signal Analysis</h3>
-                        <div class="tags">
-                            <span class="tag">NeuroPawn Biopotential Kit</span>
-                            <span class="tag">EEG</span>
-                            <span class="tag">Electrode Placement</span>
-                            <span class="tag">Artifact Rejection</span>
-                        </div>
-                        <p>Recorded and analyzed my own EEG signals using a NeuroPawn biopotential kit, working hands-on with electrode placement, identifying and rejecting movement and blink artifacts, and working directly with raw biopotential data.</p>
-                    </article>
-
-                    <!-- Self-Navigating Robot -->
-                    <article class="panel project-card reveal" data-delay="2">
-                        <span class="panel-tag">Fig. 04</span>
-                        <h3>Self-Navigating Robot</h3>
-                        <div class="tags">
-                            <span class="tag">Arduino</span>
-                            <span class="tag">Ultrasonic Sensors</span>
-                            <span class="tag">C++</span>
-                        </div>
-                        <p>Programmed an autonomous obstacle-avoidance robot in Arduino IDE using ultrasonic sensors, refining the control logic over repeated trials to achieve a 100% obstacle-avoidance rate in testing.</p>
-                    </article>
-
-                    <!-- FPGA Display -->
-                    <article class="panel project-card reveal" data-delay="3">
-                        <span class="panel-tag">Fig. 05</span>
-                        <h3>Seven-Segment Display</h3>
-                        <div class="tags">
-                            <span class="tag">VHDL</span>
-                            <span class="tag">FPGA</span>
-                            <span class="tag">Karnaugh Maps</span>
-                        </div>
-                        <p>Designed a VHDL display driver decoding all 16 BCD/HEX inputs (0–9, A–F) on an FPGA board, optimizing the Boolean logic with truth tables and Karnaugh maps to minimize gate count.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
+            </section>
+        ))}
     </main>
 </BaseLayout>
+
+<style>
+    .proj-list { list-style: none; padding: 0; margin: var(--space-5) 0 0; border-top: 1px solid var(--line); }
+
+    .proj-link {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: var(--space-4);
+        padding: var(--space-5) 0;
+        border-bottom: 1px solid var(--line);
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.2s var(--ease-out);
+    }
+
+    .proj-link:hover, .proj-link:focus-visible { background: var(--accent-soft); }
+
+    .proj-index {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        padding-top: 4px;
+    }
+
+    .proj-body { display: flex; flex-direction: column; gap: var(--space-3); }
+
+    .proj-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+    }
+
+    .proj-title {
+        font-family: var(--font-display);
+        font-size: 1.22rem;
+        font-weight: 600;
+        color: var(--ink);
+    }
+
+    .proj-link:hover .proj-title { color: var(--accent); }
+
+    .proj-period { font-family: var(--font-mono); font-size: 0.74rem; color: var(--ink-dim); }
+    .proj-outcome { color: var(--ink-dim); max-width: 72ch; }
+
+    .proj-metrics { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+
+    .proj-metric {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--ink-dim);
+    }
+
+    .proj-metric b { color: var(--accent); font-weight: 500; }
+
+    @media (max-width: 600px) {
+        .proj-link { grid-template-columns: 32px 1fr; gap: var(--space-3); }
+    }
+</style>

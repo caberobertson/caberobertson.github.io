@@ -360,3 +360,52 @@
 
 .artifact-row a:hover,
 .artifact-row a:focus-visible { color: var(--accent); border-color: var(--accent); }
+
+
+/* =========================================
+   METRIC STRIP
+   Shared by the home scan strip and every project page, so the same numbers
+   read identically wherever they appear. Lives here rather than in a scoped
+   component block, which would not apply to pages that reuse the markup.
+========================================= */
+.scan-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin: var(--space-6) 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+
+.scan-metric {
+    padding: var(--space-4) var(--space-4) var(--space-4) 0;
+    border-right: 1px solid var(--line);
+}
+
+.scan-metric:last-child { border-right: none; }
+
+.scan-metric-value {
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 3.4vw, 1.9rem);
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1.05;
+    margin: 0;
+}
+
+.scan-metric-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    margin: 8px 0 0;          /* <dd> default indent must be cleared */
+}
+
+/* Project pages size the strip to their own metric count. */
+.project-metrics { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+@media (max-width: 720px) {
+    .scan-metrics { grid-template-columns: repeat(2, 1fr); }
+    .scan-metric { padding: var(--space-3) var(--space-3) var(--space-3) 0; }
+    .scan-metric:nth-child(2n) { border-right: none; }
+    .scan-metric:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
+}

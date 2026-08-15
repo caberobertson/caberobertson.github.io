@@ -1,0 +1,205 @@
+---
+// Every project either shows real media or an authored figure drawn from
+// numbers already stated in its write-up. There is no "media pending" state:
+// a project with no photograph gets a diagram of its own structure instead,
+// which is more useful to a reviewer than a stock image would have been.
+interface Props {
+    kind: 'none' | 'image' | 'images' | 'cost' | 'doe' | 'pipeline' | 'video';
+    data?: Record<string, any>;
+}
+const { kind, data = {} } = Astro.props;
+
+// Bars are drawn to scale against the largest value, so the ratio a reader
+// sees is the ratio in the data.
+const bars = (data.bars ?? []) as { label: string; value: number }[];
+const maxBar = bars.length ? Math.max(...bars.map((b) => b.value)) : 1;
+---
+
+{kind === 'image' && (
+    <figure class="pfig">
+        <img src={data.src} alt={data.alt} width={data.width} height={data.height} loading="lazy" />
+        {data.caption && <figcaption>{data.caption}</figcaption>}
+    </figure>
+)}
+
+{kind === 'images' && (
+    <figure class="pfig">
+        <div class="pfig-pair">
+            {(data.images ?? []).map((im: any) => (
+                <img src={im.src} alt={im.alt} width={im.width} height={im.height} loading="lazy" />
+            ))}
+        </div>
+        {data.caption && <figcaption>{data.caption}</figcaption>}
+    </figure>
+)}
+
+{kind === 'video' && (
+    <figure class="pfig">
+        <button type="button" class="video-facade pfig-video" data-video-id={data.videoId}
+                aria-label={`Play: ${data.title ?? 'project demo'}`}>
+            <span class="facade-inner facade-inner--empty" aria-hidden="true">
+                <span class="facade-play">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+                <span class="facade-note">{data.title}</span>
+            </span>
+        </button>
+        {data.caption && <figcaption>{data.caption}</figcaption>}
+    </figure>
+)}
+
+{kind === 'cost' && (
+    <figure class="pfig">
+        <div class="cost-chart">
+            {bars.map((b) => (
+                <div class="cost-row">
+                    <span class="cost-label">{b.label}</span>
+                    <span class="cost-bar" style={`--w:${(b.value / maxBar) * 100}%`}>
+                        <span class="cost-fill"></span>
+                    </span>
+                    <span class="cost-value">{data.unit === 'USD' ? '$' : ''}{b.value}</span>
+                </div>
+            ))}
+        </div>
+        {data.caption && <figcaption>{data.caption}</figcaption>}
+    </figure>
+)}
+
+{kind === 'doe' && (
+    <figure class="pfig">
+        <div class="doe-grid">
+            <div class="doe-col">
+                <h4>Factors swept</h4>
+                <ul>{(data.factors ?? []).map((f: string) => <li>{f}</li>)}</ul>
+            </div>
+            <div class="doe-arrow" aria-hidden="true">&rarr;</div>
+            <div class="doe-col">
+                <h4>Responses measured</h4>
+                <ul>{(data.responses ?? []).map((r: string) => <li>{r}</li>)}</ul>
+            </div>
+        </div>
+        {data.caption && <figcaption>{data.caption}</figcaption>}
+    </figure>
+)}
+
+{kind === 'pipeline' && (
+    <figure class="pfig">
+        <ol class="pipe">
+            {(data.stages ?? []).map((s: any, i: number) => (
+                <li class="pipe-stage">
+                    <span class="pipe-num">{String(i + 1).padStart(2, '0')}</span>
+                    <span class="pipe-label">{s.label}</span>
+                    <span class="pipe-detail">{s.detail}</span>
+                </li>
+            ))}
+        </ol>
+        {data.caption && <figcaption>{data.caption}</figcaption>}
+    </figure>
+)}
+
+<style>
+    .pfig { margin: var(--space-6) 0 0; }
+
+    .pfig img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--border-strong);
+    }
+
+    .pfig-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+    @media (max-width: 640px) { .pfig-pair { grid-template-columns: 1fr; } }
+
+    .pfig figcaption {
+        margin-top: 10px;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        line-height: 1.6;
+        color: var(--ink-dim);
+    }
+
+    .pfig-video { border: 1px solid var(--border-strong); }
+
+    /* Cost comparison: drawn to scale so the bar ratio is the data ratio. */
+    .cost-chart { border: 1px solid var(--border-strong); padding: var(--space-5); }
+
+    .cost-row {
+        display: grid;
+        grid-template-columns: 10ch 1fr 6ch;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-3);
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+    }
+
+    .cost-row:last-child { margin-bottom: 0; }
+    .cost-label { color: var(--ink-dim); }
+    .cost-bar { display: block; height: 22px; background: var(--bg); border: 1px solid var(--line); }
+    .cost-fill { display: block; height: 100%; width: var(--w); background: var(--accent); }
+    .cost-row:first-child .cost-fill { background: var(--line); }
+    .cost-value { text-align: right; color: var(--ink); }
+
+    /* DoE: shows the experiment's shape, since the per-run data is not published. */
+    .doe-grid {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: var(--space-4);
+        align-items: center;
+        border: 1px solid var(--border-strong);
+        padding: var(--space-5);
+    }
+
+    .doe-col h4 {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 var(--space-3);
+    }
+
+    .doe-col ul { list-style: none; padding: 0; margin: 0; }
+    .doe-col li {
+        font-family: var(--font-mono);
+        font-size: 0.76rem;
+        color: var(--ink-dim);
+        padding: 6px 0;
+        border-top: 1px solid var(--line);
+    }
+    .doe-col li:first-child { border-top: none; }
+    .doe-arrow { color: var(--accent); font-size: 1.4rem; }
+
+    @media (max-width: 640px) {
+        .doe-grid { grid-template-columns: 1fr; }
+        .doe-arrow { transform: rotate(90deg); text-align: center; }
+    }
+
+    /* Pipeline: stages of a process, for work whose output is not photographable. */
+    .pipe {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        border: 1px solid var(--border-strong);
+    }
+
+    .pipe-stage {
+        padding: var(--space-4);
+        border-right: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .pipe-stage:last-child { border-right: none; }
+    .pipe-num { font-family: var(--font-mono); font-size: 0.68rem; color: var(--accent); }
+    .pipe-label { font-family: var(--font-display); font-weight: 600; font-size: 0.98rem; }
+    .pipe-detail { font-family: var(--font-mono); font-size: 0.7rem; color: var(--ink-dim); line-height: 1.5; }
+
+    @media (max-width: 720px) {
+        .pipe-stage { border-right: none; border-bottom: 1px solid var(--line); }
+        .pipe-stage:last-child { border-bottom: none; }
+    }
+</style>

@@ -4,12 +4,13 @@
 const path = Astro.url.pathname;
 const current = path === '/' || path === '' ? 'index.html' : path.split('/').pop();
 
+// Root-relative: these must resolve identically from / and from /projects/*.
 const links = [
-    { href: 'index.html', label: 'Home' },
-    { href: 'experience.html', label: 'Experience' },
-    { href: 'projects.html', label: 'Projects' },
-    { href: 'skills.html', label: 'Skills' },
-    { href: 'contact.html', label: 'Contact' },
+    { href: '/index.html', label: 'Home' },
+    { href: '/experience.html', label: 'Experience' },
+    { href: '/projects.html', label: 'Projects' },
+    { href: '/skills.html', label: 'Skills' },
+    { href: '/contact.html', label: 'Contact' },
 ];
 ---
 
@@ -18,10 +19,10 @@ const links = [
         <ul class="nav-links" id="nav-links">
             {links.map((l) => (
                 <li>
-                    <a href={l.href} class={l.href === current ? 'active' : undefined}>{l.label}</a>
+                    <a href={l.href} class={l.href.replace(/^\//, '') === current ? 'active' : undefined}>{l.label}</a>
                 </li>
             ))}
-            <li><a href="Cabe_Robertson_Resume.pdf" target="_blank" class="nav-resume">Resume</a></li>
+            <li><a href="/Cabe_Robertson_Resume.pdf" target="_blank" class="nav-resume">Resume</a></li>
         </ul>
         <div class="nav-actions">
             <button type="button" id="cmdk-btn" class="icon-btn" aria-label="Open command palette" title="Command palette (Ctrl+K)">

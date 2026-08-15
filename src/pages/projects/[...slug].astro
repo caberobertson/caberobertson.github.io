@@ -1,0 +1,101 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectFigure from '../../components/ProjectFigure.astro';
+
+export async function getStaticPaths() {
+    const projects = await getCollection('projects');
+    return projects
+        // CrashGuard keeps its own hand-authored page; the entry exists so it
+        // appears in the index and the Phase 4 lens without being duplicated.
+        .filter((p) => !p.data.externalPage)
+        .map((p) => ({ params: { slug: p.id }, props: { entry: p } }));
+}
+
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+const statusLabel = { active: 'In progress', complete: 'Complete', archived: 'Archived' }[d.status];
+---
+
+<BaseLayout
+    title={`${d.title} | Cabe Robertson`}
+    description={d.outcome}
+    ogTitle={`${d.title} | Cabe Robertson`}
+    ogDescription={d.outcome}
+    ogType="article"
+>
+    <main id="main">
+        <section class="section">
+            <div class="container">
+                <a href="/projects.html" class="doc-back">&larr; Back to Projects</a>
+
+                <div class="section-head reveal in">
+                    <span class="section-index">{String(d.order).padStart(2, '0')}</span>
+                    <h1 class="section-title">
+                        {d.title}
+                        {d.status === 'active' && <span class="wip-badge">In progress</span>}
+                    </h1>
+                </div>
+
+                <p class="section-sub reveal in">{d.outcome}</p>
+
+                <div class="tags tags--accent2 reveal in">
+                    {d.tags.map((t) => <span class="tag">{t}</span>)}
+                </div>
+
+                <p class="doc-meta reveal in">
+                    {d.context && <><strong>Context:</strong> {d.context}<br /></>}
+                    {d.role && <><strong>My role:</strong> {d.role}<br /></>}
+                    <strong>Status:</strong> {statusLabel} &middot; {d.period}
+                </p>
+
+                {d.artifacts.length > 0 && (
+                    <ul class="artifact-row reveal in">
+                        {d.artifacts.map((a) => (
+                            <li>
+                                <a href={a.href} {...(a.href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>{a.label}</a>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                {d.metrics.length > 0 && (
+                    <dl class="scan-metrics project-metrics reveal">
+                        {d.metrics.map((m) => (
+                            <div class="scan-metric">
+                                <dt class="scan-metric-value">{m.value}</dt>
+                                <dd class="scan-metric-label">{m.label}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                )}
+
+                {d.figure !== 'none' && <ProjectFigure kind={d.figure} data={d.figureData} />}
+
+                <article class="panel project-body reveal">
+                    <Content />
+                </article>
+            </div>
+        </section>
+    </main>
+</BaseLayout>
+
+<style is:global>
+    .project-body { margin-top: var(--space-6); }
+
+    .project-body h2 {
+        font-size: 1.28rem;
+        margin: var(--space-6) 0 var(--space-3);
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--line);
+    }
+
+    .project-body > :global(h2:first-child) { margin-top: 0; padding-top: 0; border-top: none; }
+    .project-body p { color: var(--ink-dim); }
+    .project-body strong { color: var(--ink); font-weight: 600; }
+    .project-body ul { padding-left: 1.1rem; }
+    .project-body li { color: var(--ink-dim); margin-bottom: 8px; }
+    .project-body li::marker { color: var(--accent); }
+</style>

@@ -12,7 +12,13 @@ import path from 'node:path';
 
 const here = import.meta.dirname;
 const root = path.resolve(here, '..', 'dist');
-const pages = ['index.html', 'experience.html', 'projects.html', 'skills.html', 'contact.html', 'crashguard.html', 'ieee-points.html', '404.html'];
+// Static pages plus every generated project detail page, so a new entry in
+// the collection is covered automatically instead of silently untested.
+const staticPages = ['index.html', 'experience.html', 'projects.html', 'skills.html', 'contact.html', 'crashguard.html', 'ieee-points.html', '404.html'];
+const projectPages = fs.existsSync(path.join(root, 'projects'))
+    ? fs.readdirSync(path.join(root, 'projects')).filter((f) => f.endsWith('.html')).map((f) => 'projects/' + f)
+    : [];
+const pages = [...staticPages, ...projectPages];
 
 if (!fs.existsSync(root)) {
     console.error('dist/ not found. Run `npm run build` first.');
@@ -67,12 +73,16 @@ for (const page of pages) {
         }
     }
 
-    // Internal links must resolve to something that shipped
+    // Internal links must resolve to something that shipped. Relative hrefs
+    // resolve against the page's own directory, which matters for /projects/*.
+    const pageDir = path.dirname(path.join(root, page));
     for (const a of doc.querySelectorAll('a[href]')) {
         const href = a.getAttribute('href');
         if (/^(https?:|mailto:|tel:|#)/.test(href)) continue;
-        const file = href.split('#')[0].replace(/^\//, '');
-        if (file && !fs.existsSync(path.join(root, file))) errs.push(`broken link: ${href}`);
+        const rel = href.split('#')[0];
+        if (!rel) continue;
+        const target = rel.startsWith('/') ? path.join(root, rel.slice(1)) : path.join(pageDir, rel);
+        if (!fs.existsSync(target)) errs.push(`broken link: ${href}`);
     }
 
     // Exactly one <h1> per page
@@ -100,6 +110,18 @@ for (const page of pages) {
         const active = doc.querySelectorAll('.nav-links a.active').length;
         const want = NAV_PAGES.includes(page) ? 1 : 0;
         if (active !== want) errs.push(`expected ${want} active nav link(s), found ${active}`);
+    }
+
+    // No page may ship placeholder media language: if an asset does not exist,
+    // the page must carry an authored figure instead of an empty promise.
+    const bodyText = doc.body.textContent || '';
+    for (const phrase of ['coming soon', 'TBD', 'placeholder', 'lorem ipsum', 'image pending', 'photo pending']) {
+        if (bodyText.toLowerCase().includes(phrase.toLowerCase())) errs.push(`placeholder text on page: "${phrase}"`);
+    }
+
+    if (page.startsWith('projects/')) {
+        if (!doc.querySelector('.doc-back')) errs.push('project page missing back link');
+        if (!doc.querySelector('.project-body h2')) errs.push('project page has no write-up sections');
     }
 
     if (page === 'index.html') {
