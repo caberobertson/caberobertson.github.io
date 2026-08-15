@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Caption Builder</title>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --surface2: #0d1020;
+      --accent:   #4f8ef7;
+      --danger:   #e94560;
+      --success:  #2ecc71;
+      --border:   #2a3050;
+      --text:     #e2e8f0;
+      --muted:    #5a6890;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a1d27 0%, #0d1020 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: .5px; }
+    header p  { font-size: .85rem; color: var(--muted); margin-top: .2rem; }
+    .logo { font-size: 2rem; }
+
+    /* ── Layout ── */
+    .app { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .badge {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .55rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 600;
+      transition: transform .15s, opacity .15s;
+      white-space: nowrap;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); opacity: .92; }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-primary  { background: var(--accent);   color: #fff; }
+    .btn-outline  { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover:not(:disabled) { border-color: var(--accent); }
+    .btn-danger   { background: var(--danger);   color: #fff; }
+    .btn-record   { background: #7c2d2d; color: #fff; }
+    .btn-record.active { background: var(--danger); animation: recordPulse 1.4s infinite; }
+    .btn-success  { background: var(--success);  color: #fff; }
+    .btn-download { background: linear-gradient(135deg, var(--success), #27ae60); color: #fff; font-size: 1rem; padding: .75rem 2rem; }
+    @keyframes recordPulse { 0%,100%{box-shadow:0 0 0 0 rgba(233,69,96,.5)} 50%{box-shadow:0 0 0 8px rgba(233,69,96,0)} }
+
+    .btn-group { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
+
+    /* ── Camera ── */
+    #camera-wrap {
+      position: relative;
+      background: var(--surface2);
+      border-radius: 10px;
+      overflow: hidden;
+      min-height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed var(--border);
+    }
+    .camera-empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem 1rem;
+      pointer-events: none;
+    }
+    .camera-empty .cam-icon { font-size: 2.8rem; line-height: 1; }
+    .camera-empty p { margin-top: .5rem; font-size: .85rem; }
+    #snap-preview {
+      width: 100%;
+      height: auto;
+      display: none;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    /* ── File upload ── */
+    .upload-label {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .55rem 1.1rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: border-color .15s;
+    }
+    .upload-label:hover { border-color: var(--accent); }
+    #file-input { display: none; }
+
+    /* ── Voice ── */
+    .voice-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .75rem 1rem;
+      background: var(--surface2);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+    .dot.active { background: var(--danger); animation: dotPulse 1s infinite; }
+    @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+    #voice-status { font-size: .85rem; color: var(--muted); }
+
+    textarea#caption-box {
+      width: 100%;
+      min-height: 90px;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .75rem;
+      font-size: .95rem;
+      font-family: inherit;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    textarea#caption-box:focus { outline: none; border-color: var(--accent); }
+    textarea#caption-box::placeholder { color: var(--muted); }
+
+    /* ── Controls ── */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.2rem;
+    }
+    .ctrl label {
+      display: block;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: .35rem;
+    }
+    .ctrl label strong { color: var(--text); }
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    select, input[type=text] {
+      width: 100%;
+      padding: .5rem .7rem;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: .9rem;
+      font-family: inherit;
+    }
+    select:focus, input[type=text]:focus { outline: none; border-color: var(--accent); }
+
+    /* ── Add button ── */
+    .add-section {
+      display: flex;
+      justify-content: center;
+      padding-top: .5rem;
+    }
+    .btn-add {
+      background: var(--accent);
+      color: #fff;
+      font-size: 1rem;
+      padding: .75rem 2.5rem;
+      border-radius: 10px;
+    }
+
+    /* ── Document preview ── */
+    #items-list { display: flex; flex-direction: column; gap: 1rem; }
+    .empty { text-align: center; color: var(--muted); padding: 2rem; font-style: italic; }
+
+    .doc-item {
+      display: flex;
+      gap: 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      align-items: flex-start;
+    }
+    .doc-thumb {
+      flex-shrink: 0;
+      width: 110px; height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-num  { font-size: .75rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .doc-caption { font-size: .9rem; margin-top: .25rem; line-height: 1.4; word-break: break-word; }
+    .doc-meta { font-size: .75rem; color: var(--muted); margin-top: .4rem; }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: .2rem .4rem;
+      border-radius: 4px;
+      transition: color .15s, background .15s;
+      flex-shrink: 0;
+    }
+    .remove-btn:hover { color: var(--danger); background: rgba(233,69,96,.1); }
+
+    /* ── Download ── */
+    .download-bar {
+      text-align: center;
+      padding: 1rem;
+    }
+    .doc-title-row {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .doc-title-row label { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+    .doc-title-row input { flex: 1; }
+
+    /* ── Notice ── */
+    .notice {
+      background: rgba(79,142,247,.08);
+      border: 1px solid rgba(79,142,247,.3);
+      border-radius: 8px;
+      padding: .65rem 1rem;
+      font-size: .8rem;
+      color: #8aabf0;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Progress toast ── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .75rem 1.5rem;
+      font-size: .9rem;
+      font-weight: 600;
+      box-shadow: 0 8px 30px rgba(0,0,0,.5);
+      transition: transform .3s ease;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { color: var(--success); border-color: var(--success); }
+    #toast.error   { color: var(--danger);  border-color: var(--danger); }
+
+    @media (max-width: 520px) {
+      header h1 { font-size: 1.2rem; }
+      .controls-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Photo-captured: two-column layout (triggered by JS class) ── */
+    .workflow-area.photo-captured {
+      display: grid;
+      grid-template-columns: 46% 1fr;
+      grid-template-rows: auto auto;
+      gap: .75rem;
+      align-items: start;
+    }
+    .workflow-area.photo-captured #capture-card { grid-column: 1; grid-row: 1 / 3; }
+    .workflow-area.photo-captured #voice-card   { grid-column: 2; grid-row: 1; }
+    .workflow-area.photo-captured #format-card  { grid-column: 2; grid-row: 2; }
+
+    /* Right column slides in */
+    .workflow-area.photo-captured #voice-card,
+    .workflow-area.photo-captured #format-card {
+      animation: slideIn .25s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(14px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Camera wrap becomes a natural-height photo frame */
+    .workflow-area.photo-captured #camera-wrap {
+      height: auto;
+      max-height: 54vh;
+      min-height: unset;
+      border: none;
+    }
+    .workflow-area.photo-captured #snap-preview {
+      max-height: 54vh;
+      object-fit: contain;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    /* Tighten everything in the right column */
+    .workflow-area.photo-captured .card        { padding: .7rem .75rem; }
+    .workflow-area.photo-captured .card-title  { font-size: .88rem; margin-bottom: .55rem; }
+    .workflow-area.photo-captured .notice      { display: none; }
+    .workflow-area.photo-captured textarea#caption-box { min-height: 58px; font-size: .85rem; }
+    .workflow-area.photo-captured .btn         { font-size: .8rem; padding: .42rem .75rem; }
+    .workflow-area.photo-captured .upload-label{ font-size: .8rem; padding: .42rem .75rem; }
+    .workflow-area.photo-captured .btn-group   { gap: .35rem; margin-top: .6rem; }
+    .workflow-area.photo-captured .controls-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .workflow-area.photo-captured .ctrl label  { font-size: .75rem; }
+    .workflow-area.photo-captured select       { font-size: .8rem; padding: .32rem .45rem; }
+    .workflow-area.photo-captured .add-section { padding-top: .2rem; }
+    .workflow-area.photo-captured .btn-add     { padding: .5rem 1.2rem; font-size: .88rem; }
+
+    /* ── Landscape mobile ── */
+    @media (orientation: landscape) and (max-height: 540px) {
+      header {
+        padding: .5rem 1rem;
+        gap: .6rem;
+      }
+      header h1 { font-size: 1.1rem; }
+      header p  { display: none; }
+      .logo     { font-size: 1.3rem; }
+
+      .app { padding: .5rem .75rem 2rem; }
+
+      /* Steps 1–3 go side-by-side */
+      .workflow-area {
+        display: grid;
+        grid-template-columns: 52% 1fr;
+        grid-template-rows: auto auto;
+        gap: .5rem;
+        align-items: start;
+        margin-bottom: .5rem;
+      }
+      #capture-card {
+        grid-column: 1;
+        grid-row: 1 / 3;   /* camera spans both right-side rows */
+      }
+      #voice-card  { grid-column: 2; grid-row: 1; }
+      #format-card { grid-column: 2; grid-row: 2; }
+
+      /* Cards tighter */
+      .card { padding: .65rem .75rem; margin-bottom: 0; }
+      .card-title { margin-bottom: .6rem; font-size: .9rem; }
+
+      /* Camera fills left column height */
+      #camera-wrap {
+        height: calc(100dvh - 108px);
+        min-height: 180px;
+        max-height: 340px;
+      }
+
+      /* Hide low-priority hints in landscape */
+      .notice { display: none; }
+
+      /* Compact right-column controls */
+      textarea#caption-box { min-height: 52px; font-size: .85rem; }
+      .voice-row { padding: .4rem .7rem; }
+      .controls-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+      .ctrl label { font-size: .75rem; }
+      select { font-size: .82rem; padding: .35rem .5rem; }
+      .btn { padding: .45rem .85rem; font-size: .82rem; }
+      .btn-group { gap: .4rem; margin-top: .5rem; }
+      .add-section { padding-top: .25rem; }
+      .btn-add { font-size: .9rem; padding: .55rem 1.4rem; }
+      .upload-label { padding: .45rem .85rem; font-size: .82rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">📸</div>
+  <div>
+    <h1>Photo Caption Builder</h1>
+    <p>Capture · Voice caption · Export to Word</p>
+  </div>
+</header>
+
+<div class="app">
+
+<div class="workflow-area">
+  <!-- ── STEP 1: Photo ── -->
+  <div class="card" id="capture-card">
+    <div class="card-title"><span class="badge">1</span> Capture or Upload a Photo</div>
+
+    <div id="camera-wrap">
+      <div class="camera-empty" id="camera-empty">
+        <div class="cam-icon">📷</div>
+        <p>Tap Open Camera to take a photo</p>
+      </div>
+      <img id="snap-preview" alt="Captured photo" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+    </div>
+
+    <!-- capture="environment" opens the native Android camera app -->
+    <input type="file" id="camera-input" accept="image/*" capture="environment"
+           style="display:none" onchange="handlePhoto(event)">
+    <!-- no capture attribute = opens gallery picker -->
+    <input type="file" id="file-input" accept="image/*"
+           style="display:none" onchange="handlePhoto(event)">
+
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('camera-input').click()">📷 Open Camera</button>
+      <button type="button" class="btn btn-outline" id="retake-btn" onclick="retakePhoto()" style="display:none">↩ Retake</button>
+      <label class="upload-label">
+        📁 From Gallery
+        <input type="file" accept="image/*" onchange="handlePhoto(event)" style="display:inline">
+      </label>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Voice Caption ── -->
+  <div class="card" id="voice-card">
+    <div class="card-title"><span class="badge">2</span> Record Voice Caption</div>
+
+    <div class="notice">
+      Voice-to-text uses the Web Speech API, works best in <strong>Chrome</strong> or <strong>Edge</strong>. You can also type your caption directly.
+    </div>
+
+    <div class="voice-row">
+      <div class="dot" id="rec-dot"></div>
+      <span id="voice-status">Ready to record</span>
+    </div>
+
+    <div class="btn-group" style="margin-top:0;margin-bottom:1rem">
+      <button type="button" class="btn btn-record" id="rec-btn" onclick="toggleRecording()">🎤 Start Recording</button>
+    </div>
+
+    <textarea id="caption-box" placeholder="Caption appears here after recording, or type / edit directly…"></textarea>
+  </div>
+
+  <!-- ── STEP 3: Format ── -->
+  <div class="card" id="format-card">
+    <div class="card-title"><span class="badge">3</span> Caption Style &amp; Add to Document</div>
+
+    <div class="notice" style="margin-bottom:1rem">
+      Images are auto-sized to fit <strong>2 per page</strong> with uniform formatting. Font settings apply to every caption in the document.
+    </div>
+
+    <div class="controls-grid">
+      <div class="ctrl">
+        <label>Caption font size</label>
+        <select id="font-size">
+          <option value="10">10 pt</option>
+          <option value="11">11 pt</option>
+          <option value="12" selected>12 pt</option>
+          <option value="14">14 pt</option>
+          <option value="16">16 pt</option>
+          <option value="18">18 pt</option>
+          <option value="20">20 pt</option>
+          <option value="24">24 pt</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>Caption font</label>
+        <select id="font-family">
+          <option>Calibri</option>
+          <option>Arial</option>
+          <option>Times New Roman</option>
+          <option>Georgia</option>
+          <option>Courier New</option>
+          <option>Verdana</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="add-section" style="margin-top:1.5rem">
+      <button type="button" class="btn btn-add" onclick="addToDocument()">✅ Add to Document</button>
+    </div>
+  </div>
+
+</div><!-- /.workflow-area -->
+
+  <!-- ── Document Preview ── -->
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between">
+      <span>📄 Document Preview</span>
+      <button type="button" class="btn btn-outline" style="font-size:.8rem;padding:.35rem .75rem" onclick="clearAll()">Clear All</button>
+    </div>
+    <div id="items-list">
+      <div class="empty">No items yet, capture a photo and click "Add to Document" to get started.</div>
+    </div>
+  </div>
+
+  <!-- ── Download ── -->
+  <div class="card">
+    <div class="card-title">⬇ Export Word Document</div>
+    <div class="doc-title-row">
+      <label for="doc-title">Document title (optional):</label>
+      <input type="text" id="doc-title" placeholder="My Photo Collection">
+    </div>
+    <div class="download-bar">
+      <button type="button" class="btn btn-download" id="dl-btn" onclick="downloadDoc()" disabled>
+        Download .docx
+      </button>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<div id="toast"></div>
+
+<script>
+/* ────────────────────────────────────────────────
+   State
+──────────────────────────────────────────────── */
+let capturedURL    = null;
+let activeRec      = null;   // current SpeechRecognition instance
+let isRecording    = false;
+let committed      = '';     // finalized text from all completed sessions
+let sessionFinal   = '';     // final text from the current active session only
+let docItems       = [];
+
+/* ────────────────────────────────────────────────
+   Toast helper
+──────────────────────────────────────────────── */
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 2800);
+}
+
+/* ────────────────────────────────────────────────
+   Camera, uses native Android camera via input[capture].
+   All photos are normalised through a canvas → JPEG so that
+   HEIC, WebP, odd JPEG variants, and EXIF rotation all work.
+──────────────────────────────────────────────── */
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  toast('Loading photo…', '');
+
+  const objURL = URL.createObjectURL(file);
+  const img    = new Image();
+
+  img.onload = () => {
+    URL.revokeObjectURL(objURL);
+
+    // Resize to max 2400 px on the longest side, keeps docx manageable
+    const MAX = 2400;
+    let w = img.naturalWidth, h = img.naturalHeight;
+    if (w > MAX || h > MAX) {
+      const scale = MAX / Math.max(w, h);
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+    }
+
+    // Draw to canvas → export as JPEG (normalises any format/EXIF rotation)
+    const canvas = document.createElement('canvas');
+    canvas.width  = w;
+    canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    capturedURL = canvas.toDataURL('image/jpeg', 0.88);
+
+    document.getElementById('snap-preview').src = capturedURL;
+    document.getElementById('snap-preview').style.display = 'block';
+    document.getElementById('camera-empty').style.display  = 'none';
+    document.getElementById('retake-btn').style.display    = 'inline-flex';
+    enterCapturedLayout();
+    toast('Photo ready!', 'success');
+  };
+
+  img.onerror = () => {
+    URL.revokeObjectURL(objURL);
+    toast('Could not load photo, try again.', 'error');
+  };
+
+  img.src = objURL;
+}
+
+function retakePhoto() {
+  capturedURL = null;
+  document.getElementById('snap-preview').style.display = 'none';
+  document.getElementById('snap-preview').src = '';
+  document.getElementById('camera-empty').style.display = 'flex';
+  document.getElementById('retake-btn').style.display = 'none';
+  document.getElementById('camera-input').value = '';
+  document.getElementById('file-input').value = '';
+  exitCapturedLayout();
+}
+
+function enterCapturedLayout() {
+  document.querySelector('.workflow-area').classList.add('photo-captured');
+  // Smooth scroll so voice card is in view
+  setTimeout(() => {
+    document.getElementById('voice-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 80);
+}
+
+function exitCapturedLayout() {
+  document.querySelector('.workflow-area').classList.remove('photo-captured');
+}
+
+/* ────────────────────────────────────────────────
+   Voice Recording
+   Android Chrome bug: restarting SpeechRecognition after onend replays
+   the previous session's results. Fix: use continuous=false, spawn a
+   fresh instance per utterance, track committed vs session text separately,
+   and dedup on commit.
+──────────────────────────────────────────────── */
+function toggleRecording() {
+  isRecording ? stopRecording() : startRecording();
+}
+
+function startRecording() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    toast('Speech API not supported, use Chrome or Edge, or type manually.', 'error');
+    return;
+  }
+  isRecording = true;
+  // Seed committed with any text already in the box
+  committed = document.getElementById('caption-box').value.trim();
+  if (committed) committed += ' ';
+  sessionFinal = '';
+
+  setRecordingUI(true);
+  spawnSession();
+}
+
+function spawnSession() {
+  if (!isRecording) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const r = new SR();
+  r.continuous     = false;   // single-utterance, avoids Android replay bug
+  r.interimResults = true;
+  r.lang           = 'en-US';
+  activeRec        = r;
+  sessionFinal     = '';
+
+  r.onresult = ev => {
+    let sf = '', interim = '';
+    for (let i = 0; i < ev.results.length; i++) {
+      if (ev.results[i].isFinal) sf   += ev.results[i][0].transcript;
+      else                        interim += ev.results[i][0].transcript;
+    }
+    sessionFinal = sf;
+    document.getElementById('caption-box').value =
+      (committed + (sf ? sf + ' ' : '') + interim).trimEnd();
+  };
+
+  r.onend = () => {
+    activeRec = null;
+    // Commit session text, but only if it isn't already at the end of committed
+    // (guards against Android occasionally re-firing the same result)
+    const trimSF = sessionFinal.trim();
+    if (trimSF && !committed.trimEnd().endsWith(trimSF)) {
+      committed += trimSF + ' ';
+    }
+    sessionFinal = '';
+    document.getElementById('caption-box').value = committed.trimEnd();
+    // Spawn next session automatically while still recording
+    if (isRecording) setTimeout(spawnSession, 120);
+  };
+
+  r.onerror = ev => {
+    if (ev.error === 'not-allowed') {
+      toast('Microphone access denied.', 'error');
+      isRecording = false;
+      setRecordingUI(false);
+      return;
+    }
+    // 'no-speech' and 'aborted' are non-fatal, onend will restart
+  };
+
+  try { r.start(); } catch (_) { /* already started, ignore */ }
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (activeRec) { try { activeRec.stop(); } catch (_) {} activeRec = null; }
+  const trimSF = sessionFinal.trim();
+  if (trimSF && !committed.trimEnd().endsWith(trimSF)) committed += trimSF + ' ';
+  sessionFinal = '';
+  // Auto-correct grammar and punctuation from speech-to-text
+  const box = document.getElementById('caption-box');
+  box.value = fixGrammar(committed.trimEnd());
+  committed = box.value;
+  setRecordingUI(false);
+}
+
+function setRecordingUI(on) {
+  document.getElementById('rec-btn').textContent = on ? '⏹ Stop Recording' : '🎤 Start Recording';
+  document.getElementById('rec-btn').className   = 'btn btn-record' + (on ? ' active' : '');
+  document.getElementById('rec-dot').classList.toggle('active', on);
+  document.getElementById('voice-status').textContent = on ? 'Listening…' : 'Recording stopped, grammar corrected';
+}
+
+/* Fix common speech-to-text issues: capitalisation, punctuation */
+function fixGrammar(text) {
+  if (!text.trim()) return text;
+  let t = text.trim();
+  t = t.replace(/ {2,}/g, ' ');                              // collapse spaces
+  t = t.replace(/\bi\b/g, 'I');                              // capitalize lone i
+  t = t.replace(/([.!?]\s+)([a-z])/g, (_, p, l) => p + l.toUpperCase()); // after sentence end
+  t = t.charAt(0).toUpperCase() + t.slice(1);               // capitalize first word
+  if (!/[.!?]$/.test(t)) t += '.';                          // ensure ending punctuation
+  return t;
+}
+
+/* ────────────────────────────────────────────────
+   Add to Document
+──────────────────────────────────────────────── */
+function addToDocument() {
+  if (!capturedURL) {
+    toast('Capture or upload a photo first.', 'error');
+    return;
+  }
+  if (isRecording) stopRecording();
+
+  const caption = fixGrammar(document.getElementById('caption-box').value.trim());
+
+  // Store natural dimensions; docx sizing is computed at export time
+  const img = new Image();
+  img.onload = () => {
+    docItems.push({
+      id: Date.now(),
+      url: capturedURL,
+      caption,
+      naturalW: img.naturalWidth,
+      naturalH: img.naturalHeight,
+    });
+    renderPreview();
+    document.getElementById('dl-btn').disabled = false;
+    resetCapture();
+    toast('Added! ' + docItems.length + ' item' + (docItems.length > 1 ? 's' : '') + ' in document.', 'success');
+  };
+  img.src = capturedURL;
+}
+
+/* ────────────────────────────────────────────────
+   Render preview list
+──────────────────────────────────────────────── */
+function renderPreview() {
+  const list = document.getElementById('items-list');
+  if (docItems.length === 0) {
+    list.innerHTML = '<div class="empty">No items yet, capture a photo and click "Add to Document" to get started.</div>';
+    return;
+  }
+  list.innerHTML = docItems.map((item, i) => `
+    <div class="doc-item">
+      <img class="doc-thumb" src="${item.url}" alt="Photo ${i+1}">
+      <div class="doc-info">
+        <div class="doc-num">Item ${i + 1} ${i % 2 === 0 ? '· Page ' + (Math.floor(i/2)+1) + ' top' : '· Page ' + (Math.floor(i/2)+1) + ' bottom'}</div>
+        <div class="doc-caption">${item.caption ? escHtml(item.caption) : '<em style="color:var(--muted)">No caption</em>'}</div>
+      </div>
+      <button type="button" class="remove-btn" onclick="removeItem(${item.id})" title="Remove">✕</button>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function removeItem(id) {
+  docItems = docItems.filter(x => x.id !== id);
+  renderPreview();
+  document.getElementById('dl-btn').disabled = docItems.length === 0;
+}
+
+function clearAll() {
+  if (docItems.length === 0) return;
+  if (!confirm('Remove all items from the document?')) return;
+  docItems = [];
+  renderPreview();
+  document.getElementById('dl-btn').disabled = true;
+}
+
+/* ────────────────────────────────────────────────
+   Reset after adding
+──────────────────────────────────────────────── */
+function resetCapture() {
+  capturedURL  = null;
+  committed    = '';
+  sessionFinal = '';
+
+  document.getElementById('snap-preview').style.display = 'none';
+  document.getElementById('snap-preview').src = '';
+  document.getElementById('camera-empty').style.display = 'flex';
+  document.getElementById('retake-btn').style.display = 'none';
+  document.getElementById('camera-input').value = '';
+  document.getElementById('file-input').value = '';
+  document.getElementById('caption-box').value = '';
+  document.getElementById('voice-status').textContent = 'Ready to record';
+  exitCapturedLayout();
+}
+
+/* ────────────────────────────────────────────────
+   Build .docx from scratch with JSZip + raw XML.
+   No external docx library, avoids the "permission denied"
+   error that the docx npm package throws on Android Chrome.
+──────────────────────────────────────────────── */
+function xmlEsc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/* Scale image to fit within the half-page slot (2 images per page).
+   US Letter with 1" margins → content 6.5" × 9" at 96 dpi = 624 × 864 px.
+   Each slot: 624 wide × 370 tall (leaving ~62 px for caption + spacing). */
+const SLOT_W = 624, SLOT_H = 370;
+
+function fitInSlot(naturalW, naturalH) {
+  // Always fill the full content width so the image spans margin to margin
+  const w = SLOT_W;
+  const h = Math.round(naturalH * SLOT_W / naturalW);
+  return { w, h };
+}
+
+async function buildDocxBlob(items, title, fontSize, fontFamily) {
+  const EMU = 9525; // 1 px = 9525 EMU
+  const szVal = fontSize * 2; // half-points
+  const fontEsc = xmlEsc(fontFamily);
+
+  /* ── [Content_Types].xml ── */
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml"  ContentType="application/xml"/>
+  <Default Extension="jpeg" ContentType="image/jpeg"/>
+  <Default Extension="jpg"  ContentType="image/jpeg"/>
+  <Default Extension="png"  ContentType="image/png"/>
+  <Override PartName="/word/document.xml"
+    ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
+
+  /* ── _rels/.rels ── */
+  const pkgRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1"
+    Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
+    Target="word/document.xml"/>
+</Relationships>`;
+
+  /* ── word/_rels/document.xml.rels ── */
+  const imgRels = items.map((item, i) => {
+    const ext = item.url.startsWith('data:image/png') ? 'png' : 'jpeg';
+    return `  <Relationship Id="rId${i + 1}"
+    Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
+    Target="media/image${i + 1}.${ext}"/>`;
+  }).join('\n');
+
+  const docRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+${imgRels}
+</Relationships>`;
+
+  /* ── word/document.xml ── */
+  let body = '';
+
+  if (title) {
+    body += `<w:p>
+      <w:pPr><w:jc w:val="center"/><w:spacing w:after="480"/></w:pPr>
+      <w:r><w:rPr><w:b/><w:sz w:val="48"/><w:szCs w:val="48"/></w:rPr>
+        <w:t>${xmlEsc(title)}</w:t></w:r>
+    </w:p>
+    <w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
+  }
+
+  items.forEach((item, i) => {
+    const { w, h } = fitInSlot(item.naturalW, item.naturalH);
+    const cx = w * EMU, cy = h * EMU;
+    const rid = `rId${i + 1}`, pid = i + 1;
+
+
+    // Image paragraph
+    body += `<w:p>
+      <w:pPr><w:jc w:val="left"/><w:spacing w:before="0" w:after="80"/></w:pPr>
+      <w:r><w:drawing>
+        <wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+          <wp:extent cx="${cx}" cy="${cy}"/>
+          <wp:docPr id="${pid}" name="img${pid}"/>
+          <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+            <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+              <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:nvPicPr>
+                  <pic:cNvPr id="${pid}" name="img${pid}"/>
+                  <pic:cNvPicPr/>
+                </pic:nvPicPr>
+                <pic:blipFill>
+                  <a:blip r:embed="${rid}"
+                    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
+                  <a:stretch><a:fillRect/></a:stretch>
+                </pic:blipFill>
+                <pic:spPr>
+                  <a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm>
+                  <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+                </pic:spPr>
+              </pic:pic>
+            </a:graphicData>
+          </a:graphic>
+        </wp:inline>
+      </w:drawing></w:r>
+    </w:p>`;
+
+    // Caption paragraph, left-aligned
+    body += `<w:p>
+      <w:pPr><w:jc w:val="left"/><w:spacing w:after="200"/></w:pPr>
+      <w:r>
+        <w:rPr>
+          <w:rFonts w:ascii="${fontEsc}" w:hAnsi="${fontEsc}"/>
+          <w:sz w:val="${szVal}"/><w:szCs w:val="${szVal}"/>
+        </w:rPr>
+        <w:t>${xmlEsc(item.caption || '')}</w:t>
+      </w:r>
+    </w:p>`;
+
+    // Page break after every 2nd item (but not after the very last one)
+    const isSecondInPair = (i % 2 === 1);
+    const isLast = (i === items.length - 1);
+    if (isSecondInPair && !isLast) {
+      body += `<w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
+    }
+  });
+
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+  xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+  xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+  <w:body>
+    ${body}
+    <w:sectPr>
+      <w:pgSz w:w="12240" w:h="15840"/>
+      <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
+
+  /* ── Assemble ZIP ── */
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', contentTypes);
+  zip.file('_rels/.rels', pkgRels);
+  zip.file('word/_rels/document.xml.rels', docRels);
+  zip.file('word/document.xml', documentXml);
+
+  items.forEach((item, i) => {
+    const ext    = item.url.startsWith('data:image/png') ? 'png' : 'jpeg';
+    const base64 = item.url.split(',')[1];
+    zip.file(`word/media/image${i + 1}.${ext}`, base64, { base64: true });
+  });
+
+  return zip.generateAsync({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+}
+
+async function downloadDoc() {
+  if (docItems.length === 0) return;
+
+  const btn = document.getElementById('dl-btn');
+  btn.disabled = true;
+  btn.textContent = 'Building…';
+
+  try {
+    if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded, please refresh the page.');
+
+    const docTitle   = document.getElementById('doc-title').value.trim();
+    const fontSize   = parseInt(document.getElementById('font-size').value);
+    const fontFamily = document.getElementById('font-family').value;
+    const blob  = await buildDocxBlob(docItems, docTitle, fontSize, fontFamily);
+    const raw   = (docTitle || 'photo-captions').replace(/[^a-z0-9_\-\s]/gi, '').trim().replace(/\s+/g, '-');
+    const fname = (raw || 'photo-captions') + '.docx';
+
+    const url = URL.createObjectURL(blob);
+    const a   = Object.assign(document.createElement('a'), { href: url, download: fname });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    toast('Saving to Downloads: ' + fname, 'success');
+  } catch (err) {
+    console.error('downloadDoc:', err);
+    toast('Export failed: ' + (err.message || err), 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Download .docx';
+  }
+}
+</script>
+
+</body>
+</html>
