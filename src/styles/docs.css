@@ -336,3 +336,27 @@
     display: block;
     margin-top: 1rem;
 }
+
+/* Artifact links: the row a hardware reviewer looks for first. */
+.artifact-row {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0;
+    margin: 0 0 1.4rem;
+}
+
+.artifact-row a {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    color: var(--ink-dim);
+    text-decoration: none;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.artifact-row a:hover,
+.artifact-row a:focus-visible { color: var(--accent); border-color: var(--accent); }

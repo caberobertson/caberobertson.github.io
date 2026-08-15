@@ -26,6 +26,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                     <span class="chip">Live demo at <strong>IEEE SENSORS 2026</strong>, Rotterdam</span>
                 </div>
 
+                <ul class="artifact-row reveal in">
+                    <li><a href="/crashguard-ieee-paper.pdf" target="_blank" rel="noopener">IEEE-format paper (PDF)</a></li>
+                    <li><a href="#demo">Prototype demo</a></li>
+                    <li><a href="#architecture">Architecture</a></li>
+                    <li><a href="#specs">Specifications</a></li>
+                </ul>
+
                 <p class="doc-meta reveal in">
                     <strong>Competition:</strong> IEEE Sensors Council MYOSA 6.0 (2026) &middot; Finalist &middot; New Mexico State University<br>
                     <strong>Team:</strong> Aidan Garcia, Jacob Randall, Cabe Robertson, Vu Ha Nguyen<br>
@@ -53,7 +60,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                 </article>
 
                 <!-- Prototype video -->
-                <article class="panel reveal" data-delay="1">
+                <article id="demo" class="panel reveal" data-delay="1">
                     <span class="panel-tag">Prototype</span>
                     <h2>Work-in-progress demo</h2>
                     <p>Current prototype running end to end, impact detection, the cancel countdown on the phone dashboard, and the outbound AI call.</p>
@@ -85,7 +92,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                     </ol>
                 </article>
 
-                <figure class="figure reveal">
+                <figure id="architecture" class="figure reveal">
                     <svg class="diagram" viewBox="0 0 960 470" role="img" aria-label="CrashGuard system architecture: the MYOSA motherboard with an MPU6050, buzzer and backup button sits on the RC car and connects over Bluetooth Low Energy to a host bridge. The bridge relays over HTTP to a Flask call server, which serves the phone dashboard, queries the Claude API, and drives Twilio Voice out to the dispatcher's phone. A dashed Wi-Fi HTTP fallback path connects the board straight to the call server, bypassing the bridge.">
                         <defs>
                             <marker id="cg-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -244,24 +251,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                             </ul>
                         </div>
                         <figure class="figure figure--narrow">
-                            <div class="phone" role="img" aria-label="Dashboard layout during a cancel countdown: a CRASH DETECTED banner, a ten-second countdown showing 7, a large red CANCEL - I'M OK button, a 5.12 G impact force readout, and a row showing session peak and occupant name.">
-                                <div class="phone-bar"><span>CrashGuard</span><span class="phone-live">board live</span></div>
-                                <div class="phone-tile phone-alert">!! CRASH DETECTED !!</div>
-                                <div class="phone-tile">
-                                    <div class="phone-label">Cancel window</div>
-                                    <div class="phone-count">7</div>
-                                </div>
-                                <div class="phone-cancel">CANCEL - I'M OK</div>
-                                <div class="phone-tile">
-                                    <div class="phone-label">Impact force</div>
-                                    <div class="phone-g">5.12 <span>G</span></div>
-                                </div>
-                                <div class="phone-split">
-                                    <div class="phone-tile"><div class="phone-label">Peak</div><strong>5.12 G</strong></div>
-                                    <div class="phone-tile"><div class="phone-label">Occupant</div><strong>Profile</strong></div>
-                                </div>
-                            </div>
-                            <figcaption>Dashboard layout mid-countdown, live impact reading and the cancel control. See the video above for the running system.</figcaption>
+                            <img src="/crashguard-dashboard.png" width="390" height="780" loading="lazy"
+                                 alt="The CrashGuard phone dashboard during a cancel countdown: a CRASH DETECTED banner, a countdown reading 7, a large red CANCEL button, a 5.12 G impact reading, and a row showing session peak and occupant.">
+                            <figcaption>The dashboard mid-countdown, showing a 5.12&nbsp;G impact and the cancel control.</figcaption>
                         </figure>
                     </div>
                 </article>
@@ -374,7 +366,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                         </ul>
                     </article>
 
-                    <article class="panel reveal" data-delay="1">
+                    <article id="specs" class="panel reveal" data-delay="1">
                         <span class="panel-tag">Specs</span>
                         <h3>At a glance</h3>
                         <dl class="spec-block">
