@@ -77,10 +77,10 @@
                     <h2>What I led</h2>
                     <p>I served as <strong>team lead</strong> on CrashGuard, owning the technical direction of the build and the effort to make its measurements trustworthy.</p>
                     <ul class="doc-list">
-                        <li><strong>Own the sensor-fusion firmware.</strong> Wrote and tuned the ESP32/MPU6050 firmware that detects impact events in real time from 6-axis IMU data and autonomously triggers the emergency call.</li>
+                        <li><strong>Own the detection firmware.</strong> Wrote and tuned the ESP32/MPU6050 firmware that recovers dynamic acceleration from the raw accelerometer counts, detects impact events in real time, and autonomously triggers the emergency call.</li>
                         <li><strong>Architected the tech stack.</strong> Defined the full signal-to-action chain end to end (on-vehicle sensing, the BLE link to a phone with its Wi-Fi HTTP fallback, the Flask call server and dashboard, and the Twilio voice interface), resolving the threading and timeout failures that blocked reliable real-time dispatch.</li>
                         <li><strong>Led the team.</strong> Coordinated four engineers across firmware, host software, and demo preparation, keeping the subsystems integrating cleanly against the competition deadline.</li>
-                        <li><strong>Led the testing effort.</strong> Drove the work of getting accurate results rather than plausible ones: characterizing the accelerometer against a measured baseline, then tuning detection thresholds and GPS filtering to eliminate false positives in field testing.</li>
+                        <li><strong>Led the testing effort.</strong> Drove the work of getting accurate results rather than plausible ones: tracing the vendor library's sensor readings to their source, calibrating the gravity vector, and tuning the threshold and confirmation window so ordinary handling cannot raise an alert.</li>
                     </ul>
                 </article>
 
@@ -114,7 +114,7 @@
 
                 <article class="panel reveal">
                     <ol class="step-list">
-                        <li><strong>Detect.</strong> The accelerometer is sampled at 100&nbsp;Hz; a normalized magnitude above the calibrated threshold declares a collision.</li>
+                        <li><strong>Detect.</strong> The accelerometer is sampled at 100&nbsp;Hz; dynamic acceleration above 5.0&nbsp;g on consecutive samples, or a sustained railed axis, declares a collision.</li>
                         <li><strong>Warn.</strong> The phone dashboard flashes <em>!! CRASH DETECTED !!</em> with a ten-second countdown and vibrates; the buzzer on the car beeps faster in the final three seconds.</li>
                         <li><strong>Offer the override.</strong> One tap on <strong>CANCEL - I'M OK</strong> dismisses the alert and re-arms the system, exactly how a conscious driver waves off a pothole.</li>
                         <li><strong>Escalate.</strong> If the countdown expires, the board pushes a Bluetooth alert to the host, which fires the call pipeline.</li>
@@ -224,19 +224,39 @@
                     <span class="section-index">02</span>
                     <h2 class="section-title">Impact detection</h2>
                 </div>
-                <p class="section-sub reveal">A self-calibrating baseline makes the threshold independent of library scale factors and mounting orientation.</p>
+                <p class="section-sub reveal">Subtracting the gravity vector, rather than its magnitude, makes the threshold pure excess acceleration and independent of mounting orientation.</p>
 
                 <article class="panel reveal">
                     <span class="panel-tag">Method</span>
-                    <p>The MPU6050 accelerometer/gyroscope module (I<sup>2</sup>C address <code>0x69</code>) is sampled at 100&nbsp;Hz with the full-scale range set to <strong>&plusmn;16&nbsp;g</strong> so crash spikes are never clipped. At boot the firmware averages one hundred samples while the vehicle is still, learning what 1&nbsp;g actually reads as on this board and this mounting. Every later reading is normalized against that measured baseline:</p>
+                    <p>The MPU6050 accelerometer (I<sup>2</sup>C address <code>0x69</code>) is sampled at 100&nbsp;Hz with the full-scale range set to <strong>&plusmn;16&nbsp;g</strong>. During a still-boot calibration the firmware averages one hundred samples to record the gravity vector <strong>g<sub>0</sub></strong>, then subtracts it from every later sample to give the dynamic acceleration:</p>
 
-                    <span class="formula">G = |a| / |a|<sub>baseline</sub>&nbsp;&nbsp;&nbsp;where&nbsp;&nbsp;|a| = &radic;(a<sub>x</sub>&sup2; + a<sub>y</sub>&sup2; + a<sub>z</sub>&sup2;)</span>
+                    <span class="formula">d(t) = (a(t) &minus; g<sub>0</sub>) / |g<sub>0</sub>|</span>
 
-                    <p>A collision is declared when <strong>G</strong> exceeds the calibrated detection threshold, set at <strong>50&nbsp;g</strong> for impact events. The threshold is tuned from labelled <em>normal</em> and <em>crash</em> runs recorded with the included calibration tool, and paired with GPS filtering to eliminate false positives in field testing.</p>
+                    <p>Because the whole vector is removed and not merely its magnitude, this reads 0.00&nbsp;g at rest in any orientation. The threshold is therefore expressed purely as excess impact acceleration, with no gravity offset buried in the number. A collision is declared when the dynamic acceleration exceeds <strong>5.0&nbsp;g</strong>.</p>
+
+                    <p>That value is chosen deliberately. Rotating the sensor by hand can produce at most 2&nbsp;g of apparent dynamic acceleration, so any threshold above 2&nbsp;g means ordinary handling can never raise an alert. Readings also pass through a median-of-three filter before comparison, which discards isolated outlier samples from bus glitches or transient saturation, so both the reported magnitude and the trigger reflect sustained motion rather than a single bad sample.</p>
+
+                    <p>False positives are rejected by four mechanisms working together: gravity-vector removal, median-of-three spike filtering, the 5.0the 5&nbsp;g thresholdnbsp;g threshold, and a requirement for consecutive samples to confirm the event. GPS plays no part in this; it supplies location for the emergency call only.</p>
 
                     <div class="callout">
-                        <strong>Engineering lesson.</strong> A consumer accelerometer cannot give you trustworthy velocity by integration, drift swamps the signal. But a sudden high-magnitude change in acceleration is a robust, low-cost crash signature, and normalizing against a measured baseline is what makes the threshold portable between boards.
+                        <strong>Engineering lesson.</strong> Getting trustworthy acceleration required abandoning the vendor library's per-axis accessors. Reading its source revealed three properties that make them unsuitable for high-rate crash sensing. Each accessor re-reads the range configuration register, tripling I<sup>2</sup>C traffic at 100&nbsp;Hz and returning intermittently corrupted samples. The three axes are read in separate transactions and therefore correspond to different instants, so their vector magnitude is not physically meaningful during rapid motion; the symptom was orientation-dependent readings of 14 to 17&nbsp;g while the board sat perfectly still. And the library's scale factor is twice the correct value for every full-scale range, applying 2<sup>(fsr+1)</sup> where the datasheet requires 2<sup>fsr</sup>. The firmware now performs a single six-byte I<sup>2</sup>C burst read, so all three axes are sampled at the same instant, and applies the datasheet sensitivity of 2048&nbsp;LSB/g at &plusmn;16&nbsp;g to the raw counts directly. No gyroscope data is read at any point; angular rate is unnecessary for impact detection and would only add bus load. A vendor library being convenient does not make it correct at the rate you need, and reading the source is what turned a broken sensor into a reliable one.
                     </div>
+                </article>
+
+                <article class="panel reveal" data-delay="1">
+                    <span class="panel-tag">Saturation</span>
+                    <h3>When the impact exceeds the instrument</h3>
+                    <p>Impacts on a rigid demonstration platform readily exceed the sensor's range, so sustained per-axis railing is treated as an independent crash indicator. When an axis reaches 95% of full scale for the confirmation window, an impact is declared regardless of the computed magnitude, and the alert is annotated to show that true severity exceeds the recorded peak. Collisions harder than the instrument can measure are therefore detected rather than missed.</p>
+                </article>
+
+                <article class="panel reveal" data-delay="2">
+                    <span class="panel-tag">Peaks</span>
+                    <h3>Two peaks, reported separately</h3>
+                    <p>The dashboard peak and the crash peak answer different questions, so they are measured differently:</p>
+                    <ul class="doc-list">
+                        <li><strong>Dashboard peak</strong>: holds the highest recent value for three seconds, then follows the live reading again, so the display reflects current activity rather than a stuck maximum.</li>
+                        <li><strong>Crash peak</strong>: measured only across a 400&nbsp;ms window around the impact itself, so the figure given to the dispatcher belongs to that collision rather than to the largest bump seen earlier in the session.</li>
+                    </ul>
                 </article>
             </div>
         </section>
@@ -316,7 +336,15 @@
                             <span class="tag">Nominatim</span>
                             <span class="tag">Overpass</span>
                         </div>
-                        <p>A dispatcher asks things no profile can hold: <em>what's the nearest cross street? what city is this? where's the closest ER?</em> At the moment of the crash CrashGuard runs one batch of key-less OpenStreetMap lookups against the live GPS fix (address, city and county, nearest named roads, and closest hospitals with distance and compass direction) and injects the bundle into the AI's context. Fetching once keeps answers fast and grounded in real map data instead of guesswork.</p>
+                        <p>A dispatcher asks things no profile can hold: <em>what's the nearest cross street? what city is this? where's the closest ER?</em> At the moment of the crash CrashGuard resolves the live GPS fix into a context bundle using key-less OpenStreetMap services.</p>
+                        <ul class="doc-list">
+                            <li><strong>One combined query</strong>: named roads, hospitals, and landmarks are fetched in a single Overpass request rather than three, cutting lookup latency and rate-limit exposure to roughly a third. That is what made cross streets reliable.</li>
+                            <li><strong>Mirror failover</strong>: several public Overpass endpoints are tried in turn, because any single one frequently rate-limits.</li>
+                            <li><strong>What it returns</strong>: street address, city, county and ZIP, nearest named roads, closest hospitals, and nearby landmarks (schools, fuel, pharmacies, police and fire stations, shops, tourist sites), each with distance and compass bearing computed by the haversine formula.</li>
+                            <li><strong>Explicit gaps</strong>: fields that come back empty are marked unavailable in the agent's context, so it states plainly that it does not have them instead of hedging.</li>
+                            <li><strong>Off the critical path</strong>: the lookup runs on a background thread while the phone rings, so it never delays the call, and the live coordinates are applied instantly at trigger time.</li>
+                            <li><strong>Continuous position</strong>: the phone captures live GPS automatically and continuously, because a crash victim cannot press a button. Browser geolocation requires HTTPS, and the last fix is cached on disk so it survives a server restart.</li>
+                        </ul>
                     </article>
 
                     <article class="panel project-card reveal" data-delay="2">
@@ -338,9 +366,28 @@
                             <span class="tag">SMTP</span>
                             <span class="tag">Intent parsing</span>
                         </div>
-                        <p>After a few exchanges CrashGuard offers to document everything, then asks whether to send it by text or email and delivers a formatted report: timestamp, peak impact, coordinates, address, cross streets, nearest hospitals, occupant identity, blood type, conditions, allergies, medications, emergency contacts, and vehicle details. The whole exchange is handled by local intent parsing rather than the language model, so it adds no per-call AI cost and responds instantly.</p>
+                        <p>CrashGuard produces a formatted report covering timestamp, peak impact, coordinates, address, cross streets, nearest hospitals, occupant identity, blood type, conditions, allergies, medications, emergency contacts, and vehicle details.</p>
+                        <ul class="doc-list">
+                            <li><strong>Published before it is sent</strong>: the report always goes to the phone dashboard first, before any send is attempted. That path cannot be blocked by a carrier, so the report is never lost regardless of what happens to SMS or email.</li>
+                            <li><strong>Delivery is verified, not assumed</strong>: Twilio accepting a message only means it was queued. US local (10DLC) numbers must be registered for A2P messaging or carriers silently drop the traffic, which looks like success in the API but never arrives. The system polls the message until it reaches a terminal status and reports the truth, naming the registration requirement when that is the cause.</li>
+                            <li><strong>Asked for at any point</strong>: a request for the report is recognised anywhere in the call, not only inside a scripted offer.</li>
+                            <li><strong>Spoken input parsed locally</strong>: phone numbers ("five seven five...") and email addresses ("chief at example dot gov") are decoded on the host. All intent handling is local rather than model-driven, so it adds no per-call inference cost and responds instantly.</li>
+                        </ul>
                     </article>
                 </div>
+
+                <article class="panel reveal" style="margin-top:1.6rem">
+                    <span class="panel-tag">Reliability</span>
+                    <h3>Keeping a live call from falling over</h3>
+                    <p>Most of the failure modes in this system are timing and lifecycle problems rather than algorithmic ones, so they are handled explicitly:</p>
+                    <ul class="doc-list">
+                        <li><strong>Inference off the webhook path</strong>: model inference is dispatched to a worker thread and the webhook returns immediately, so the telephony provider's roughly 15 second webhook timeout cannot terminate a live call during a slow inference.</li>
+                        <li><strong>Non-blocking trigger</strong>: the crash trigger returns instantly, with dialing and map enrichment running in parallel background threads, so the BLE bridge never times out waiting on the server.</li>
+                        <li><strong>BLE recovery</strong>: re-advertising is deferred to the main loop after a disconnect, since calling it inside the disconnect callback fails silently on the ESP32, and a heartbeat watchdog drops stale links so a bridge restart does not require power-cycling the board.</li>
+                        <li><strong>Startup self-check</strong>: every host module and dependency is verified present and from the same release, so version drift surfaces before a demo rather than mid-call.</li>
+                        <li><strong>Cost and latency control</strong>: a small fast model, prompt caching on the invariant system prompt, truncated conversation history, and short spoken replies.</li>
+                    </ul>
+                </article>
             </div>
         </section>
 
@@ -357,7 +404,7 @@
                         <span class="panel-tag">Stack</span>
                         <h3>What it is built from</h3>
                         <ul class="doc-list">
-                            <li><strong>MYOSA Mini Kit</strong>: ESP32 motherboard, MPU6050 accelerometer/gyro, buzzer and pushbutton on the I<sup>2</sup>C chain</li>
+                            <li><strong>MYOSA Mini Kit</strong>: ESP32 motherboard, MPU6050 (accelerometer only), buzzer and pushbutton on the I<sup>2</sup>C chain</li>
                             <li><strong>Arduino (C++)</strong>: firmware, official MYOSA sensor libraries, ESP32 BLE stack</li>
                             <li><strong>Python 3 + HTML/JS</strong>: Flask call server, live mobile dashboard, <code>bleak</code> BLE bridge, <code>pyserial</code> calibration tooling</li>
                             <li><strong>OpenStreetMap</strong>: Nominatim and Overpass for reverse geocoding, cross streets, and nearby hospitals (free, no API key)</li>
@@ -372,8 +419,9 @@
                         <dl class="spec-block">
                             <div class="spec-row"><dt>Sample rate</dt><dd>100 Hz</dd></div>
                             <div class="spec-row"><dt>Accel range</dt><dd>&plusmn;16 g</dd></div>
-                            <div class="spec-row"><dt>Trigger</dt><dd>50 g (tuned)</dd></div>
-                            <div class="spec-row"><dt>Baseline</dt><dd>100-sample avg</dd></div>
+                            <div class="spec-row"><dt>Trigger</dt><dd>5.0 g dynamic</dd></div>
+                            <div class="spec-row"><dt>Baseline</dt><dd>100-sample g<sub>0</sub></dd></div>
+                            <div class="spec-row"><dt>Peak window</dt><dd>400 ms</dd></div>
                             <div class="spec-row"><dt>Cancel window</dt><dd>10 s</dd></div>
                             <div class="spec-row"><dt>Status stream</dt><dd>5 Hz</dd></div>
                             <div class="spec-row"><dt>Link</dt><dd>BLE / Wi-Fi</dd></div>
@@ -400,7 +448,7 @@
                     <span class="panel-tag">Roadmap</span>
                     <p>The full chain (detection, cancel window, BLE alert, AI call, map lookups, and incident reporting) runs end to end on the prototype above. Work continues on hardening the demo and extending the system:</p>
                     <ul class="doc-list">
-                        <li><strong>Rollover detection</strong> using the gyroscope alongside the acceleration threshold</li>
+                        <li><strong>Rollover detection</strong> from the gravity vector already computed at calibration, by detecting when the measured gravity direction inverts. No new sensor data is required.</li>
                         <li><strong>Phone app to replace the laptop bridge</strong>, which would bring real phone GPS into the alert</li>
                         <li><strong>LTE alert path</strong> for genuinely standalone operation with no host nearby</li>
                         <li><strong>Additional language support</strong> for the dispatcher agent</li>
