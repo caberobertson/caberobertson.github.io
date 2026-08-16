@@ -16,6 +16,25 @@
     --accent-ink: #0e100b;  /* text on accent       16.2:1            */
     --danger: #ff5c4d;      /* impact / alert only  6.3:1 on --bg     */
 
+    /* ---- Accent as a FIELD, not a signal -------------------------------
+       #c6ff3a has a relative luminance of 0.838, nearly that of white
+       (0.895). As a 1px rule or a short mono label that reads as an
+       instrument LED, which is the point. As a filled block behind text it
+       halates: the contrast ratio is a fine 16:1, but the eye cannot settle
+       on dark text sitting in a field that bright, which is what made
+       hovering the nav and the tags unpleasant.
+
+       --accent-fill is the same hue at roughly 60% of that luminance. It is
+       still unmistakably the signal colour, still 10:1 against --accent-ink,
+       and no longer glares. Rule of thumb: --accent for strokes and text,
+       --accent-fill anywhere it becomes a background. ------------------- */
+    --accent-fill: #9ccb28;
+
+    /* Hover fill for things that are labels rather than calls to action.
+       Inverting a tag to near-white on a near-black page is a strobe when
+       the pointer sweeps a row of them. */
+    --hover-surface: #252a1a;
+
     /* ---- Typography: three deliberate roles, never one font for everything ---- */
     --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
     --font-body: 'Inter', system-ui, -apple-system, sans-serif;
@@ -63,11 +82,21 @@
     --bg: #f4efe3;
     --bg-elev: #fbf8ef;
     --ink: #1b1a17;
-    --ink-dim: #6b6557;
+    /* Was #6b6557. On paper that is 5.05:1, which passes on its own, but
+       secondary text also sits on the hover tint (rgb(226,224,204)), where it
+       measured 4.35:1 and failed. Every project row, note row and jump card
+       put --ink-dim on that tint, so the darker value fixes the whole class:
+       6.06:1 on paper, 5.22:1 on the tint. */
+    --ink-dim: #5f594c;
     --line: #d9d2bd;
     --accent: #415c00;
     --accent-ink: #fbf8ef;
     --danger: #a32b1e;
+
+    /* The light accent is already dark enough to sit behind cream text
+       without glare, so the fill and the signal are the same colour here. */
+    --accent-fill: #415c00;
+    --hover-surface: #e6e0cd;
 
     --border-strong: #1b1a17;
     --accent-soft: rgba(65, 92, 0, 0.1);

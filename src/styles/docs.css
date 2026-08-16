@@ -208,7 +208,7 @@
     padding: 5px 12px;
 }
 
-.nav-links a.nav-resume:hover { background: var(--accent); color: var(--accent-ink); }
+.nav-links a.nav-resume:hover { background: var(--accent-fill); color: var(--accent-ink); }
 
 /* Eligibility / credential chips */
 .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 1.6rem; }
@@ -441,3 +441,41 @@
 .related-notes li a { color: var(--ink); font-weight: 600; text-decoration: none; }
 .related-notes li a:hover { color: var(--accent); }
 .related-notes li span { color: var(--ink-dim); font-size: 0.92rem; }
+
+/* ---------- Row affordances ----------
+   List rows that link somewhere carry a persistent call to action and a
+   chevron. Relying on a hover background alone meant the rows read as static
+   text, and on touch there is no hover state at all. Shared by the project
+   list and the build log. */
+.proj-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.4px;
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+}
+
+.proj-cta svg { width: 13px; height: 13px; transition: transform 0.2s var(--ease-out); }
+
+.proj-chevron {
+    display: flex;
+    justify-content: flex-end;
+    align-self: center;
+    color: var(--ink-dim);
+    transition: transform 0.2s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+.proj-chevron svg { width: 20px; height: 20px; }
+
+@media (max-width: 600px) {
+    .proj-chevron svg { width: 16px; height: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .proj-cta svg, .proj-chevron { transition: none; }
+}

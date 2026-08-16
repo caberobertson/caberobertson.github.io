@@ -20,6 +20,16 @@
     const storedTheme = localStorage.getItem('theme');
     if (storedTheme) document.documentElement.dataset.theme = storedTheme;
 
+    // Follow the OS while the visitor has not made a choice of their own. Once
+    // they press the toggle, localStorage holds the answer and the system
+    // preference stops overriding it.
+    const systemLight = window.matchMedia('(prefers-color-scheme: light)');
+    systemLight.addEventListener?.('change', (e) => {
+        if (localStorage.getItem('theme')) return;
+        document.documentElement.dataset.theme = e.matches ? 'light' : 'dark';
+        window.dispatchEvent(new CustomEvent('themechange'));
+    });
+
     const toggleTheme = () => {
         // Default (no attribute set) is the dark "CRT" theme, so unset must resolve to 'dark'.
         const current = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';

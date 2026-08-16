@@ -139,7 +139,7 @@ for (const page of pages) {
     // Third-party requests: the site must not contact anything on load. The
     // only external endpoint is the YouTube embed, and that is injected by the
     // facade after a click. Update this list deliberately, never by accident.
-    const THIRD_PARTY_OK = [/youtube-nocookie\.com/, /youtube\.com\/embed/, /linkedin\.com/, /mitchellcoding\.com/, /syndetix\.com/, /github\.com/];
+    const THIRD_PARTY_OK = [/youtube-nocookie\.com/, /youtube\.com\/embed/, /i\.ytimg\.com/, /linkedin\.com/, /mitchellcoding\.com/, /syndetix\.com/, /github\.com/];
     for (const el of doc.querySelectorAll('script[src], link[rel=stylesheet][href], img[src]')) {
         const src = el.getAttribute('src') || el.getAttribute('href');
         if (!/^https?:/.test(src)) continue;

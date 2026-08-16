@@ -80,12 +80,19 @@ const ogImage = ogImageFor(ogCard, Astro.site!);
     {hasOg && <meta property="og:image:alt" content={ogTitle ?? title} />}
     {hasOg && <meta name="twitter:card" content="summary_large_image" />}
     {!noindex && <link rel="canonical" href={canonical} />}
-    <meta name="theme-color" content="#0e100b">
+    {/* Was a single hardcoded dark value, which left the browser chrome dark
+        for anyone reading the paper theme. */}
+    <meta name="theme-color" content="#f4efe3" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0e100b" media="(prefers-color-scheme: dark)">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231b1a17'/%3E%3Cpolyline points='10,68 30,68 30,32 50,32 50,68 70,68 70,32 90,32' fill='none' stroke='%23c6ff3a' stroke-width='8' stroke-linecap='square'/%3E%3C/svg%3E">
-    <!-- Applied before paint: a stored light-theme choice must never flash
-         dark, and the `js` class gates controls that cannot work unscripted
-         (the audience lens) so they are hidden rather than broken. -->
-    <script is:inline>(function(){var d=document.documentElement;d.classList.add('js');var t=localStorage.getItem('theme');if(t)d.dataset.theme=t;})();</script>
+    <!-- Applied before paint, so neither a stored choice nor an OS light
+         preference flashes the wrong theme. Precedence: an explicit choice the
+         visitor made here, then the operating system, then dark. Dark is the
+         site's identity, but a first-time visitor whose whole machine is set
+         to light should not be handed a near-black page they did not ask for.
+         The `js` class gates controls that cannot work unscripted (the
+         audience lens) so they are hidden rather than broken. -->
+    <script is:inline>(function(){var d=document.documentElement;d.classList.add('js');var t=localStorage.getItem('theme');if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t)d.dataset.theme=t;})();</script>
     {/*
         ANALYTICS (not enabled, on purpose).
 

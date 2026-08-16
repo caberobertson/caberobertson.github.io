@@ -76,7 +76,7 @@ const groups = [
         </section>
 
         <div data-lens-list>
-        {groups.map((g, gi) => g.items.length > 0 && (
+        {groups.map((g) => g.items.length > 0 && (
             <section class="section section--group" data-lens-group>
                 <div class="container">
                     <div class="section-head reveal in">
@@ -115,6 +115,13 @@ const groups = [
                                                 ))}
                                             </span>
                                         )}
+                                        <span class="proj-cta">
+                                            Read the write-up
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                        </span>
+                                    </span>
+                                    <span class="proj-chevron" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                                     </span>
                                 </a>
                             </li>
@@ -157,16 +164,54 @@ const groups = [
 
     .proj-link {
         display: grid;
-        grid-template-columns: 56px 1fr;
+        /* Third column is the chevron: a persistent "this goes somewhere"
+           marker. Rows that only signalled on hover were being read as plain
+           text, which is a problem on touch, where there is no hover at all. */
+        grid-template-columns: 56px 1fr 28px;
         gap: var(--space-4);
-        padding: var(--space-5) 0;
+        align-items: start;
+        padding: var(--space-5) var(--space-3);
+        margin: 0 calc(var(--space-3) * -1);
         border-bottom: 1px solid var(--line);
         text-decoration: none;
         color: inherit;
-        transition: background 0.2s var(--ease-out);
+        transition: background 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
     }
 
-    .proj-link:hover, .proj-link:focus-visible { background: var(--accent-soft); }
+    .proj-link:hover,
+    .proj-link:focus-visible {
+        background: var(--hover-surface);
+        /* Left rule rather than a border: no reflow on hover. */
+        box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .proj-chevron {
+        display: flex;
+        justify-content: flex-end;
+        color: var(--ink-dim);
+        transition: transform 0.2s var(--ease-out), color 0.2s var(--ease-out);
+    }
+
+    .proj-chevron svg { width: 20px; height: 20px; }
+
+    .proj-link:hover .proj-chevron,
+    .proj-link:focus-visible .proj-chevron { color: var(--accent); transform: translateX(3px); }
+
+    .proj-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.4px;
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-thickness: 1px;
+    }
+
+    .proj-cta svg { width: 13px; height: 13px; transition: transform 0.2s var(--ease-out); }
+    .proj-link:hover .proj-cta svg { transform: translateX(3px); }
 
     .proj-index {
         font-family: var(--font-mono);
@@ -208,6 +253,14 @@ const groups = [
     .proj-metric b { color: var(--accent); font-weight: 500; }
 
     @media (max-width: 600px) {
-        .proj-link { grid-template-columns: 32px 1fr; gap: var(--space-3); }
+        .proj-link { grid-template-columns: 32px 1fr 20px; gap: var(--space-3); }
+        .proj-chevron svg { width: 16px; height: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .proj-link, .proj-chevron, .proj-cta svg { transition: none; }
+        .proj-link:hover .proj-chevron,
+        .proj-link:focus-visible .proj-chevron,
+        .proj-link:hover .proj-cta svg { transform: none; }
     }
 </style>

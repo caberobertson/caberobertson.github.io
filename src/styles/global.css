@@ -306,15 +306,15 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.btn:hover { background: var(--ink); color: var(--bg); }
+.btn:hover { background: var(--hover-surface); border-color: var(--accent); color: var(--ink); }
 
 .btn-primary {
-    background: var(--accent);
+    background: var(--accent-fill);
     border-color: var(--accent);
     color: var(--accent-ink);
 }
 
-.btn-primary:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.btn-primary:hover { background: var(--hover-surface); border-color: var(--accent); color: var(--ink); }
 
 /* ---------- Sections ---------- */
 .section { padding: 3.6rem 0 0; }
@@ -371,7 +371,7 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     padding: 4px 9px;
 }
 
-.panel-tag.accent { background: var(--accent); color: var(--accent-ink); }
+.panel-tag.accent { background: var(--accent-fill); color: var(--accent-ink); }
 
 .grid-2 {
     display: grid;
@@ -487,10 +487,10 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     cursor: default;
 }
 
-.tag:hover { background: var(--ink); color: var(--bg); }
+.tag:hover { background: var(--hover-surface); border-color: var(--accent); color: var(--ink); }
 
 .tags--accent .tag { border-color: var(--accent); color: var(--accent); }
-.tags--accent .tag:hover { background: var(--accent); color: var(--accent-ink); }
+.tags--accent .tag:hover { background: var(--accent-fill); color: var(--accent-ink); border-color: var(--accent-fill); }
 
 .tags--accent2 .tag { border-color: var(--accent-2); color: var(--accent-2); }
 .tags--accent2 .tag:hover { background: var(--accent-2); color: var(--accent-2-ink); }
@@ -654,7 +654,7 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     transition: background-color 0.18s ease, color 0.18s ease;
 }
 
-.copy-chip:hover { background: var(--ink); color: var(--bg); }
+.copy-chip:hover { background: var(--hover-surface); border-color: var(--accent); color: var(--ink); }
 
 /* ---------- Photo gallery ---------- */
 .gallery-section { margin-top: 2.6rem; }
@@ -943,7 +943,7 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     transition-delay: 0s;
 }
 
-#back-to-top:hover { background: var(--ink); color: var(--bg); }
+#back-to-top:hover { background: var(--hover-surface); border-color: var(--accent); color: var(--ink); }
 
 /* ---------- Scroll reveal ----------
    The starting state is gated on html.js. The class is set by an inline script
