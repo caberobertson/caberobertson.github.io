@@ -14,7 +14,7 @@ const here = import.meta.dirname;
 const root = path.resolve(here, '..', 'dist');
 // Static pages plus every generated project detail page, so a new entry in
 // the collection is covered automatically instead of silently untested.
-const staticPages = ['index.html', 'experience.html', 'projects.html', 'notes.html', 'skills.html', 'contact.html', 'crashguard.html', 'ieee-points.html', 'og-preview.html', '404.html'];
+const staticPages = ['index.html', 'experience.html', 'projects.html', 'notes.html', 'skills.html', 'contact.html', 'crashguard.html', 'ieee-points.html', 'ieee-bricks.html', 'og-preview.html', '404.html'];
 const collectionPages = (dir) =>
     fs.existsSync(path.join(root, dir))
         ? fs.readdirSync(path.join(root, dir)).filter((f) => f.endsWith('.html')).map((f) => `${dir}/${f}`)

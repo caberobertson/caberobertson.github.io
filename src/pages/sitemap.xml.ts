@@ -11,6 +11,7 @@ const SITE = 'https://caberobertson.github.io';
 const EXCLUDED = new Set([
     '404',            // error page, not a destination
     'ieee-points',    // noindex: a chapter-internal program page
+    'ieee-bricks',    // noindex: chapter fundraising, shared by link not search
     'og-preview',     // build tool: the source frames for the social cards
 ]);
 

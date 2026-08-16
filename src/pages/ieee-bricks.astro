@@ -1,0 +1,142 @@
+---
+// Legacy Brick Project, the alumni-facing page.
+//
+// noindex, matching /ieee-points.html: this is IEEE NMSU chapter material
+// living on a personal portfolio, and it should be something Cabe sends to an
+// alum by link rather than something that competes with his own name in
+// search. Open Graph tags are still emitted, so a link pasted into email or
+// LinkedIn previews properly. BaseLayout keeps those two concerns separate.
+//
+// FRAMING, do not soften this: the bricks are NOT for sale. A gift to the
+// chapter is recognized with an engraved brick. That is a donor premium, and
+// wording it as a purchase would misdescribe the fundraiser.
+import fs from 'node:fs';
+import path from 'node:path';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const DONATE = 'https://alwaysanaggie.org/donate/ieee-student-chapter/';
+const GIFT = '$500';
+
+// The mockup renders only once the file actually exists in public/, so the
+// page ships and works today and picks up the artwork the moment it lands.
+// No "image coming soon" box: an absent figure is better than a promised one.
+const MOCKUP = 'ieee-brick-mockup.jpg';
+const hasMockup = fs.existsSync(path.resolve('public', MOCKUP));
+---
+
+<BaseLayout
+    title="Legacy Brick Project | IEEE NMSU Student Chapter"
+    description="Support the IEEE NMSU Student Chapter. Gifts of $500 are recognized with an engraved commemorative brick for Thomas & Brown Hall."
+    ogTitle="Legacy Brick Project | IEEE NMSU Student Chapter"
+    ogDescription="A gift of $500 to the IEEE NMSU Student Chapter is recognized with an engraved commemorative brick."
+    noindex
+>
+    <main id="main">
+        <section class="section">
+            <div class="container container--reading">
+                <div class="section-head reveal in">
+                    <span class="section-index">IEEE</span>
+                    <h1 class="section-title">The Legacy Brick Project</h1>
+                </div>
+
+                <p class="section-sub reveal in">
+                    A gift of {GIFT} to the IEEE NMSU Student Chapter is recognized with an
+                    engraved commemorative brick, carrying your name, Thomas &amp; Brown, and your
+                    graduation year.
+                </p>
+
+                <div class="brick-actions reveal in">
+                    <a href={DONATE} class="btn btn-primary" target="_blank" rel="noopener">
+                        Give to the chapter
+                    </a>
+                    <a href="mailto:caberobertson@gmail.com?subject=Legacy%20Brick%20Project" class="btn">
+                        Ask a question
+                    </a>
+                </div>
+
+                <p class="brick-note reveal in">
+                    Gifts are processed by the NMSU Foundation at{' '}
+                    <a href={DONATE} target="_blank" rel="noopener">alwaysanaggie.org</a>, not by
+                    this site or by the chapter directly.
+                </p>
+
+                {hasMockup && (
+                    <figure class="figure reveal">
+                        <img
+                            src={`/${MOCKUP}`}
+                            alt="Mockup of an engraved commemorative brick on a wooden display base, showing the IEEE diamond logo alongside template lines reading Alumni Name, Thomas and Brown, and grad year"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                        <figcaption>
+                            <span class="fig-num">FIG.01</span>
+                            Engraving layout. The alum's name and graduation year replace the
+                            template lines.
+                        </figcaption>
+                    </figure>
+                )}
+
+                <article class="panel reveal">
+                    <span class="panel-tag accent">&sect; Where it goes</span>
+                    <h2>What the money does</h2>
+                    <p>
+                        The chapter is running a <strong>$50,000 initiative</strong> to revitalize
+                        the IEEE NMSU Student Chapter and the Electrical &amp; Computer
+                        Engineering department. Alumni gifts are the backbone of it.
+                    </p>
+                    <p>
+                        The brick is a thank-you, not a product. Every engraved brick is also a
+                        student's work: chapter members claim an open brick, prepare the engraving
+                        file, and take it to the machine shop themselves, earning points toward a
+                        seat in the chapter's delegation to the{' '}
+                        <strong>IEEE Rising Stars Conference</strong>. So a gift funds the chapter
+                        twice, once in dollars and once in the hands-on work of producing it.
+                    </p>
+                </article>
+
+                <article class="panel reveal">
+                    <span class="panel-tag">&sect; Process</span>
+                    <h2>How it works</h2>
+                    <ol class="step-list">
+                        <li><strong>Give {GIFT}</strong> through the NMSU Foundation page linked above.</li>
+                        <li><strong>Send your details.</strong> Name as you want it engraved, and your graduation year.</li>
+                        <li><strong>A student claims the brick</strong> and prepares the engraving file from the chapter template.</li>
+                        <li><strong>It goes to the machine shop</strong> to be engraved.</li>
+                        <li><strong>You get a photo of the finished brick</strong> once it is complete.</li>
+                    </ol>
+                </article>
+
+                <p class="brick-foot">
+                    Questions about the project, or want to give at a different level?{' '}
+                    <a href="mailto:caberobertson@gmail.com?subject=Legacy%20Brick%20Project">Email Cabe Robertson</a>,{' '}
+                    Vice President, IEEE NMSU Student Chapter.
+                </p>
+            </div>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    .brick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: var(--space-5) 0 var(--space-3);
+    }
+
+    .brick-note,
+    .brick-foot {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.8;
+        color: var(--ink-dim);
+        margin: 0;
+    }
+
+    .brick-note { margin-bottom: var(--space-6); }
+    .brick-foot { margin-top: var(--space-6); }
+    .brick-note a, .brick-foot a { color: var(--accent); }
+
+    .panel + .panel { margin-top: var(--space-5); }
+    .figure + .panel { margin-top: var(--space-6); }
+</style>
