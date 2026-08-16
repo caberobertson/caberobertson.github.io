@@ -20,15 +20,20 @@ const GIFT = '$500';
 // The mockup renders only once the file actually exists in public/, so the
 // page ships and works today and picks up the artwork the moment it lands.
 // No "image coming soon" box: an absent figure is better than a promised one.
+// The .png the chapter supplied is a 2.1 MB 2100x1500 export with a
+// presentation label burned into the top-left. Both stay in the repo; what
+// ships is a cropped, resized JPEG at 112 KB. The label read "Mockup" and
+// carried a typo, neither of which belongs on a page asking an alum for $500,
+// so that framing lives in the figcaption as text instead.
 const MOCKUP = 'ieee-brick-mockup.jpg';
 const hasMockup = fs.existsSync(path.resolve('public', MOCKUP));
 ---
 
 <BaseLayout
     title="Legacy Brick Project | IEEE NMSU Student Chapter"
-    description="Support the IEEE NMSU Student Chapter. Gifts of $500 are recognized with an engraved commemorative brick for Thomas & Brown Hall."
+    description="Support the IEEE NMSU Student Chapter. Gifts of $500 are recognized with a brick salvaged from Thomas & Brown, the old ECE building, engraved with your name and graduation year."
     ogTitle="Legacy Brick Project | IEEE NMSU Student Chapter"
-    ogDescription="A gift of $500 to the IEEE NMSU Student Chapter is recognized with an engraved commemorative brick."
+    ogDescription="The chapter salvaged the bricks from Thomas & Brown, the old ECE building, before it was demolished. A $500 gift is recognized with one, engraved with your name and graduation year."
     noindex
 >
     <main id="main">
@@ -40,9 +45,9 @@ const hasMockup = fs.existsSync(path.resolve('public', MOCKUP));
                 </div>
 
                 <p class="section-sub reveal in">
-                    A gift of {GIFT} to the IEEE NMSU Student Chapter is recognized with an
-                    engraved commemorative brick, carrying your name, Thomas &amp; Brown, and your
-                    graduation year.
+                    Thomas &amp; Brown was the old Electrical &amp; Computer Engineering building.
+                    Before it was demolished, the chapter salvaged its bricks. A gift of {GIFT} is
+                    recognized with one of them, engraved with your name and graduation year.
                 </p>
 
                 <div class="brick-actions reveal in">
@@ -64,20 +69,35 @@ const hasMockup = fs.existsSync(path.resolve('public', MOCKUP));
                     <figure class="figure reveal">
                         <img
                             src={`/${MOCKUP}`}
-                            alt="Mockup of an engraved commemorative brick on a wooden display base, showing the IEEE diamond logo alongside template lines reading Alumni Name, Thomas and Brown, and grad year"
+                            alt="A salvaged brick on a wooden display base, engraved with the IEEE diamond logo and template lines reading Alumni Name, Thomas and Brown, and grad year, photographed against the Thomas and Brown building"
                             loading="lazy"
                             decoding="async"
                         />
                         <figcaption>
-                            <span class="fig-num">FIG.01</span>
-                            Engraving layout. The alum's name and graduation year replace the
-                            template lines.
+                            <span class="fig-num">FIG.01</span>{' '}
+                            Mockup of the engraving layout, shown against Thomas &amp; Brown. The
+                            alum's name and graduation year replace the template lines.
                         </figcaption>
                     </figure>
                 )}
 
                 <article class="panel reveal">
-                    <span class="panel-tag accent">&sect; Where it goes</span>
+                    <span class="panel-tag accent">&sect; Provenance</span>
+                    <h2>These are the building</h2>
+                    <p>
+                        Thomas &amp; Brown housed the Electrical &amp; Computer Engineering
+                        department. When the building came down, the chapter went and pulled its
+                        bricks out before demolition.
+                    </p>
+                    <p>
+                        That is the whole idea. This is not a commemorative object made to look
+                        like a piece of the building. It <em>is</em> a piece of the building, the
+                        one you took your classes in, engraved and handed back to you.
+                    </p>
+                </article>
+
+                <article class="panel reveal">
+                    <span class="panel-tag">&sect; Where it goes</span>
                     <h2>What the money does</h2>
                     <p>
                         The chapter is running a <strong>$50,000 initiative</strong> to revitalize
@@ -85,8 +105,8 @@ const hasMockup = fs.existsSync(path.resolve('public', MOCKUP));
                         Engineering department. Alumni gifts are the backbone of it.
                     </p>
                     <p>
-                        The brick is a thank-you, not a product. Every engraved brick is also a
-                        student's work: chapter members claim an open brick, prepare the engraving
+                        The brick is a thank-you, not a product, and the chapter is not selling
+                        the building. Every engraved brick is also a student's work: chapter members claim an open brick, prepare the engraving
                         file, and take it to the machine shop themselves, earning points toward a
                         seat in the chapter's delegation to the{' '}
                         <strong>IEEE Rising Stars Conference</strong>. So a gift funds the chapter
@@ -138,5 +158,6 @@ const hasMockup = fs.existsSync(path.resolve('public', MOCKUP));
     .brick-note a, .brick-foot a { color: var(--accent); }
 
     .panel + .panel { margin-top: var(--space-5); }
+    .panel h2 { margin-bottom: var(--space-3); }
     .figure + .panel { margin-top: var(--space-6); }
 </style>
