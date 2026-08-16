@@ -1,17 +1,19 @@
 ---
 title: The failure the bench cannot show you
-summary: The demonstrator passed every indoor test and then fell over in front of clients. Wind is not a bench condition.
+summary: The demonstrator passed every indoor test, then tipped over the first time I took it outside on a windy day. Wind is not a bench condition.
 date: 2025-07-22
 tags: [Field Test, Hardware, Cost Engineering]
 project: RF Communication-Jamming Demonstrator
 projectHref: /projects/rf-jamming-demonstrator.html
 ---
 
-The kit worked. Indoors, on a table, it worked every time. Outdoors, in front
-of law-enforcement and defense clients, wind knocked it over mid-presentation.
+The kit worked. Indoors, on a table, it worked every time. Then I took it
+outside for normal testing on an unusually windy day, and the wind knocked it
+over.
 
 No amount of additional bench testing would have found that, because the bench
-does not have wind in it.
+does not have wind in it. The only reason it never happened in front of a
+client is that the testing came first.
 
 ## The constraint that made the obvious fix wrong
 
@@ -22,7 +24,8 @@ demonstrations could run in parallel. A kit you need two people to carry is not
 a cheaper kit, it is a different product.
 
 So the fix had to be a lightweight stabilizing change rather than ballast. It
-held through outdoor demonstrations in high wind, with no further tip-overs.
+held through the rest of outdoor testing in high wind, with no further
+tip-overs, and the kit went on to be demonstrated outdoors without one.
 
 ## On where the cost actually went
 

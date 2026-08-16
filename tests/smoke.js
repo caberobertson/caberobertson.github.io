@@ -205,6 +205,20 @@ for (const page of pages) {
         if (!facade) errs.push('flagship video facade missing');
         if (!facade?.getAttribute('data-video-id')) errs.push('facade has no video id');
         if (/youtube\.com\/embed/.test(html)) errs.push('home page ships a YouTube iframe before interaction');
+        // Slider controls must out-stack the slide contents. .slide img and
+        // .slide-caption carry z-index 1 and 2 to sit above the blurred
+        // backdrop; when .slide did not create a stacking context those leaked
+        // out and the photo swallowed every click on the prev/next arrows.
+        // jsdom has no layout, so assert the two invariants that prevent it.
+        const css = [...doc.querySelectorAll('style')].map((e) => e.textContent).join('\n');
+        if (!/\.slide\s*\{[^}]*isolation:\s*isolate/.test(css)) {
+            errs.push('.slide must set isolation:isolate or its z-indexes cover the slider controls');
+        }
+        const btnZ = css.match(/\.slider-btn\s*\{[^}]*z-index:\s*(\d+)/);
+        if (!btnZ || Number(btnZ[1]) < 3) {
+            errs.push('.slider-btn needs z-index >= 3 to stay above .slide-caption');
+        }
+
         const slides = doc.querySelectorAll('.slide').length;
         const dots = doc.querySelectorAll('.dots-container .dot').length;
         if (dots !== slides) errs.push(`slider dots (${dots}) != slides (${slides})`);

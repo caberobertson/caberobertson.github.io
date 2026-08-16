@@ -687,6 +687,16 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     margin: 0; /* override the browser's default figure margins, which skew the 100%-per-slide transform */
     position: relative;
     overflow: hidden;
+    /* Contain the slide's internal layering. position:relative alone does NOT
+       create a stacking context, so .slide img (z-index 1) and .slide-caption
+       (z-index 2) were competing in the .slider-container context and painting
+       over the prev/next buttons, which sat at z-index auto. The photo won the
+       hit test, so clicking an arrow did nothing: the click landed on the
+       image. Only pointer users were affected; the buttons were always
+       reachable by keyboard, which is why this survived earlier testing.
+       isolation:isolate keeps those two z-indexes inside the slide, where they
+       are only ever meant to stack against the blurred ::before backdrop. */
+    isolation: isolate;
 }
 
 .slide img {
@@ -736,6 +746,9 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
 
 .slider-btn {
     position: absolute;
+    /* Explicit, above any slide content, so the controls stay clickable even
+       if a slide's internal layering changes again. */
+    z-index: 3;
     top: 0;
     bottom: 0;
     background: transparent;
@@ -762,6 +775,8 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
 .next { right: 0; }
 
 .dots-container {
+    position: relative;
+    z-index: 3;
     display: flex;
     justify-content: center;
     gap: 6px;

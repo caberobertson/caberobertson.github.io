@@ -36,7 +36,7 @@ could exist, which limited how many demonstrations could run in parallel.
 
 The kit had to be **portable**, assembled from parts that could be reordered and
 rebuilt without special fabrication, cheap enough to duplicate, and reliable
-enough to survive live client demonstrations outdoors, where conditions are not
+enough to survive outdoor use in front of a client, where conditions are not
 controlled.
 
 ## Design and tradeoffs
@@ -47,16 +47,16 @@ easily producible, while keeping the demonstration itself equivalent. The
 tradeoff accepted was a kit that looks less finished than a machined enclosure
 but can be rebuilt from a parts list.
 
-Field testing surfaced a failure the bench never would: wind was knocking the
-demonstration over mid-presentation. Rather than adding mass, which would have
-worked against portability, I engineered a lightweight stabilizing fix, keeping
-the payload operational through outdoor demonstrations in high wind.
+Outdoor testing surfaced a failure the bench never would: on an unusually windy
+day the kit was blown over. Rather than adding mass, which would have worked
+against portability, I engineered a lightweight stabilizing fix, keeping the
+payload operational in high wind.
 
 ## Results
 
 A **$219** portable field demonstration kit, roughly **56% cheaper** than the
-$500 setup it replaced, that eliminated tip-over failures during live client
-demonstrations. I also authored the product user manual, standardizing setup,
+$500 setup it replaced, with the tip-over failure found and fixed in testing
+before it could reach a client demonstration. I also authored the product user manual, standardizing setup,
 operation, and RF handling procedures for mission and training use.
 
 ## Limitations and what is next
