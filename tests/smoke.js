@@ -166,6 +166,24 @@ for (const page of pages) {
         }
     }
 
+    // A click-to-play video facade is inert without its handler. ProjectFigure
+    // once rendered the markup while the script lived in another component's
+    // scoped bundle, so /projects/face-tracking.html shipped a button that did
+    // nothing. If the markup is on the page, the handler has to be too.
+    if (doc.querySelector('.video-facade')) {
+        const inline = [...doc.querySelectorAll('script')].some((el) => el.textContent.includes('video-facade'));
+        const external = [...doc.querySelectorAll('script[src]')].some((el) => {
+            const f = el.getAttribute('src').replace(/^\//, '');
+            const p2 = path.join(root, f);
+            return fs.existsSync(p2) && fs.readFileSync(p2, 'utf8').includes('video-facade');
+        });
+        if (!inline && !external) errs.push('page renders .video-facade but ships no handler for it');
+        for (const el of doc.querySelectorAll('.video-facade')) {
+            if (!el.getAttribute('data-video-id')) errs.push('.video-facade missing data-video-id');
+            if (!el.querySelector('.facade-poster')) errs.push('.video-facade has no poster image');
+        }
+    }
+
     if (page.startsWith('notes/')) {
         if (!doc.querySelector('.doc-back')) errs.push('note missing back link');
         if (!doc.querySelector('time[datetime]')) errs.push('note missing machine-readable date');

@@ -1,25 +1,11 @@
 ---
-// Flagship demo.
-//
-// The visible result is what a plain YouTube embed gives you: the video's own
-// thumbnail with a play button over it. The difference is what loads. A real
-// <iframe> pulls roughly half a megabyte of third-party player script and sets
-// cookies on every single home-page visit, before anyone has asked to watch
-// anything. This fetches just the thumbnail image (~30 KB) and swaps in the
-// real player on click, so the cost is paid by people who actually press play.
-//
-// If YouTube ever stops serving the thumbnail, the onerror handler falls the
-// facade back to a designed title card rather than a broken image.
-//
-// To use a plain always-loaded embed instead, replace this whole component
-// with the iframe markup from crashguard.astro.
-const VIDEO_ID = 'vkzkJGDFFSU';
+// Home-page flagship. The player itself is VideoFacade, shared with the
+// project figures so the two cannot drift apart again.
+import VideoFacade from './VideoFacade.astro';
 
-// maxresdefault is not generated for every upload; hqdefault always is, so it
-// is the fallback before the title card.
-const POSTER = `https://i.ytimg.com/vi/${VIDEO_ID}/maxresdefault.jpg`;
-const POSTER_FALLBACK = `https://i.ytimg.com/vi/${VIDEO_ID}/hqdefault.jpg`;
+const VIDEO_ID = 'vkzkJGDFFSU';
 ---
+
 
 <section class="section flagship">
     <div class="container">
@@ -32,32 +18,12 @@ const POSTER_FALLBACK = `https://i.ytimg.com/vi/${VIDEO_ID}/hqdefault.jpg`;
             presenting live hardware at IEEE SENSORS 2026 in Rotterdam.
         </p>
 
-        <div class="flagship-frame reveal">
-            <button
-                type="button"
-                class="video-facade"
-                data-video-id={VIDEO_ID}
-                aria-label="Play the MYOSA CrashGuard prototype demo video"
-            >
-                <img
-                    class="facade-poster"
-                    src={POSTER}
-                    data-fallback={POSTER_FALLBACK}
-                    alt=""
-                    width="1280"
-                    height="720"
-                    loading="lazy"
-                    decoding="async"
-                    referrerpolicy="no-referrer"
-                />
-                <span class="facade-empty" aria-hidden="true">
-                    <span class="facade-tag">FIG.01</span>
-                    <span class="facade-title">MYOSA CrashGuard</span>
-                </span>
-                <span class="facade-play" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </span>
-            </button>
+        <div class="reveal">
+            <VideoFacade
+                videoId={VIDEO_ID}
+                title="MYOSA CrashGuard"
+                label="Play the MYOSA CrashGuard prototype demo video"
+            />
         </div>
 
         <div class="flagship-actions reveal">
@@ -68,107 +34,6 @@ const POSTER_FALLBACK = `https://i.ytimg.com/vi/${VIDEO_ID}/hqdefault.jpg`;
 </section>
 
 <style>
-    .flagship-frame {
-        margin-top: var(--space-5);
-        border: 1px solid var(--border-strong);
-    }
-
-    .video-facade {
-        position: relative;
-        display: block;
-        width: 100%;
-        aspect-ratio: 16 / 9;
-        padding: 0;
-        border: none;
-        cursor: pointer;
-        background: var(--bg-elev);
-        color: var(--ink);
-        font: inherit;
-        overflow: hidden;
-    }
-
-    .facade-poster {
-        position: absolute;
-        inset: 0;
-        /* Above the fallback card: both are absolutely positioned, and the
-           card comes later in the DOM, so without this it painted on top of
-           the thumbnail. */
-        z-index: 1;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: transform 0.4s var(--ease-out);
-    }
-
-    /* Sits under the poster. Only visible if the thumbnail fails to load, at
-       which point the poster is set to display:none and this becomes the
-       designed empty state instead of a broken image icon. */
-    .facade-empty {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        display: flex;
-        flex-direction: column;
-        /* Bottom-left, not centred: the play control owns the middle of the
-           frame, and centring the title here put the two on top of each
-           other. */
-        align-items: flex-start;
-        justify-content: flex-end;
-        gap: var(--space-2);
-        text-align: left;
-        padding: var(--space-5);
-        background-image:
-            linear-gradient(var(--grid-line) 1px, transparent 1px),
-            linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-        background-size: 32px 32px;
-    }
-
-    .facade-tag {
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        letter-spacing: 1px;
-        color: var(--accent);
-    }
-
-    .facade-title {
-        font-family: var(--font-display);
-        font-size: clamp(1.2rem, 3vw, 1.7rem);
-        font-weight: 600;
-    }
-
-    /* Centred over whichever of the two is showing. The scrim keeps the play
-       control readable over a bright frame of video. */
-    .facade-play {
-        position: absolute;
-        z-index: 2;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 72px;
-        height: 72px;
-        display: grid;
-        place-items: center;
-        background: var(--accent-fill);
-        color: var(--accent-ink);
-        box-shadow: 0 0 0 6px rgba(14, 16, 11, 0.35);
-        transition: transform 0.2s var(--ease-out);
-    }
-
-    .facade-play svg { width: 32px; height: 32px; margin-left: 3px; }
-
-    .video-facade:hover .facade-play,
-    .video-facade:focus-visible .facade-play { transform: translate(-50%, -50%) scale(1.08); }
-
-    .video-facade:hover .facade-poster { transform: scale(1.02); }
-
-    .flagship-frame :global(iframe) {
-        display: block;
-        width: 100%;
-        aspect-ratio: 16 / 9;
-        border: none;
-    }
-
     .flagship-actions {
         display: flex;
         flex-wrap: wrap;
@@ -176,40 +41,5 @@ const POSTER_FALLBACK = `https://i.ytimg.com/vi/${VIDEO_ID}/hqdefault.jpg`;
         margin-top: var(--space-5);
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .facade-play, .facade-poster { transition: none; }
-        .video-facade:hover .facade-play,
-        .video-facade:focus-visible .facade-play { transform: translate(-50%, -50%); }
-        .video-facade:hover .facade-poster { transform: none; }
-    }
+    .flagship :global(.facade-frame) { margin-top: var(--space-5); }
 </style>
-
-<script>
-    // Thumbnail: maxresdefault, then hqdefault, then the designed title card.
-    document.querySelectorAll<HTMLImageElement>('.facade-poster').forEach((img) => {
-        img.addEventListener('error', () => {
-            const next = img.getAttribute('data-fallback');
-            if (next) {
-                img.removeAttribute('data-fallback');
-                img.src = next;
-            } else {
-                img.style.display = 'none';
-            }
-        });
-    });
-
-    // Swap the facade for the real player only once the visitor asks for it.
-    document.querySelectorAll('.video-facade').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const id = btn.getAttribute('data-video-id');
-            if (!id) return;
-            const frame = document.createElement('iframe');
-            frame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
-            frame.title = 'MYOSA CrashGuard work-in-progress prototype demo';
-            frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-            frame.allowFullscreen = true;
-            btn.replaceWith(frame);
-            frame.focus();
-        });
-    });
-</script>

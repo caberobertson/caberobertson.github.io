@@ -1,0 +1,191 @@
+---
+// Click-to-play YouTube facade. One implementation, used by the home-page
+// flagship and by any project whose figure is a video.
+//
+// This exists because it was duplicated. ProjectFigure had its own copy of the
+// facade markup, referencing class names that lived in FlagshipVideo's SCOPED
+// styles and a click handler that lived in FlagshipVideo's component script.
+// Neither reaches a project page, so /projects/face-tracking.html shipped an
+// unstyled button that did nothing when clicked. Scoped styles and hoisted
+// scripts travel with the component that declares them; markup that depends on
+// them has to live in that component too.
+//
+// What it does: shows the video's own YouTube thumbnail, like a plain embed,
+// but injects the ~500 KB player only on click.
+interface Props {
+    videoId: string;
+    /** Shown on the fallback card and used in the iframe title. */
+    title: string;
+    /** Accessible name for the button. */
+    label?: string;
+    /** Extra classes for the wrapper, e.g. a border from the host layout. */
+    frameClass?: string;
+}
+
+const { videoId, title, label, frameClass = '' } = Astro.props;
+
+// maxresdefault is not generated for every upload; hqdefault always is.
+const POSTER = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+const POSTER_FALLBACK = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+---
+
+<div class:list={['facade-frame', frameClass]}>
+    <button
+        type="button"
+        class="video-facade"
+        data-video-id={videoId}
+        data-video-title={title}
+        aria-label={label ?? `Play the ${title} video`}
+    >
+        <img
+            class="facade-poster"
+            src={POSTER}
+            data-fallback={POSTER_FALLBACK}
+            alt=""
+            width="1280"
+            height="720"
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+        />
+        <span class="facade-empty" aria-hidden="true">
+            <span class="facade-tag">FIG.01</span>
+            <span class="facade-title">{title}</span>
+        </span>
+        <span class="facade-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+    </button>
+</div>
+
+<style>
+    .facade-frame { border: 1px solid var(--border-strong); }
+
+    .video-facade {
+        position: relative;
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        padding: 0;
+        border: none;
+        cursor: pointer;
+        background: var(--bg-elev);
+        color: var(--ink);
+        font: inherit;
+        overflow: hidden;
+    }
+
+    /* Above the fallback card, which comes later in the DOM and would
+       otherwise paint over the thumbnail. */
+    .facade-poster {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.4s var(--ease-out);
+    }
+
+    /* Only visible if the thumbnail cannot load, at which point the poster is
+       hidden and this becomes a designed title card, not a broken image. */
+    .facade-empty {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        display: flex;
+        flex-direction: column;
+        /* Bottom-left: the play control owns the middle of the frame. */
+        align-items: flex-start;
+        justify-content: flex-end;
+        gap: var(--space-2);
+        text-align: left;
+        padding: var(--space-5);
+        background-image:
+            linear-gradient(var(--grid-line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+
+    .facade-tag {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 1px;
+        color: var(--accent);
+    }
+
+    .facade-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.2rem, 3vw, 1.7rem);
+        font-weight: 600;
+    }
+
+    .facade-play {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 72px;
+        height: 72px;
+        display: grid;
+        place-items: center;
+        background: var(--accent-fill);
+        color: var(--accent-ink);
+        /* Scrim, so the control reads over a bright frame of video. */
+        box-shadow: 0 0 0 6px rgba(14, 16, 11, 0.35);
+        transition: transform 0.2s var(--ease-out);
+    }
+
+    .facade-play svg { width: 32px; height: 32px; margin-left: 3px; }
+
+    .video-facade:hover .facade-play,
+    .video-facade:focus-visible .facade-play { transform: translate(-50%, -50%) scale(1.08); }
+
+    .video-facade:hover .facade-poster { transform: scale(1.02); }
+
+    .facade-frame :global(iframe) {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .facade-play, .facade-poster { transition: none; }
+        .video-facade:hover .facade-play,
+        .video-facade:focus-visible .facade-play { transform: translate(-50%, -50%); }
+        .video-facade:hover .facade-poster { transform: none; }
+    }
+</style>
+
+<script>
+    // Thumbnail: maxresdefault, then hqdefault, then the designed title card.
+    document.querySelectorAll<HTMLImageElement>('.facade-poster').forEach((img) => {
+        img.addEventListener('error', () => {
+            const next = img.getAttribute('data-fallback');
+            if (next) {
+                img.removeAttribute('data-fallback');
+                img.src = next;
+            } else {
+                img.style.display = 'none';
+            }
+        });
+    });
+
+    // Swap in the real player only once the visitor asks for it.
+    document.querySelectorAll('.video-facade').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-video-id');
+            if (!id) return;
+            const frame = document.createElement('iframe');
+            frame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+            frame.title = btn.getAttribute('data-video-title') || 'Project demo video';
+            frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            frame.allowFullscreen = true;
+            btn.replaceWith(frame);
+            frame.focus();
+        });
+    });
+</script>

@@ -7,6 +7,8 @@ interface Props {
     kind: 'none' | 'image' | 'images' | 'cost' | 'doe' | 'pipeline' | 'video';
     data?: Record<string, any>;
 }
+import VideoFacade from './VideoFacade.astro';
+
 const { kind, data = {} } = Astro.props;
 
 // Bars are drawn to scale against the largest value, so the ratio a reader
@@ -35,15 +37,11 @@ const maxBar = bars.length ? Math.max(...bars.map((b) => b.value)) : 1;
 
 {kind === 'video' && (
     <figure class="pfig">
-        <button type="button" class="video-facade pfig-video" data-video-id={data.videoId}
-                aria-label={`Play: ${data.title ?? 'project demo'}`}>
-            <span class="facade-inner facade-inner--empty" aria-hidden="true">
-                <span class="facade-play">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </span>
-                <span class="facade-note">{data.title}</span>
-            </span>
-        </button>
+        <VideoFacade
+            videoId={data.videoId}
+            title={data.title ?? 'Project demo'}
+            label={`Play: ${data.title ?? 'project demo'}`}
+        />
         {data.caption && <figcaption>{data.caption}</figcaption>}
     </figure>
 )}
@@ -118,7 +116,6 @@ const maxBar = bars.length ? Math.max(...bars.map((b) => b.value)) : 1;
         color: var(--ink-dim);
     }
 
-    .pfig-video { border: 1px solid var(--border-strong); }
 
     /* Cost comparison: drawn to scale so the bar ratio is the data ratio. */
     .cost-chart { border: 1px solid var(--border-strong); padding: var(--space-5); }
