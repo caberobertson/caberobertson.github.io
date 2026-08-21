@@ -12,7 +12,7 @@ const schema = graph(
     {
         '@type': 'Blog',
         name: 'Build Log',
-        description: 'One engineering decision per entry, the evidence behind it, and what it cost to get wrong.',
+        description: 'Short notes on specific engineering decisions, with the measurements behind them.',
         url: 'https://caberobertson.github.io/notes.html',
         author: PERSON_REF,
         blogPost: notes.map((n) => ({
@@ -32,9 +32,9 @@ const fmt = (d: Date) =>
 
 <BaseLayout
     title="Build Log | Cabe Robertson"
-    description="Short engineering notes from Cabe Robertson: one decision per entry, the evidence behind it, and what it cost to get wrong. Sensor calibration, detection thresholds, and field testing."
+    description="Short engineering notes from Cabe Robertson on sensor calibration, detection thresholds, and field testing, each with the measurements behind it."
     ogTitle="Build Log | Cabe Robertson"
-    ogDescription="One engineering decision per entry, the evidence behind it, and what it cost to get wrong."
+    ogDescription="Short notes on specific engineering decisions, with the measurements behind them."
     ogCard="notes"
 >
     <script is:inline type="application/ld+json" slot="head" set:html={schema} />
@@ -47,8 +47,8 @@ const fmt = (d: Date) =>
                     <h1 class="section-title">Build Log</h1>
                 </div>
                 <p class="section-sub reveal in">
-                    One decision per entry: what I got wrong, the evidence that showed it, and what
-                    replaced it. Every note points back at the project page carrying the numbers.
+                    One decision per entry, with the measurements behind it. Every note links back
+                    to the project page the numbers come from.
                 </p>
 
                 <ul class="note-list">

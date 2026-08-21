@@ -7,41 +7,34 @@ project: RF Communication-Jamming Demonstrator
 projectHref: /projects/rf-jamming-demonstrator.html
 ---
 
-The kit worked. Indoors, on a table, it worked every time. Then I took it
-outside for normal testing on an unusually windy day, and the wind knocked it
-over.
+The kit worked indoors, on a table, every time. The first time I took it
+outside for normal testing on an unusually windy day, the wind knocked it over.
+More bench testing would never have found it, and the only reason it did not
+happen in front of a client is that the testing came first.
 
-No amount of additional bench testing would have found that, because the bench
-does not have wind in it. The only reason it never happened in front of a
-client is that the testing came first.
+## Why the obvious fix was wrong
 
-## The constraint that made the obvious fix wrong
+The instinctive answer is mass: add weight and lower the center of gravity. But
+the kit existed to be portable. It replaced a roughly $500 setup with a $219
+one so that more kits could exist and more demonstrations could run in
+parallel, and a kit that takes two people to carry gives that up.
 
-The instinctive answer is mass. Add weight, lower the centre of gravity, done.
-But the entire reason the kit existed was portability: it replaced a roughly
-$500 setup with a $219 one specifically so more kits could exist and more
-demonstrations could run in parallel. A kit you need two people to carry is not
-a cheaper kit, it is a different product.
+So the fix was a lightweight stabilizing change rather than ballast. It held
+through the rest of outdoor testing in high wind with no further tip-overs, and
+the kit was later demonstrated outdoors without one.
 
-So the fix had to be a lightweight stabilizing change rather than ballast. It
-held through the rest of outdoor testing in high wind, with no further
-tip-overs, and the kit went on to be demonstrated outdoors without one.
+## Where the cost actually went
 
-## On where the cost actually went
-
-The $219 figure came from attacking the cost driver, not from shaving a
+The $219 figure came from attacking the cost driver rather than shaving a
 percentage off every line. The expensive elements of the previous setup were
 replaced with parts that could be reordered and rebuilt from a list, and the
 demonstration itself stayed equivalent.
 
-That is worth being precise about, because it bounds the claim: the saving is
-in part selection, not in the RF hardware. It does not generalize to the
-system. The kit also looks less finished than a machined enclosure would, which
-is the tradeoff that was consciously accepted for rebuildability.
+That bounds the claim: the saving is in part selection, not in the RF hardware,
+so it does not generalize to the system. The kit also looks less finished than
+a machined enclosure would, which was the tradeoff accepted for
+rebuildability.
 
-## What I took from it
-
-Test in the environment the thing will actually live in, as early as you can
-get there. The failure modes that matter are the ones your test setup is
-structurally incapable of producing, and you will not reason your way to them
-from a bench.
+Test in the environment the hardware will actually work in, as early as you can
+get there. A bench cannot produce wind, and no amount of bench time
+substitutes.
