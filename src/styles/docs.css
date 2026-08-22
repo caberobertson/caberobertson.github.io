@@ -485,9 +485,10 @@
    page carries the progression rather than only the end state. */
 .demo-figure { margin: var(--space-5) 0 0; }
 
-/* The earlier build is supporting evidence, not the headline. Half width keeps
-   the eye on the current one and stops the panel running to two full screens. */
-.demo-figure--prior { max-width: 480px; margin-top: var(--space-6); }
+/* The earlier build is supporting evidence, so it stays smaller than the
+   current one, but 480px was too small to actually watch. Two thirds keeps the
+   hierarchy and stays comfortably playable. */
+.demo-figure--prior { max-width: 680px; margin-top: var(--space-6); }
 
 .demo-figure figcaption {
     margin-top: 10px;
