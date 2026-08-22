@@ -479,3 +479,24 @@
 @media (prefers-reduced-motion: reduce) {
     .proj-cta svg, .proj-chevron { transition: none; }
 }
+
+/* ---------- Paired demo videos ----------
+   CrashGuard shows the current build and the first iteration together, so the
+   page carries the progression rather than only the end state. */
+.demo-figure { margin: var(--space-5) 0 0; }
+
+/* The earlier build is supporting evidence, not the headline. Half width keeps
+   the eye on the current one and stops the panel running to two full screens. */
+.demo-figure--prior { max-width: 480px; margin-top: var(--space-6); }
+
+.demo-figure figcaption {
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+.demo-figure .fig-num {
+    color: var(--accent);
+    margin-right: 8px;
+}

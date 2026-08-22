@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import VideoFacade from '../components/VideoFacade.astro';
 import { PERSON_REF, breadcrumbs, graph } from '../lib/schema';
 
 // Build-log entries arguing decisions made on this project.
@@ -89,14 +90,29 @@ const schema = graph(
                     <p>The board becomes the "brain" of an in-vehicle guardian. When it detects an impact, a live phone dashboard flashes a ten-second countdown while the onboard buzzer sounds. A conscious occupant taps one big red <strong>CANCEL</strong> button and the system re-arms. If nobody cancels, CrashGuard assumes the occupant is incapacitated and escalates to an AI voice call that reports who they are, where they are, and what a dispatcher needs to know.</p>
                 </article>
 
-                <!-- Prototype video -->
+                <!-- Prototype videos, newest first -->
                 <article id="demo" class="panel reveal" data-delay="1">
                     <span class="panel-tag">Prototype</span>
-                    <h2>Work-in-progress demo</h2>
-                    <p>Current prototype running end to end, impact detection, the cancel countdown on the phone dashboard, and the outbound AI call.</p>
-                    <div class="video-wrapper">
-                        <iframe src="https://www.youtube.com/embed/vkzkJGDFFSU" title="MYOSA CrashGuard work-in-progress prototype demo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    </div>
+                    <h2>Demo</h2>
+                    <p>The build running end to end: impact detection, the cancel countdown on the phone dashboard, and the outbound AI call. The first iteration is below it, for comparison.</p>
+
+                    <figure class="demo-figure">
+                        <VideoFacade
+                            videoId="EEg8c9FayB0"
+                            title="MYOSA CrashGuard"
+                            label="Play the current MYOSA CrashGuard demo"
+                        />
+                        <figcaption><span class="fig-num">LATEST</span> Current build.</figcaption>
+                    </figure>
+
+                    <figure class="demo-figure demo-figure--prior">
+                        <VideoFacade
+                            videoId="vkzkJGDFFSU"
+                            title="CrashGuard, first iteration"
+                            label="Play the first-iteration MYOSA CrashGuard demo"
+                        />
+                        <figcaption><span class="fig-num">FIRST</span> First iteration, kept for comparison.</figcaption>
+                    </figure>
                 </article>
             </div>
         </section>
