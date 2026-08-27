@@ -65,10 +65,7 @@ move-in.
 
 Alongside the floor work I co-authored a **30-page NASA SBIR/STTR (CCRPP)
 proposal** seeking a $2.5M matching award for an autonomous on-orbit inspection
-and repair system, and was selected by company leadership to pitch at the
-**NASA Moon to Mars Summit** (Huntsville, AL, Sept 2026) on licensing NASA's
-VIPIR robotic inspection payload into company flight hardware, competing for a
-$10,000 award.
+and repair system.
 
 ## Limitations and what is next
 
