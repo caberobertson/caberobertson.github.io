@@ -3,7 +3,7 @@ title: EEG Biopotential Signal Analysis
 outcome: Recorded and analyzed my own EEG with a NeuroPawn kit, working hands-on with electrode placement, artifacts, and raw biopotential data.
 status: complete
 period: "2026"
-order: 6
+order: 7
 audiences: [neurotech]
 context: NeuroPawn biopotential kit, demonstrated at the El Paso Science Festival
 tags: [EEG, Biopotential, Electrode Placement, Artifact Rejection, Signal Processing]

@@ -1,6 +1,6 @@
 ---
 title: MYOSA CrashGuard
-outcome: Autonomous crash detection with AI emergency calling. IEEE MYOSA 6.0 finalist, presenting live hardware at IEEE SENSORS 2026.
+outcome: Autonomous crash detection with AI emergency calling. IEEE MYOSA 6.0 finalist, presenting live hardware at IEEE SENSORS 2026 on October 27.
 status: active
 period: "2026"
 order: 1

@@ -3,7 +3,7 @@ title: Autonomous Obstacle Avoidance
 outcome: An obstacle-avoidance control loop refined over repeated trials to a 100% avoidance rate in testing.
 status: complete
 period: "2025"
-order: 8
+order: 9
 audiences: [bigtech, defense]
 tags: [Arduino, C++, Ultrasonic Sensors, Control Logic]
 metrics:

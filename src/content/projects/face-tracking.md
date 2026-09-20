@@ -3,7 +3,7 @@ title: Real-Time Face Tracking
 outcome: A computer-vision pipeline that detects faces and drives pan-tilt servos over serial to keep the subject centered at 30 FPS.
 status: complete
 period: "2025"
-order: 7
+order: 8
 audiences: [bigtech, neurotech]
 tags: [Python, OpenCV, Arduino, Pan-Tilt Servos, Serial]
 metrics:

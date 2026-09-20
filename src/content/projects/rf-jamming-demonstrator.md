@@ -3,7 +3,7 @@ title: RF Communication-Jamming Demonstrator
 outcome: A portable $219 field demonstration kit for an RF jamming system, roughly 56% cheaper than the $500 setup it replaced.
 status: complete
 period: Apr 2025 - Aug 2025
-order: 3
+order: 4
 audiences: [defense]
 context: Syndetix Incorporated
 role: Hardware Engineering Intern

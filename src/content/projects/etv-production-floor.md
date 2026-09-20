@@ -3,7 +3,7 @@ title: Unmanned Systems Production Floor
 outcome: Stood up a company's UAS production floor end to end, from AutoCAD layout to an audit-ready procurement package.
 status: active
 period: Jul 2026 - Present
-order: 2
+order: 3
 audiences: [defense]
 context: Emerging Technology Ventures (ETV America)
 role: Solely responsible for the buildout

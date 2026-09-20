@@ -3,7 +3,7 @@ title: BLDC Blower Characterization and Airflow DoE
 outcome: Reverse-engineered a commercial BLDC blower, added speed control it shipped without, and found a configuration that cut noise ~10 dB while raising airflow 20%.
 status: complete
 period: Mar 2026 - May 2026
-order: 4
+order: 5
 audiences: [bigtech, defense]
 context: GILZ LLC
 role: Electrical Engineering Intern

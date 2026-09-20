@@ -3,7 +3,7 @@ title: FPGA Seven-Segment Display Driver
 outcome: A VHDL display driver decoding all 16 BCD/HEX inputs, with the Boolean logic minimized by hand.
 status: complete
 period: "2025"
-order: 9
+order: 10
 audiences: [bigtech]
 tags: [VHDL, FPGA, Digital Logic, Karnaugh Maps]
 metrics:
