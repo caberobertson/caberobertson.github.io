@@ -61,9 +61,13 @@ const findChromium = () => {
     if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
     const base = process.env.PLAYWRIGHT_BROWSERS_PATH;
     if (!base || !fs.existsSync(base)) return undefined;
+    // The layout differs between browser builds: older ones use chrome-linux,
+    // newer ones chrome-linux64. Check both rather than pinning one.
     for (const dir of fs.readdirSync(base)) {
-        const candidate = path.join(base, dir, 'chrome-linux', 'chrome');
-        if (fs.existsSync(candidate)) return candidate;
+        for (const sub of ['chrome-linux', 'chrome-linux64']) {
+            const candidate = path.join(base, dir, sub, 'chrome');
+            if (fs.existsSync(candidate)) return candidate;
+        }
     }
     return undefined;
 };

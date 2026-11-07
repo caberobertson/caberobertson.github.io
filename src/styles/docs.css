@@ -501,3 +501,47 @@
     color: var(--accent);
     margin-right: 8px;
 }
+
+/* Won, not in progress. Same shape as .wip-badge so the header reads
+   consistently, in the signal colour and without the pulsing dot. */
+.win-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    vertical-align: middle;
+    margin-left: 10px;
+    padding: 3px 10px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.win-badge::before { content: '\2605'; font-size: 0.8rem; line-height: 1; }
+
+/* Certificate and stage shot side by side; both are portrait, so a single
+   column would run the panel on for two screens. */
+.award-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    align-items: start;
+}
+
+.award-grid .figure { margin-top: var(--space-5); }
+
+/* The certificate is 3:4 and the stage shot is much taller, so side by side
+   they left a ragged gap. One shared ratio, cropped, keeps the row even; the
+   stage crop is biased upward so the people stay in frame. */
+.award-grid .figure img { aspect-ratio: 3 / 4; object-fit: cover; }
+.award-grid .figure:last-child img { object-position: center 38%; }
+
+@media (max-width: 680px) {
+    .award-grid { grid-template-columns: 1fr; }
+    .win-badge { margin-left: 0; margin-top: 8px; }
+}

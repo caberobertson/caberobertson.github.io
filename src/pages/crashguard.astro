@@ -15,9 +15,9 @@ const schema = graph(
         description: 'Autonomous crash detection with AI emergency calling, built on ESP32 and MPU6050 with a BLE link, a Flask call server, and a Twilio voice interface.',
         url: 'https://caberobertson.github.io/crashguard.html',
         author: PERSON_REF,
-        creativeWorkStatus: 'In progress',
+        
         keywords: 'ESP32, MPU6050, sensor fusion, BLE, Twilio Voice, crash detection, IEEE MYOSA',
-        award: 'IEEE MYOSA 6.0 finalist, 1 of 7 teams worldwide',
+        award: 'IEEE SENSORS 2026 MYOSA Competition Master Award, first place',
         // A VideoObject node is deliberately omitted: schema.org requires
         // uploadDate for it to be eligible for rich results, and inventing a
         // date to satisfy a validator is exactly the kind of unverifiable
@@ -33,7 +33,7 @@ const schema = graph(
 
 <BaseLayout
     title="MYOSA CrashGuard | Cabe Robertson"
-    description="MYOSA CrashGuard, IEEE MYOSA 6.0 finalist. Autonomous crash detection with AI emergency calling: ESP32/MPU6050 sensor fusion, BLE, Flask, and Twilio voice. Presenting live hardware at IEEE SENSORS 2026, Rotterdam."
+    description="MYOSA CrashGuard, winner of the IEEE SENSORS 2026 MYOSA Competition Master Award. Autonomous crash detection with AI emergency calling: ESP32/MPU6050 sensor fusion, BLE, Flask, and Twilio voice. Presented at IEEE SENSORS 2026, Rotterdam."
     ogTitle="MYOSA CrashGuard | Cabe Robertson"
     ogDescription="Autonomous crash detection with AI emergency calling, built on ESP32, BLE, Twilio Voice, and a grounded Claude dispatcher agent, demoed on an RC car."
     ogType="article"
@@ -48,14 +48,15 @@ const schema = graph(
                 <a href="/projects.html" class="doc-back">&larr; Back to Projects</a>
                 <div class="section-head reveal in">
                     <span class="section-index">00</span>
-                    <h1 class="section-title">MYOSA CrashGuard <span class="wip-badge">In Progress</span></h1>
+                    <h1 class="section-title">MYOSA CrashGuard <span class="win-badge">First Place</span></h1>
                 </div>
                 <p class="section-sub reveal in">Autonomous crash detection with AI emergency calling, an OnStar-style guardian built on the MYOSA Mini kit and demonstrated on an RC car.</p>
 
                 <div class="chip-row reveal in">
-                    <span class="chip"><strong>1 of 15</strong> teams selected worldwide</span>
-                    <span class="chip"><strong>1 of 7</strong> advanced to the final round</span>
-                    <span class="chip">Live demo <strong>Oct 27, 2026</strong> &middot; IEEE SENSORS 2026, Rotterdam, Netherlands</span>
+                    <span class="chip"><strong>Master Award</strong>, first place</span>
+                    <span class="chip"><strong>225+</strong> ideas from <strong>17</strong> countries</span>
+                    <span class="chip"><strong>16</strong> finalists reached the conference</span>
+                    <span class="chip">IEEE SENSORS 2026 &middot; Rotterdam, Oct 25&ndash;28</span>
                 </div>
 
                 <ul class="artifact-row reveal in">
@@ -65,13 +66,41 @@ const schema = graph(
                 </ul>
 
                 <p class="doc-meta reveal in">
-                    <strong>Competition:</strong> IEEE Sensors Council MYOSA 6.0 (2026) &middot; Finalist &middot; New Mexico State University<br>
+                    <strong>Award:</strong> MYOSA Competition Master Award, first place &middot; IEEE SENSORS 2026<br>
+                    <strong>Competition:</strong> IEEE Sensors Council MYOSA 6.0 &middot; New Mexico State University<br>
                     <strong>Selected:</strong> Demo slot awarded on panel review of the team's project blog, Sept 2026<br>
-                    <strong>Presenting:</strong> October 27, 2026 &middot; IEEE SENSORS 2026, Rotterdam, Netherlands<br>
-                    <strong>Team:</strong> Aidan Garcia, Jacob Randall, Cabe Robertson, Vu Ha Nguyen<br>
+                    <strong>Presented:</strong> IEEE SENSORS 2026, Rotterdam, Netherlands, October 25&ndash;28, 2026<br>
+                    <strong>Team:</strong> NMSU VSS 1.0 &middot; Aidan Garcia, Jacob Randall, Cabe Robertson, Vu Ha Nguyen<br>
                     <strong>My role:</strong> Team lead, stack architecture &amp; test methodology<br>
                     <strong>Faculty mentor:</strong> Dr. Lavrova &middot; Klipsch School of Electrical &amp; Computer Engineering
                 </p>
+
+                <article class="panel reveal award-panel">
+                    <span class="panel-tag accent">&sect; Result</span>
+                    <h2>First place at IEEE SENSORS 2026</h2>
+                    <p>
+                        CrashGuard won the <strong>MYOSA Competition Master Award</strong> at IEEE
+                        SENSORS 2026 in Rotterdam, presented to team NMSU VSS 1.0. MYOSA 6.0 drew
+                        more than 225 submitted ideas from 17 countries; over 50 projects were
+                        evaluated and 16 teams reached the conference.
+                    </p>
+
+                    <div class="award-grid">
+                        <figure class="figure">
+                            <img src="/award-certificate.jpg" alt="Certificate reading IEEE SENSORS 2026 MYOSA Competition Master Award, presented to team NMSU VSS 1.0, New Mexico State University" loading="lazy" decoding="async" width="1200" height="1600">
+                            <figcaption><span class="fig-num">FIG.A</span> The award, presented to team NMSU VSS 1.0.</figcaption>
+                        </figure>
+                        <figure class="figure">
+                            <img src="/award-stage.jpg" alt="Cabe Robertson accepting the MYOSA Master Award on stage at IEEE SENSORS 2026" loading="lazy" decoding="async" width="1100" height="1956">
+                            <figcaption><span class="fig-num">FIG.B</span> Accepting the award at the conference.</figcaption>
+                        </figure>
+                    </div>
+
+                    <figure class="figure">
+                        <img src="/myosa-numbers.jpg" alt="IEEE Sensors Council slide titled MYOSA 6.0 in numbers, showing 225 plus ideas received, 17 countries involved, 50 plus projects evaluated, and 16 finalists" loading="lazy" decoding="async" width="1400" height="782">
+                        <figcaption><span class="fig-num">FIG.C</span> The competition's scale, from the organisers' closing recap.</figcaption>
+                    </figure>
+                </article>
 
                 <article class="panel reveal">
                     <span class="panel-tag">My role</span>
@@ -447,7 +476,7 @@ const schema = graph(
 
                 <article class="panel reveal">
                     <span class="panel-tag">Roadmap</span>
-                    <p>The full chain (detection, cancel window, BLE alert, AI call, map lookups, and incident reporting) runs end to end on the prototype above. Work continues on hardening it for the October 27 demonstration and extending the system:</p>
+                    <p>The full chain (detection, cancel window, BLE alert, AI call, map lookups, and incident reporting) runs end to end on the prototype above. The system ran end to end at the conference. Work that remains, if the project is carried further:</p>
                     <ul class="doc-list">
                         <li><strong>Rollover detection</strong> from the gravity vector already computed at calibration, by detecting when the measured gravity direction inverts. No new sensor data is required.</li>
                         <li><strong>Phone app to replace the laptop bridge</strong>, which would bring real phone GPS into the alert</li>

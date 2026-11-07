@@ -25,7 +25,7 @@ export const OG_CARDS: OgCard[] = [
         kicker: 'Electrical Engineering',
         title: 'Cabe Robertson',
         subtitle: 'RF, embedded and sensor-fusion hardware. Seeking a Summer 2027 internship.',
-        facts: ['IEEE MYOSA 6.0 finalist', 'U.S. Person, ITAR/EAR eligible', 'Grad Dec 2027'],
+        facts: ['1st place, IEEE MYOSA 6.0', 'U.S. Person, ITAR/EAR eligible', 'Grad Dec 2027'],
     },
     {
         slug: 'projects',
@@ -36,7 +36,7 @@ export const OG_CARDS: OgCard[] = [
     },
     {
         slug: 'crashguard',
-        kicker: 'Flagship · IEEE MYOSA 6.0 finalist',
+        kicker: 'Flagship · 1st place, IEEE MYOSA 6.0',
         title: 'MYOSA CrashGuard',
         subtitle: 'Autonomous crash detection with AI emergency calling, on ESP32 and MPU6050.',
         facts: ['5.0 g dynamic trigger', '100 Hz sampling', '10 s cancel window'],
