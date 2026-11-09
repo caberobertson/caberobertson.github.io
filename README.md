@@ -34,7 +34,7 @@ src/
     docs.css                   documentation & recruiter-panel components
 public/                        copied verbatim into dist/: resume PDF, photos,
                                plots, CSV templates, and the standalone
-                               caption-app / finger-piano / hotdog-dimension
+                               caption-app / finger-piano / hand-portal / hotdog-dimension
                                pages (self-contained, own CSS)
 tests/smoke.js                 DOM smoke test, runs against dist/
 ```
