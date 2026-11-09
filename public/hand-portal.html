@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <title>Hand Portal, Live Camera Filter</title>
-  <meta name="description" content="Frame a bowtie with your thumbs and index fingers and everything inside it turns thermal, live, in your phone's camera.">
+  <meta name="description" content="Make any shape with your hands and everything inside it turns thermal, live, in your phone's camera.">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -142,10 +142,10 @@
 <canvas id="fx"></canvas>
 
 <div class="top">
-  <div class="brand">Hand Portal<small>bowtie your fingers</small></div>
+  <div class="brand">Hand Portal<small>frame any shape with your hands</small></div>
   <div class="rec-badge" id="recBadge">0:00</div>
 </div>
-<div class="hint" id="hint">Show both hands: thumbs + index fingers</div>
+<div class="hint" id="hint">Make a shape with your hands</div>
 
 <div class="bottom">
   <div class="chips" id="filters" role="group" aria-label="Filter">
@@ -156,15 +156,15 @@
     <button type="button" class="chip" data-mode="4" aria-pressed="false">Neon Edge</button>
   </div>
   <div class="row">
-    <button type="button" class="icon-btn" id="shapeBtn" aria-label="Change shape">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 5 L21 19 L21 5 L3 19 Z"/></svg>
+    <button type="button" class="icon-btn" id="shapeBtn" aria-label="Put the effect inside or outside your shape">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 6c3 0 6 2.5 6 6s-3 6-6 6z" fill="currentColor"/></svg>
     </button>
     <button type="button" class="shutter" id="shutter" aria-label="Tap for photo, hold to record"><span></span></button>
     <button type="button" class="icon-btn" id="flipBtn" aria-label="Flip camera">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/><path d="M9 13a3 3 0 0 1 5-2.2M15 13a3 3 0 0 1-5 2.2"/><path d="M14 9v2h-2M10 17v-2h2"/></svg>
     </button>
   </div>
-  <div class="mode-switch" id="shapeLabel">Shape: <b>Bowtie</b> · tap shutter for photo, hold to record</div>
+  <div class="mode-switch" id="shapeLabel">Effect: <b>Inside</b> · tap shutter for photo, hold to record</div>
 </div>
 
 <div class="gate" id="gate">
@@ -179,7 +179,7 @@
       <path d="M12 6 L128 84 L132 14 L8 80 Z" fill="url(#g)" stroke="#fffbd0" stroke-width="2" stroke-linejoin="round"/>
     </svg>
     <h1>Hand Portal</h1>
-    <p>Make an L with each hand: thumbs and index fingers. The bowtie between them turns into a live thermal window.</p>
+    <p>Make any shape with your hands: a heart, a circle, a frame, a diamond, a pinch. Whatever your fingers enclose turns into a live thermal window.</p>
     <button type="button" class="go" id="goBtn">Start camera</button>
     <div class="err" id="err"></div>
   </div>
@@ -197,25 +197,23 @@ const video = $('cam'), fx = $('fx');
 const hint = $('hint'), gate = $('gate'), goBtn = $('goBtn'), errEl = $('err');
 
 let landmarker = null, stream = null, facing = 'user';
-let filterMode = 0, shape = 'bowtie';
+let filterMode = 0, invert = false;
 let lastVideoTime = -1, lastT = 0, result = null;
 let W = 0, H = 0, DPR = 1;
 
-/* ─── shape state, smoothed ─────────────────── */
-const pts = [null, null, null, null];   // smoothed canvas-space vertices
-let alpha = 0;                          // fade in/out of the portal
 let handsSeen = false;
-let lastTarget = null, lastSeen = -1e9;
 
 /* ═══════════════════════════════════════════════
    WebGL filter pass: renders the whole frame with the
-   effect, then the 2D canvas clips it to the hand shape.
+   effect, cut to the hand-shape mask with a glowing edge.
    ═══════════════════════════════════════════════ */
-const gl = fx.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true });
+const gl = fx.getContext('webgl', { premultipliedAlpha: true, preserveDrawingBuffer: true });
 const VS = `attribute vec2 p; varying vec2 uv;
   void main(){ uv = p*.5+.5; uv.y = 1.-uv.y; gl_Position = vec4(p,0.,1.); }`;
 const FS = `precision mediump float;
-  varying vec2 uv; uniform sampler2D tex; uniform float t; uniform int mode; uniform vec2 px;
+  varying vec2 uv; uniform sampler2D tex; uniform sampler2D mask;
+  uniform float t; uniform int mode; uniform vec2 px; uniform vec2 mpx; uniform float inv;
+  float M(vec2 u){ float m = texture2D(mask,u).r; return mix(m, 1.-m, inv); }
   float lum(vec3 c){ return dot(c, vec3(.299,.587,.114)); }
   vec3 hsv(float h,float s,float v){ vec3 k=clamp(abs(mod(h*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.); return v*mix(vec3(1.),k,s); }
   vec3 thermal(float x){
@@ -256,7 +254,21 @@ const FS = `precision mediump float;
       float e = smoothstep(.04,.25,edge(uv));
       o = hsv(fract(uv.x*.6+uv.y*.4+t*.15),1.,1.)*e*1.4 + c*.12;
     }
-    gl_FragColor = vec4(o,1.);
+    // shape mask (soft, temporally smoothed on the CPU) + light-leak glow
+    float m = smoothstep(.2,.8,M(uv));
+    float b = 0.;
+    for(int i=0;i<12;i++){
+      float a = float(i)*.5236;
+      vec2 d = vec2(cos(a),sin(a));
+      b += M(uv+d*mpx*4.) + M(uv+d*mpx*9.);
+    }
+    b /= 24.;
+    float glow = smoothstep(0.,.55,b)*(1.-m);
+    float rim = smoothstep(.15,.5,m)*(1.-smoothstep(.5,.95,m))*1.4;
+    vec3 gc = vec3(1.,.97,.72);
+    float ga = clamp(glow*.85 + rim, 0., 1.);
+    float A = clamp(m + ga*(1.-m) + rim*.5, 0., 1.);
+    gl_FragColor = vec4(min(o*m + gc*ga*(1.-m*.5), vec3(A)), A);
   }`;
 
 function compile(type, src) {
@@ -273,13 +285,22 @@ gl.bindBuffer(gl.ARRAY_BUFFER, buf);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
 const aP = gl.getAttribLocation(prog, 'p');
 gl.enableVertexAttribArray(aP); gl.vertexAttribPointer(aP, 2, gl.FLOAT, false, 0, 0);
-const tex = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, tex);
-for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR],
-                      [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]])
-  gl.texParameteri(gl.TEXTURE_2D, k, v);
+function makeTex(unit) {
+  const t = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0 + unit);
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR],
+                        [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]])
+    gl.texParameteri(gl.TEXTURE_2D, k, v);
+  return t;
+}
+const tex = makeTex(0), maskTex = makeTex(1);
+gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+gl.uniform1i(gl.getUniformLocation(prog, 'tex'), 0);
+gl.uniform1i(gl.getUniformLocation(prog, 'mask'), 1);
 const uT = gl.getUniformLocation(prog, 't'), uMode = gl.getUniformLocation(prog, 'mode'),
-      uPx = gl.getUniformLocation(prog, 'px');
+      uPx = gl.getUniformLocation(prog, 'px'), uMpx = gl.getUniformLocation(prog, 'mpx'),
+      uInv = gl.getUniformLocation(prog, 'inv');
 
 function renderFx(time) {
   const vw = video.videoWidth, vh = video.videoHeight;
@@ -287,7 +308,13 @@ function renderFx(time) {
   const fw = Math.round(vw * s), fh = Math.round(vh * s);
   if (fx.width !== fw || fx.height !== fh) { fx.width = fw; fx.height = fh; }
   gl.viewport(0, 0, fw, fh);
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.activeTexture(gl.TEXTURE0);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, mw, mh, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, maskBytes);
+  gl.uniform2f(uMpx, 1 / mw, 1 / mh);
+  gl.uniform1f(uInv, invert ? 1 : 0);
   gl.uniform1f(uT, time / 1000);
   gl.uniform1i(uMode, filterMode);
   gl.uniform2f(uPx, 1.5 / fw, 1.5 / fh);
@@ -361,28 +388,99 @@ function fit() {
 }
 
 /* ═══════════════════════════════════════════════
-   Hand geometry
-   For each hand take thumb tip (4) and index tip (8),
-   order them top/bottom. With hands A (left) and B (right):
-     bowtie = A.top → A.bot → B.top → B.bot   (diagonals cross)
-     frame  = A.top → B.top → B.bot → A.bot
+   Hand shape → mask
+   Draw both hands as solid "walls" (finger bones + palm)
+   into a small grid, add bridges where fingertips meet the
+   other hand, then flood-fill from the border. Anything the
+   fill can't reach is a hole your hands enclose: a heart, a
+   circle, a frame, a pinch... any shape. That hole is the
+   window the effect shows through.
    ═══════════════════════════════════════════════ */
-function targetShape(f) {
-  if (!result?.landmarks || result.landmarks.length < 2) return null;
-  const hands = result.landmarks.slice(0, 2).map(lm => {
-    const a = { x: f.x + lm[4].x * f.w, y: f.y + lm[4].y * f.h };
-    const b = { x: f.x + lm[8].x * f.w, y: f.y + lm[8].y * f.h };
-    return a.y < b.y ? { top: a, bot: b, cx: (a.x + b.x) / 2 } : { top: b, bot: a, cx: (a.x + b.x) / 2 };
-  }).sort((p, q) => p.cx - q.cx);
-  const [A, B] = hands;
-  return shape === 'bowtie' ? [A.top, A.bot, B.top, B.bot] : [A.top, B.top, B.bot, A.bot];
-}
+const BONES = [[0,1],[1,2],[2,3],[3,4],[5,6],[6,7],[7,8],[9,10],[10,11],[11,12],
+               [13,14],[14,15],[15,16],[17,18],[18,19],[19,20]];
+const PALM = [0, 1, 5, 9, 13, 17];
+const GRID = 160;                                   // long side of the mask grid
+const maskCv = document.createElement('canvas');
+const mctx = maskCv.getContext('2d', { willReadFrequently: true });
+let mw = 0, mh = 0, soft, maskBytes, seen, queue, maskPeak = 0;
 
-function tracePath(p) {
-  ctx.beginPath();
-  ctx.moveTo(p[0].x, p[0].y);
-  for (let i = 1; i < p.length; i++) ctx.lineTo(p[i].x, p[i].y);
-  ctx.closePath();
+function buildMask(dt) {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const nw = vw >= vh ? GRID : Math.round(GRID * vw / vh);
+  const nh = vw >= vh ? Math.round(GRID * vh / vw) : GRID;
+  if (nw !== mw || nh !== mh) {
+    mw = maskCv.width = nw; mh = maskCv.height = nh;
+    soft = new Float32Array(mw * mh); maskBytes = new Uint8Array(mw * mh);
+    seen = new Uint8Array(mw * mh); queue = new Int32Array(mw * mh);
+  }
+  const hands = result?.landmarks ?? [];
+  const n = mw * mh;
+  seen.fill(0);
+
+  if (hands.length) {
+    mctx.clearRect(0, 0, mw, mh);
+    mctx.strokeStyle = mctx.fillStyle = '#fff';
+    mctx.lineCap = mctx.lineJoin = 'round';
+    mctx.lineWidth = Math.max(2, Math.max(mw, mh) * .016);
+    const P = (lm, i) => [lm[i].x * mw, lm[i].y * mh];
+    const line = (a, b) => { mctx.beginPath(); mctx.moveTo(a[0], a[1]); mctx.lineTo(b[0], b[1]); mctx.stroke(); };
+    for (const lm of hands) {
+      mctx.beginPath();
+      PALM.forEach((i, j) => j ? mctx.lineTo(...P(lm, i)) : mctx.moveTo(...P(lm, i)));
+      mctx.closePath(); mctx.fill(); mctx.stroke();
+      for (const [a, b] of BONES) line(P(lm, a), P(lm, b));
+    }
+    if (hands.length >= 2) {
+      // close the loop between the two hands, pairing tips the short way
+      const [A, B] = hands;
+      const d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+      const at = P(A, 4), ai = P(A, 8), bt = P(B, 4), bi = P(B, 8);
+      if (d(at, bt) + d(ai, bi) <= d(at, bi) + d(ai, bt)) { line(at, bt); line(ai, bi); }
+      else { line(at, bi); line(ai, bt); }
+    } else {
+      // one hand: the gap between thumb and index (pinch / C-shape)
+      line(P(hands[0], 4), P(hands[0], 8));
+    }
+    const px = mctx.getImageData(0, 0, mw, mh).data;
+    for (let i = 0; i < n; i++) if (px[i * 4 + 3] > 60) seen[i] = 2;   // wall
+
+    // flood fill the outside from every border cell
+    let qh = 0, qt = 0;
+    const push = (i) => { if (!seen[i]) { seen[i] = 1; queue[qt++] = i; } };
+    for (let x = 0; x < mw; x++) { push(x); push((mh - 1) * mw + x); }
+    for (let y = 0; y < mh; y++) { push(y * mw); push(y * mw + mw - 1); }
+    while (qh < qt) {
+      const i = queue[qh++], x = i % mw;
+      if (x > 0) push(i - 1);
+      if (x < mw - 1) push(i + 1);
+      if (i >= mw) push(i - mw);
+      if (i < n - mw) push(i + mw);
+    }
+
+    // drop specks (gaps between knuckles etc.): keep holes over ~1% of the frame
+    const minArea = n * .01;
+    for (let s0 = 0; s0 < n; s0++) {
+      if (seen[s0]) continue;
+      let qh2 = 0, qt2 = 0;
+      seen[s0] = 3; queue[qt2++] = s0;
+      while (qh2 < qt2) {
+        const i = queue[qh2++], x = i % mw;
+        for (const j of [x > 0 ? i - 1 : -1, x < mw - 1 ? i + 1 : -1, i - mw, i + mw])
+          if (j >= 0 && j < n && !seen[j]) { seen[j] = 3; queue[qt2++] = j; }
+      }
+      if (qt2 < minArea) for (let q = 0; q < qt2; q++) seen[queue[q]] = 1;
+    }
+  }
+
+  // hole = enclosed region that survived; ease toward it so edges glide
+  const k = 1 - Math.exp(-dt * 16);
+  maskPeak = 0;
+  for (let i = 0; i < n; i++) {
+    const target = hands.length && seen[i] === 3 ? 1 : 0;
+    const v = soft[i] += (target - soft[i]) * k;
+    maskBytes[i] = v * 255;
+    if (v > maskPeak) maskPeak = v;
+  }
 }
 
 /* ═══════════════════════════════════════════════
@@ -406,46 +504,14 @@ function loop(now) {
   if (mirror) ctx.setTransform(-1, 0, 0, 1, W, 0);
   ctx.drawImage(video, f.x, f.y, f.w, f.h);
 
-  // smooth vertices toward their targets, fade portal in/out
-  // brief grace period so a one-frame tracking dropout doesn't blink the portal
-  let target = targetShape(f);
-  if (target) { lastTarget = target; lastSeen = now; }
-  else if (now - lastSeen < 220) target = lastTarget;
-  const k = 1 - Math.exp(-dt * 22);
-  if (target) {
-    for (let i = 0; i < 4; i++) {
-      if (!pts[i] || alpha < .02) pts[i] = { ...target[i] };
-      else { pts[i].x += (target[i].x - pts[i].x) * k; pts[i].y += (target[i].y - pts[i].y) * k; }
-    }
-  }
-  alpha += ((target ? 1 : 0) - alpha) * (1 - Math.exp(-dt * (target ? 14 : 6)));
-  if ((alpha > .5) !== handsSeen) { handsSeen = alpha > .5; hint.classList.toggle('hide', handsSeen); }
+  buildMask(dt);
+  const showing = maskPeak > .5;
+  if (showing !== handsSeen) { handsSeen = showing; hint.classList.toggle('hide', showing); }
 
-  if (pts[0] && alpha > .01) {
+  // the effect is a live layer over the camera, cut to your hand shape
+  if (maskPeak > .01 || invert) {
     renderFx(now);
-
-    // filtered video, clipped to the hand shape
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    tracePath(pts); ctx.clip();
     ctx.drawImage(fx, f.x, f.y, f.w, f.h);
-    ctx.restore();
-
-    // soft outer glow, like a light leak around the edges
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.lineJoin = 'round';
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.shadowColor = 'rgba(255, 248, 170, .95)';
-    ctx.shadowBlur = 34 * DPR;
-    ctx.strokeStyle = 'rgba(255, 252, 205, .55)';
-    ctx.lineWidth = 6 * DPR;
-    tracePath(pts); ctx.stroke();
-    ctx.shadowBlur = 12 * DPR;
-    ctx.strokeStyle = 'rgba(255, 255, 230, .8)';
-    ctx.lineWidth = 2 * DPR;
-    tracePath(pts); ctx.stroke();
-    ctx.restore();
   }
 }
 
@@ -459,10 +525,8 @@ $('filters').addEventListener('click', (e) => {
 });
 
 $('shapeBtn').addEventListener('click', () => {
-  shape = shape === 'bowtie' ? 'frame' : 'bowtie';
-  $('shapeLabel').firstElementChild.textContent = shape === 'bowtie' ? 'Bowtie' : 'Frame';
-  $('shapeBtn').querySelector('path').setAttribute('d',
-    shape === 'bowtie' ? 'M3 5 L21 19 L21 5 L3 19 Z' : 'M4 5 L20 5 L20 19 L4 19 Z');
+  invert = !invert;
+  $('shapeLabel').firstElementChild.textContent = invert ? 'Outside' : 'Inside';
 });
 
 $('flipBtn').addEventListener('click', async () => {
