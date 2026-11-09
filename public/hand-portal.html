@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Hand Portal, Live Camera Filter</title>
+  <meta name="description" content="Frame a bowtie with your thumbs and index fingers and everything inside it turns thermal, live, in your phone's camera.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #000;
+      --ink: #f4f6ee;
+      --dim: rgba(244, 246, 238, .62);
+      --glass: rgba(18, 20, 16, .58);
+      --glass-line: rgba(255, 255, 255, .14);
+      --accent: #f6ff8a;
+      --rec: #ff4d5e;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #000; }
+    video, #fx { display: none; }
+
+    /* ── top bar ─────────────────────────────── */
+    .top {
+      position: fixed; left: 0; right: 0; top: 0;
+      padding: calc(env(safe-area-inset-top) + 12px) 16px 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: linear-gradient(to bottom, rgba(0,0,0,.55), transparent);
+      pointer-events: none;
+    }
+    .top > * { pointer-events: auto; }
+    .brand { font-weight: 700; letter-spacing: .3px; font-size: 1.05rem; }
+    .brand small { display: block; font-weight: 500; font-size: .72rem; color: var(--dim); letter-spacing: 0; }
+    .hint {
+      position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 72px);
+      transform: translateX(-50%);
+      padding: 8px 14px; border-radius: 999px;
+      background: var(--glass); border: 1px solid var(--glass-line);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      font-size: .82rem; white-space: nowrap;
+      transition: opacity .35s;
+      pointer-events: none;
+    }
+    .hint.hide { opacity: 0; }
+
+    .rec-badge {
+      display: none; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 999px; background: var(--rec);
+      font-size: .8rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .rec-badge.on { display: inline-flex; }
+    .rec-badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: .2; } }
+
+    /* ── bottom controls ─────────────────────── */
+    .bottom {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      padding: 14px 16px calc(env(safe-area-inset-bottom) + 18px);
+      background: linear-gradient(to top, rgba(0,0,0,.7), transparent);
+      display: flex; flex-direction: column; gap: 14px; align-items: center;
+    }
+    .chips {
+      display: flex; gap: 8px; max-width: 100%;
+      overflow-x: auto; scrollbar-width: none; padding: 2px;
+    }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip {
+      flex: none; border: 1px solid var(--glass-line); background: var(--glass);
+      color: var(--ink); font: inherit; font-size: .84rem; font-weight: 600;
+      padding: 8px 14px; border-radius: 999px; cursor: pointer;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .chip[aria-pressed="true"] { background: var(--ink); color: #000; border-color: var(--ink); }
+
+    .row { display: flex; align-items: center; justify-content: center; gap: 28px; width: 100%; }
+    .icon-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 1px solid var(--glass-line); background: var(--glass); color: var(--ink);
+      display: grid; place-items: center; cursor: pointer;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .icon-btn svg { width: 22px; height: 22px; }
+    .shutter {
+      width: 74px; height: 74px; border-radius: 50%;
+      border: 4px solid #fff; background: transparent; cursor: pointer;
+      display: grid; place-items: center; padding: 0;
+    }
+    .shutter span {
+      width: 58px; height: 58px; border-radius: 50%; background: #fff;
+      transition: all .2s;
+    }
+    .shutter.recording span { width: 28px; height: 28px; border-radius: 7px; background: var(--rec); }
+    .mode-switch { font-size: .74rem; color: var(--dim); text-align: center; }
+    .mode-switch b { color: var(--ink); }
+
+    /* ── start overlay ───────────────────────── */
+    .gate {
+      position: fixed; inset: 0; display: grid; place-items: center;
+      padding: 24px 16px; text-align: center;
+      background:
+        radial-gradient(60% 45% at 50% 40%, rgba(120, 60, 255, .35), transparent 70%),
+        radial-gradient(50% 40% at 60% 65%, rgba(0, 255, 160, .18), transparent 70%),
+        #050505;
+      z-index: 5;
+    }
+    .gate.hidden { display: none; }
+    .gate-inner { max-width: 360px; display: flex; flex-direction: column; gap: 18px; align-items: center; }
+    .gate h1 { font-size: 2rem; line-height: 1.1; letter-spacing: -.5px; }
+    .gate p { color: var(--dim); font-size: .95rem; line-height: 1.5; }
+    .bowtie { width: 140px; height: 90px; filter: drop-shadow(0 0 14px rgba(255, 250, 170, .8)); }
+    .go {
+      font: inherit; font-weight: 700; font-size: 1rem;
+      padding: 14px 28px; border-radius: 999px; border: 0;
+      background: var(--accent); color: #111; cursor: pointer;
+    }
+    .go:disabled { opacity: .6; }
+    .err { color: #ff8f8f; font-size: .85rem; min-height: 1.2em; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 190px);
+      transform: translateX(-50%); padding: 8px 14px; border-radius: 10px;
+      background: rgba(0,0,0,.75); font-size: .85rem; opacity: 0; transition: opacity .25s;
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+<video id="cam" playsinline muted></video>
+<canvas id="fx"></canvas>
+
+<div class="top">
+  <div class="brand">Hand Portal<small>bowtie your fingers</small></div>
+  <div class="rec-badge" id="recBadge">0:00</div>
+</div>
+<div class="hint" id="hint">Show both hands: thumbs + index fingers</div>
+
+<div class="bottom">
+  <div class="chips" id="filters" role="group" aria-label="Filter">
+    <button type="button" class="chip" data-mode="0" aria-pressed="true">Thermal</button>
+    <button type="button" class="chip" data-mode="1" aria-pressed="false">Prism</button>
+    <button type="button" class="chip" data-mode="2" aria-pressed="false">X-Ray</button>
+    <button type="button" class="chip" data-mode="3" aria-pressed="false">Glitch</button>
+    <button type="button" class="chip" data-mode="4" aria-pressed="false">Neon Edge</button>
+  </div>
+  <div class="row">
+    <button type="button" class="icon-btn" id="shapeBtn" aria-label="Change shape">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 5 L21 19 L21 5 L3 19 Z"/></svg>
+    </button>
+    <button type="button" class="shutter" id="shutter" aria-label="Tap for photo, hold to record"><span></span></button>
+    <button type="button" class="icon-btn" id="flipBtn" aria-label="Flip camera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/><path d="M9 13a3 3 0 0 1 5-2.2M15 13a3 3 0 0 1-5 2.2"/><path d="M14 9v2h-2M10 17v-2h2"/></svg>
+    </button>
+  </div>
+  <div class="mode-switch" id="shapeLabel">Shape: <b>Bowtie</b> · tap shutter for photo, hold to record</div>
+</div>
+
+<div class="gate" id="gate">
+  <div class="gate-inner">
+    <svg class="bowtie" viewBox="0 0 140 90" aria-hidden="true">
+      <defs>
+        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stop-color="#3a2bff"/><stop offset=".35" stop-color="#00d0ff"/>
+          <stop offset=".6" stop-color="#3bff5a"/><stop offset=".85" stop-color="#ffe81a"/><stop offset="1" stop-color="#ff5a1a"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 6 L128 84 L132 14 L8 80 Z" fill="url(#g)" stroke="#fffbd0" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <h1>Hand Portal</h1>
+    <p>Make an L with each hand: thumbs and index fingers. The bowtie between them turns into a live thermal window.</p>
+    <button type="button" class="go" id="goBtn">Start camera</button>
+    <div class="err" id="err"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { HandLandmarker, FilesetResolver }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+const $ = (id) => document.getElementById(id);
+const stage = $('stage'), ctx = stage.getContext('2d');
+const video = $('cam'), fx = $('fx');
+const hint = $('hint'), gate = $('gate'), goBtn = $('goBtn'), errEl = $('err');
+
+let landmarker = null, stream = null, facing = 'user';
+let filterMode = 0, shape = 'bowtie';
+let lastVideoTime = -1, lastT = 0, result = null;
+let W = 0, H = 0, DPR = 1;
+
+/* ─── shape state, smoothed ─────────────────── */
+const pts = [null, null, null, null];   // smoothed canvas-space vertices
+let alpha = 0;                          // fade in/out of the portal
+let handsSeen = false;
+let lastTarget = null, lastSeen = -1e9;
+
+/* ═══════════════════════════════════════════════
+   WebGL filter pass: renders the whole frame with the
+   effect, then the 2D canvas clips it to the hand shape.
+   ═══════════════════════════════════════════════ */
+const gl = fx.getContext('webgl', { premultipliedAlpha: false, preserveDrawingBuffer: true });
+const VS = `attribute vec2 p; varying vec2 uv;
+  void main(){ uv = p*.5+.5; uv.y = 1.-uv.y; gl_Position = vec4(p,0.,1.); }`;
+const FS = `precision mediump float;
+  varying vec2 uv; uniform sampler2D tex; uniform float t; uniform int mode; uniform vec2 px;
+  float lum(vec3 c){ return dot(c, vec3(.299,.587,.114)); }
+  vec3 hsv(float h,float s,float v){ vec3 k=clamp(abs(mod(h*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.); return v*mix(vec3(1.),k,s); }
+  vec3 thermal(float x){
+    x = clamp(x,0.,1.);
+    vec3 a=vec3(.08,.0,.35), b=vec3(.30,.10,1.), c=vec3(0.,.70,1.), d=vec3(.15,1.,.35),
+         e=vec3(1.,.95,.10), f=vec3(1.,.38,.05), g=vec3(1.,.15,.55);
+    if(x<.16) return mix(a,b,x/.16);
+    if(x<.33) return mix(b,c,(x-.16)/.17);
+    if(x<.50) return mix(c,d,(x-.33)/.17);
+    if(x<.67) return mix(d,e,(x-.50)/.17);
+    if(x<.84) return mix(e,f,(x-.67)/.17);
+    return mix(f,g,(x-.84)/.16);
+  }
+  float edge(vec2 u){
+    float l=lum(texture2D(tex,u-vec2(px.x,0.)).rgb), r=lum(texture2D(tex,u+vec2(px.x,0.)).rgb);
+    float d=lum(texture2D(tex,u-vec2(0.,px.y)).rgb), up=lum(texture2D(tex,u+vec2(0.,px.y)).rgb);
+    return length(vec2(r-l, up-d));
+  }
+  void main(){
+    vec3 c = texture2D(tex, uv).rgb;
+    float L = lum(c);
+    vec3 o;
+    if(mode==0){                       // thermal camera look
+      float k = smoothstep(.04,.96,L);
+      k = k + edge(uv)*1.6 + .04*sin(t*1.3);
+      o = thermal(k);
+    } else if(mode==1){                // flowing rainbow
+      o = hsv(fract(L*1.8 - t*.18 + uv.y*.25), .95, .55+.6*L);
+    } else if(mode==2){                // x-ray negative
+      float n = 1.-L; n = pow(n,1.4);
+      o = vec3(n*.75, n*.95, n*1.15) + edge(uv)*vec3(.4,.8,1.);
+    } else if(mode==3){                // rgb split glitch
+      float j = sin(floor(uv.y*40.)+t*9.)*.006 + .004*sin(t*3.);
+      o = vec3(texture2D(tex,uv+vec2(j+.012,0.)).r, texture2D(tex,uv).g, texture2D(tex,uv-vec2(j+.012,0.)).b);
+      o *= .85+.15*sin(uv.y*900.);
+      o = mix(o, hsv(fract(t*.1),.6,1.), .15);
+    } else {                           // neon edges
+      float e = smoothstep(.04,.25,edge(uv));
+      o = hsv(fract(uv.x*.6+uv.y*.4+t*.15),1.,1.)*e*1.4 + c*.12;
+    }
+    gl_FragColor = vec4(o,1.);
+  }`;
+
+function compile(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+const prog = gl.createProgram();
+gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
+gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS));
+gl.linkProgram(prog); gl.useProgram(prog);
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+const aP = gl.getAttribLocation(prog, 'p');
+gl.enableVertexAttribArray(aP); gl.vertexAttribPointer(aP, 2, gl.FLOAT, false, 0, 0);
+const tex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, tex);
+for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR],
+                      [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]])
+  gl.texParameteri(gl.TEXTURE_2D, k, v);
+const uT = gl.getUniformLocation(prog, 't'), uMode = gl.getUniformLocation(prog, 'mode'),
+      uPx = gl.getUniformLocation(prog, 'px');
+
+function renderFx(time) {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const s = Math.min(1, 720 / Math.max(vw, vh));          // cap work on phones
+  const fw = Math.round(vw * s), fh = Math.round(vh * s);
+  if (fx.width !== fw || fx.height !== fh) { fx.width = fw; fx.height = fh; }
+  gl.viewport(0, 0, fw, fh);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+  gl.uniform1f(uT, time / 1000);
+  gl.uniform1i(uMode, filterMode);
+  gl.uniform2f(uPx, 1.5 / fw, 1.5 / fh);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+
+/* ═══════════════════════════════════════════════
+   Model + camera
+   ═══════════════════════════════════════════════ */
+async function loadModel() {
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  const opts = (delegate) => ({
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+      delegate,
+    },
+    runningMode: "VIDEO", numHands: 2,
+    minHandDetectionConfidence: .5, minTrackingConfidence: .5,
+  });
+  try { landmarker = await HandLandmarker.createFromOptions(vision, opts("GPU")); }
+  catch { landmarker = await HandLandmarker.createFromOptions(vision, opts("CPU")); }
+}
+
+async function startCamera() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+  });
+  video.srcObject = stream;
+  await video.play();
+  lastVideoTime = -1;
+}
+
+goBtn.addEventListener('click', async () => {
+  goBtn.disabled = true; errEl.textContent = '';
+  try {
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error('This browser has no camera access. Open the page over https in Safari or Chrome.');
+    goBtn.textContent = 'Opening camera…';
+    await startCamera();
+    goBtn.textContent = 'Loading hand tracking…';
+    await loadModel();
+    gate.classList.add('hidden');
+    requestAnimationFrame(loop);
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = e.name === 'NotAllowedError'
+      ? 'Camera permission was denied. Allow it in your browser settings and try again.'
+      : (e.message || String(e));
+    goBtn.textContent = 'Try again'; goBtn.disabled = false;
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   Layout
+   ═══════════════════════════════════════════════ */
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = Math.round(innerWidth * DPR); H = Math.round(innerHeight * DPR);
+  stage.width = W; stage.height = H;
+}
+addEventListener('resize', resize); resize();
+
+// cover-fit of the video inside the canvas
+function fit() {
+  const vw = video.videoWidth || 1, vh = video.videoHeight || 1;
+  const s = Math.max(W / vw, H / vh);
+  const dw = vw * s, dh = vh * s;
+  return { x: (W - dw) / 2, y: (H - dh) / 2, w: dw, h: dh };
+}
+
+/* ═══════════════════════════════════════════════
+   Hand geometry
+   For each hand take thumb tip (4) and index tip (8),
+   order them top/bottom. With hands A (left) and B (right):
+     bowtie = A.top → A.bot → B.top → B.bot   (diagonals cross)
+     frame  = A.top → B.top → B.bot → A.bot
+   ═══════════════════════════════════════════════ */
+function targetShape(f) {
+  if (!result?.landmarks || result.landmarks.length < 2) return null;
+  const hands = result.landmarks.slice(0, 2).map(lm => {
+    const a = { x: f.x + lm[4].x * f.w, y: f.y + lm[4].y * f.h };
+    const b = { x: f.x + lm[8].x * f.w, y: f.y + lm[8].y * f.h };
+    return a.y < b.y ? { top: a, bot: b, cx: (a.x + b.x) / 2 } : { top: b, bot: a, cx: (a.x + b.x) / 2 };
+  }).sort((p, q) => p.cx - q.cx);
+  const [A, B] = hands;
+  return shape === 'bowtie' ? [A.top, A.bot, B.top, B.bot] : [A.top, B.top, B.bot, A.bot];
+}
+
+function tracePath(p) {
+  ctx.beginPath();
+  ctx.moveTo(p[0].x, p[0].y);
+  for (let i = 1; i < p.length; i++) ctx.lineTo(p[i].x, p[i].y);
+  ctx.closePath();
+}
+
+/* ═══════════════════════════════════════════════
+   Main loop
+   ═══════════════════════════════════════════════ */
+function loop(now) {
+  requestAnimationFrame(loop);
+  if (video.readyState < 2) return;
+  const dt = lastT ? Math.min((now - lastT) / 1000, .1) : 1 / 60;
+  lastT = now;
+
+  if (video.currentTime !== lastVideoTime) {
+    lastVideoTime = video.currentTime;
+    try { result = landmarker.detectForVideo(video, now); } catch { /* skip frame */ }
+  }
+
+  const f = fit();
+  const mirror = facing === 'user';
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  if (mirror) ctx.setTransform(-1, 0, 0, 1, W, 0);
+  ctx.drawImage(video, f.x, f.y, f.w, f.h);
+
+  // smooth vertices toward their targets, fade portal in/out
+  // brief grace period so a one-frame tracking dropout doesn't blink the portal
+  let target = targetShape(f);
+  if (target) { lastTarget = target; lastSeen = now; }
+  else if (now - lastSeen < 220) target = lastTarget;
+  const k = 1 - Math.exp(-dt * 22);
+  if (target) {
+    for (let i = 0; i < 4; i++) {
+      if (!pts[i] || alpha < .02) pts[i] = { ...target[i] };
+      else { pts[i].x += (target[i].x - pts[i].x) * k; pts[i].y += (target[i].y - pts[i].y) * k; }
+    }
+  }
+  alpha += ((target ? 1 : 0) - alpha) * (1 - Math.exp(-dt * (target ? 14 : 6)));
+  if ((alpha > .5) !== handsSeen) { handsSeen = alpha > .5; hint.classList.toggle('hide', handsSeen); }
+
+  if (pts[0] && alpha > .01) {
+    renderFx(now);
+
+    // filtered video, clipped to the hand shape
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    tracePath(pts); ctx.clip();
+    ctx.drawImage(fx, f.x, f.y, f.w, f.h);
+    ctx.restore();
+
+    // soft outer glow, like a light leak around the edges
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.lineJoin = 'round';
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowColor = 'rgba(255, 248, 170, .95)';
+    ctx.shadowBlur = 34 * DPR;
+    ctx.strokeStyle = 'rgba(255, 252, 205, .55)';
+    ctx.lineWidth = 6 * DPR;
+    tracePath(pts); ctx.stroke();
+    ctx.shadowBlur = 12 * DPR;
+    ctx.strokeStyle = 'rgba(255, 255, 230, .8)';
+    ctx.lineWidth = 2 * DPR;
+    tracePath(pts); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   Controls
+   ═══════════════════════════════════════════════ */
+$('filters').addEventListener('click', (e) => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  filterMode = +b.dataset.mode;
+  for (const c of $('filters').children) c.setAttribute('aria-pressed', c === b ? 'true' : 'false');
+});
+
+$('shapeBtn').addEventListener('click', () => {
+  shape = shape === 'bowtie' ? 'frame' : 'bowtie';
+  $('shapeLabel').firstElementChild.textContent = shape === 'bowtie' ? 'Bowtie' : 'Frame';
+  $('shapeBtn').querySelector('path').setAttribute('d',
+    shape === 'bowtie' ? 'M3 5 L21 19 L21 5 L3 19 Z' : 'M4 5 L20 5 L20 19 L4 19 Z');
+});
+
+$('flipBtn').addEventListener('click', async () => {
+  if (recorder) return toast('Stop recording first');
+  facing = facing === 'user' ? 'environment' : 'user';
+  try { await startCamera(); }
+  catch (e) { toast('Could not switch camera'); facing = facing === 'user' ? 'environment' : 'user'; await startCamera(); }
+});
+
+let toastTimer;
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Share sheet on phones (save to Photos / post), download as fallback.
+async function deliver(blob, name) {
+  const file = new File([blob], name, { type: blob.type });
+  if (navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  toast('Saved');
+}
+
+/* shutter: tap = photo, hold = video */
+const shutter = $('shutter'), recBadge = $('recBadge');
+let holdTimer = null, recorder = null, chunks = [], recStart = 0, recTick = null;
+const canRecord = typeof MediaRecorder !== 'undefined' && !!stage.captureStream;
+
+function pickMime() {
+  for (const m of ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'])
+    if (MediaRecorder.isTypeSupported?.(m)) return m;
+  return '';
+}
+
+function startRec() {
+  const mime = pickMime();
+  recorder = new MediaRecorder(stage.captureStream(30), mime ? { mimeType: mime, videoBitsPerSecond: 6e6 } : {});
+  chunks = [];
+  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  recorder.onstop = () => {
+    const type = recorder.mimeType || mime || 'video/webm';
+    const blob = new Blob(chunks, { type });
+    recorder = null;
+    deliver(blob, `hand-portal-${Date.now()}.${type.includes('mp4') ? 'mp4' : 'webm'}`);
+  };
+  recorder.start(250);
+  recStart = performance.now();
+  shutter.classList.add('recording'); recBadge.classList.add('on');
+  recTick = setInterval(() => {
+    const s = Math.floor((performance.now() - recStart) / 1000);
+    recBadge.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }, 250);
+}
+function stopRec() {
+  clearInterval(recTick); recBadge.classList.remove('on'); recBadge.textContent = '0:00';
+  shutter.classList.remove('recording');
+  recorder?.stop();
+}
+
+shutter.addEventListener('pointerdown', (e) => {
+  shutter.setPointerCapture?.(e.pointerId);
+  if (recorder) return;
+  if (canRecord) holdTimer = setTimeout(() => { holdTimer = null; startRec(); }, 350);
+});
+shutter.addEventListener('pointerup', () => {
+  if (recorder && !holdTimer) { stopRec(); return; }
+  if (holdTimer) {
+    clearTimeout(holdTimer); holdTimer = null;
+  }
+  stage.toBlob((b) => b && deliver(b, `hand-portal-${Date.now()}.png`), 'image/png');
+});
+shutter.addEventListener('pointerleave', () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } });
+shutter.addEventListener('contextmenu', (e) => e.preventDefault());
+if (!canRecord) $('shapeLabel').lastChild.textContent = ' · tap shutter for photo';
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && recorder) stopRec();
+});
+</script>
+</body>
+</html>
