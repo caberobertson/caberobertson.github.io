@@ -1,0 +1,129 @@
+---
+// Lab 01: the CrashGuard detection pipeline, live.
+import LabFrame from './LabFrame.astro';
+
+interface Props {
+    id?: string;
+    /** Rendered on its own project page rather than in the Lab. */
+    embedded?: boolean;
+}
+const { id = 'impact', embedded = false } = Astro.props;
+---
+
+<LabFrame
+    id={id}
+    embedded={embedded}
+    kind="impact"
+    kicker="Lab 01"
+    title="Impact detector"
+    lede="CrashGuard's detection pipeline, running at 100 Hz on a synthetic accelerometer: gravity-vector subtraction, a median-of-three filter, a 5.0 g threshold confirmed over consecutive samples, and a railed-axis check for impacts beyond the sensor's range."
+    from={{ label: 'MYOSA CrashGuard', href: '/crashguard.html' }}
+    model="detector.js"
+>
+    <canvas
+        class="lab-canvas lab-canvas--scope"
+        data-scope
+        role="img"
+        aria-label="Live strip chart of dynamic acceleration in g over the last eight seconds, with the detection threshold, the 2 g handling floor and the sensor ceiling marked."
+    ></canvas>
+    <p class="lab-figcap">
+        Solid: dynamic acceleration after the median filter. Faint: the raw value before it.
+        Dashed, with Compare on: the method that subtracts only gravity's magnitude.
+    </p>
+
+    <dl class="lab-readouts">
+        <div><dt>Dynamic accel</dt><dd data-out="d">0.00 g</dd></div>
+        <div><dt>Peak, 3 s hold</dt><dd data-out="hold">0.00 g</dd></div>
+        <div class="lab-readout--wide"><dt>State</dt><dd data-out="state">ARMED</dd></div>
+        <div><dt>Over threshold</dt><dd data-out="over">0 / 3</dd></div>
+        <div class="lab-readout--wide" data-alt-box hidden><dt>Magnitude method</dt><dd data-out="alt">0.00 g</dd></div>
+    </dl>
+
+    <p class="lab-status" data-status role="status"></p>
+    <p class="lab-hint" data-hint hidden>
+        The threshold is above the 27.7 g sensor ceiling. Nothing the sensor can report will cross it.
+    </p>
+    <button type="button" class="lab-btn lab-btn--alert" data-cancel hidden>CANCEL &middot; I'M OK</button>
+
+    <Fragment slot="controls">
+        <fieldset class="lab-group">
+            <legend>Inject an event</legend>
+            <div class="lab-row">
+                <button type="button" class="lab-btn" data-fire="pothole">Pothole</button>
+                <button type="button" class="lab-btn" data-fire="brake">Hard braking</button>
+                <button type="button" class="lab-btn" data-fire="glitch">Bus glitch</button>
+                <button type="button" class="lab-btn lab-btn--primary" data-fire="impact">Impact</button>
+            </div>
+            <div class="lab-field">
+                <label for={`${id}-strength`}>Impact strength</label>
+                <output data-for="strength">12 g</output>
+                <input id={`${id}-strength`} type="range" min="1" max="40" step="1" value="12" data-strength data-name="strength" />
+            </div>
+            <div class="lab-field">
+                <label for={`${id}-dir`}>Impact direction</label>
+                <select id={`${id}-dir`} data-dir data-name="dir">
+                    <option value="sideways">sideways, across gravity</option>
+                    <option value="with">with gravity</option>
+                    <option value="against">against gravity</option>
+                    <option value="diagonal">diagonal, all three axes</option>
+                </select>
+            </div>
+            <div class="lab-field">
+                <label for={`${id}-tilt`}>Tilt after calibration</label>
+                <output data-for="tilt">0°</output>
+                <input id={`${id}-tilt`} type="range" min="0" max="180" step="1" value="0" data-tilt data-name="tilt" />
+            </div>
+        </fieldset>
+
+        <fieldset class="lab-group">
+            <legend>Detector</legend>
+            <div class="lab-field">
+                <label for={`${id}-threshold`}>Threshold</label>
+                <output data-for="threshold">5.0 g</output>
+                <input id={`${id}-threshold`} type="range" min="1" max="50" step="0.5" value="5" data-threshold data-name="threshold" />
+            </div>
+            <div class="lab-field">
+                <label for={`${id}-confirm`}>Confirm over</label>
+                <output data-for="confirm">3 samples</output>
+                <input id={`${id}-confirm`} type="range" min="1" max="5" step="1" value="3" data-confirm data-name="confirm" />
+            </div>
+            <label class="lab-check"><input type="checkbox" checked data-median data-name="median" /> Median-of-three filter</label>
+            <label class="lab-check"><input type="checkbox" checked data-saturation data-name="saturation" /> Railed-axis check</label>
+            <label class="lab-check"><input type="checkbox" data-compare data-name="compare" /> Compare: subtract magnitude only</label>
+        </fieldset>
+
+        <div class="lab-row">
+            <button type="button" class="lab-btn" data-run aria-pressed="false">Pause</button>
+            <button type="button" class="lab-btn" data-recal>Recalibrate</button>
+            <button type="button" class="lab-btn lab-toggle" data-device aria-pressed="false" hidden>Use this phone&rsquo;s accelerometer</button>
+        </div>
+    </Fragment>
+
+    <Fragment slot="steps">
+        <li>Press <strong>Pothole</strong>, then <strong>Hard braking</strong>. Both stay under 2 g and the detector stays armed.</li>
+        <li>Press <strong>Bus glitch</strong>: one corrupted 20 g sample. The faint raw trace spikes and the solid one does not move. Now untick the <strong>median filter</strong>, set <strong>Confirm over</strong> to 1, and press it again.</li>
+        <li>Drag <strong>Tilt after calibration</strong> to 180°. Turning the board over reads exactly 2.00 g and no more, which is why a 5 g threshold cannot be set off by handling.</li>
+        <li>Set strength to 40 g, drag the <strong>threshold</strong> past 27.7 g, untick the <strong>railed-axis check</strong>, and fire. Each axis clips at 16 g, so the reading never arrives: a crash the detector sits through. Tick the check again and the same impact is caught.</li>
+        <li>Tick <strong>Compare</strong>, set strength to 6 g and direction to <strong>against gravity</strong>, and fire. Subtracting only gravity's magnitude reads about 4 g and misses it.</li>
+    </Fragment>
+
+    <Fragment slot="note">
+        Constants are the ones in the <a href="/crashguard.html#specs">CrashGuard specifications</a>. The write-up does not
+        publish the confirm count; three samples is this model's default. Events are synthetic and sized for illustration.{' '}
+        <span data-device-note>Open this page on a phone and the lab can read the real accelerometer instead.</span>{' '}
+        The threshold story is told in <a href="/notes/a-threshold-that-can-never-fire.html">A threshold that can never fire</a>.
+    </Fragment>
+</LabFrame>
+
+<style is:global>
+    .lab-canvas--scope { height: 300px; }
+
+    @media (max-width: 520px) {
+        .lab-canvas--scope { height: 240px; }
+    }
+</style>
+
+<script>
+    import { initImpactLab } from '../../scripts/lab/impact-lab.js';
+    document.querySelectorAll<HTMLElement>('[data-lab="impact"]').forEach(initImpactLab);
+</script>

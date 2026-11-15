@@ -41,7 +41,8 @@ export const GET: APIRoute = async () => {
             [
                 `## Project: ${d.title}`,
                 `Outcome: ${d.outcome}`,
-                `Period: ${d.period}. Status: ${d.status}.`,
+                // period is optional: an entry with no dates on record says so by omission.
+                d.period ? `Period: ${d.period}. Status: ${d.status}.` : `Status: ${d.status}.`,
                 d.context ? `Context: ${d.context}` : '',
                 d.role ? `Role: ${d.role}` : '',
                 `Tags: ${d.tags.join(', ')}`,

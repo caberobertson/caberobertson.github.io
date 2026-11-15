@@ -2,6 +2,10 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectFigure from '../../components/ProjectFigure.astro';
+import SdgLab from '../../components/lab/SdgLab.astro';
+import DecoderLab from '../../components/lab/DecoderLab.astro';
+import EegLab from '../../components/lab/EegLab.astro';
+import ImpactLab from '../../components/lab/ImpactLab.astro';
 import { PERSON_REF, breadcrumbs, graph } from '../../lib/schema';
 
 export async function getStaticPaths() {
@@ -9,7 +13,8 @@ export async function getStaticPaths() {
     return projects
         // CrashGuard keeps its own hand-authored page; the entry exists so it
         // appears in the index and the Phase 4 lens without being duplicated.
-        .filter((p) => !p.data.externalPage)
+        // listOnly entries are rows on the index with no page behind them.
+        .filter((p) => !p.data.externalPage && !p.data.listOnly)
         .map((p) => ({ params: { slug: p.id }, props: { entry: p } }));
 }
 
@@ -75,7 +80,7 @@ const schema = graph(
                 <p class="doc-meta reveal in">
                     {d.context && <><strong>Context:</strong> {d.context}<br /></>}
                     {d.role && <><strong>My role:</strong> {d.role}<br /></>}
-                    <strong>Status:</strong> {statusLabel} &middot; {d.period}
+                    <strong>Status:</strong> {statusLabel}{d.period && <> &middot; {d.period}</>}
                 </p>
 
                 {d.artifacts.length > 0 && (
@@ -100,6 +105,14 @@ const schema = graph(
                 )}
 
                 {d.figure !== 'none' && <ProjectFigure kind={d.figure} data={d.figureData} />}
+
+                {/* The project as a model that runs, ahead of the write-up
+                    that explains it. One id for all four, so "#model" is a
+                    stable anchor on any project page that has one. */}
+                {d.lab === 'sdg' && <SdgLab id="model" embedded />}
+                {d.lab === 'decoder' && <DecoderLab id="model" embedded />}
+                {d.lab === 'eeg' && <EegLab id="model" embedded />}
+                {d.lab === 'impact' && <ImpactLab id="model" embedded />}
 
                 <article class="panel project-body reveal">
                     <Content />

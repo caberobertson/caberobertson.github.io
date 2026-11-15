@@ -1,0 +1,233 @@
+---
+// Home-page entry to the Lab: four cards, one per model. The drawings are
+// static inline SVG so the section costs nothing until a card is opened; the
+// models themselves only load on /lab.html and the project pages.
+interface Props {
+    index?: string;
+}
+const { index = '02' } = Astro.props;
+
+const labs = [
+    {
+        kind: 'impact',
+        href: '/lab.html#impact',
+        n: '01',
+        from: 'CrashGuard',
+        title: 'Impact detector',
+        text: 'Fire potholes, bus glitches and crashes at a 100 Hz detector, then find the threshold it can never reach.',
+    },
+    {
+        kind: 'sdg',
+        href: '/lab.html#synthetic-data',
+        n: '02',
+        from: 'Isaac Sim work at ETV',
+        title: 'Synthetic data generator',
+        text: 'Randomize a scene and watch every generated image arrive with exact labels already attached.',
+    },
+    {
+        kind: 'decoder',
+        href: '/lab.html#decoding',
+        n: '03',
+        from: 'Mitchell Coding Group',
+        title: 'Syndrome decoder',
+        text: 'Flip bits in a codeword, watch the syndrome find them, then run the experiment a few hundred thousand times.',
+    },
+    {
+        kind: 'eeg',
+        href: '/lab.html#eeg',
+        n: '04',
+        from: 'NeuroPawn capstone',
+        title: 'EEG filter bench',
+        text: 'Switch the filters on a noisy electrode in and out and see what each one removes from the spectrum.',
+    },
+];
+---
+
+<section class="section lab-teaser">
+    <div class="container">
+        <div class="section-head reveal">
+            <span class="section-index">{index}</span>
+            <h2 class="section-title">Lab</h2>
+        </div>
+        <p class="section-sub reveal">
+            Four of my projects as models you can run in the browser. Each one comes with a short
+            exercise: what to try, and what you should see.
+        </p>
+
+        <ul class="teaser-grid reveal">
+            {labs.map((l) => (
+                <li>
+                    <a class="teaser-card" href={l.href}>
+                        <span class="teaser-art" aria-hidden="true">
+                            {l.kind === 'impact' && (
+                                <svg viewBox="0 0 240 104" preserveAspectRatio="xMidYMid meet">
+                                    <line class="t-grid" x1="8" y1="92" x2="232" y2="92" />
+                                    <line class="t-grid" x1="8" y1="66" x2="232" y2="66" />
+                                    <line class="t-ref" x1="8" y1="40" x2="232" y2="40" />
+                                    <text class="t-label t-label--accent" x="12" y="35">threshold 5.0 g</text>
+                                    <polyline class="t-trace" points="8,90 40,90 44,82 48,90 86,90 90,89 126,89 130,84 150,84 154,90 176,90 180,60 184,18 188,14 192,30 196,74 200,90 232,90" />
+                                    <line class="t-mark" x1="186" y1="8" x2="186" y2="92" />
+                                    <text class="t-label t-label--danger" x="181" y="16" text-anchor="end">TRIGGER</text>
+                                </svg>
+                            )}
+                            {l.kind === 'sdg' && (
+                                <svg viewBox="0 0 240 104" preserveAspectRatio="xMidYMid meet">
+                                    <rect class="t-tile" x="72" y="6" width="96" height="92" />
+                                    <line class="t-grid" x1="120" y1="6" x2="120" y2="98" />
+                                    <line class="t-grid" x1="72" y1="52" x2="168" y2="52" />
+                                    <circle class="t-crater" cx="100" cy="34" r="13" />
+                                    <path class="t-shade" d="M 91 26 A 13 13 0 0 1 109 26" />
+                                    <circle class="t-crater" cx="144" cy="68" r="17" />
+                                    <path class="t-shade" d="M 132 57 A 17 17 0 0 1 156 57" />
+                                    <circle class="t-crater" cx="98" cy="78" r="7" />
+                                    <rect class="t-box" x="85" y="19" width="30" height="30" />
+                                    <rect class="t-box" x="125" y="49" width="38" height="38" />
+                                    <rect class="t-box" x="89" y="69" width="18" height="18" />
+                                    <text class="t-label" x="176" y="24">bbox</text>
+                                    <text class="t-label" x="176" y="38">[85,19,</text>
+                                    <text class="t-label" x="176" y="52">30,30]</text>
+                                    <text class="t-label" x="8" y="24">seed</text>
+                                    <text class="t-label t-label--accent" x="8" y="38">000042</text>
+                                </svg>
+                            )}
+                            {l.kind === 'decoder' && (
+                                <svg viewBox="0 0 240 104" preserveAspectRatio="xMidYMid meet">
+                                    {[1, 0, 1, 1, 0, 1, 0].map((b, i) => (
+                                        <>
+                                            <rect class={i === 2 ? 't-bit t-bit--err' : 't-bit'} x={22 + i * 28} y="14" width="24" height="24" />
+                                            <text class={i === 2 ? 't-digit t-digit--err' : 't-digit'} x={34 + i * 28} y="31" text-anchor="middle">{i === 2 ? 0 : b}</text>
+                                        </>
+                                    ))}
+                                    <path class="t-arrow" d="M 90 44 L 90 62 M 85 57 L 90 62 L 95 57" />
+                                    <text class="t-label" x="22" y="84">syndrome</text>
+                                    {[0, 1, 1].map((b, i) => (
+                                        <>
+                                            <rect class="t-bit t-bit--syn" x={92 + i * 28} y="68" width="24" height="24" />
+                                            <text class="t-digit t-digit--syn" x={104 + i * 28} y="85" text-anchor="middle">{b}</text>
+                                        </>
+                                    ))}
+                                    <text class="t-label t-label--accent" x="184" y="84">= bit 3</text>
+                                </svg>
+                            )}
+                            {l.kind === 'eeg' && (
+                                <svg viewBox="0 0 240 104" preserveAspectRatio="xMidYMid meet">
+                                    <line class="t-grid" x1="8" y1="92" x2="232" y2="92" />
+                                    <rect class="t-band" x="38" y="10" width="16" height="82" />
+                                    <text class="t-label t-label--accent" x="38" y="8">alpha</text>
+                                    <polyline class="t-raw" points="8,40 16,58 24,66 34,68 42,36 46,24 50,38 58,68 72,72 88,76 104,78 120,80 136,82 152,82 164,82 170,60 174,22 178,60 184,84 204,84 232,86" />
+                                    <polyline class="t-trace" points="8,62 16,66 24,68 34,68 42,36 46,24 50,38 58,68 72,72 88,76 104,79 120,83 136,88 152,90 170,91 174,91 178,91 204,91 232,91" />
+                                    <line class="t-mark t-mark--dash" x1="174" y1="12" x2="174" y2="92" />
+                                    <text class="t-label t-label--danger" x="180" y="18">60 Hz</text>
+                                </svg>
+                            )}
+                        </span>
+                        <span class="teaser-kicker">{l.n} &middot; from {l.from}</span>
+                        <span class="teaser-title">{l.title}</span>
+                        <span class="teaser-text">{l.text}</span>
+                        <span class="teaser-cta">
+                            Run it
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </span>
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </div>
+</section>
+
+<style>
+    .teaser-grid {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .teaser-card {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        height: 100%;
+        padding: var(--space-3) var(--space-3) var(--space-4);
+        border: 1px solid var(--border-strong);
+        background: var(--bg-elev);
+        text-decoration: none;
+        color: inherit;
+        transition: background-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+    }
+
+    .teaser-card:hover,
+    .teaser-card:focus-visible {
+        background: var(--hover-surface);
+        box-shadow: inset 0 3px 0 var(--accent);
+    }
+
+    .teaser-art {
+        display: block;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        margin-bottom: var(--space-2);
+        line-height: 0;
+    }
+
+    .teaser-art svg { width: 100%; height: auto; display: block; }
+
+    .teaser-kicker { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.6px; text-transform: uppercase; color: var(--accent); }
+    .teaser-title { font-family: var(--font-display); font-weight: 600; font-size: 1.08rem; color: var(--ink); }
+    .teaser-text { font-size: 0.86rem; line-height: 1.55; color: var(--ink-dim); }
+
+    .teaser-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: auto;
+        padding-top: var(--space-2);
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-thickness: 1px;
+    }
+
+    .teaser-cta svg { width: 13px; height: 13px; transition: transform 0.2s var(--ease-out); }
+    .teaser-card:hover .teaser-cta svg { transform: translateX(3px); }
+
+    /* Drawing vocabulary shared by the four glyphs. */
+    .t-grid { stroke: var(--line); stroke-width: 1; }
+    .t-ref { stroke: var(--accent); stroke-width: 1.2; }
+    .t-trace { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linejoin: round; }
+    .t-raw { fill: none; stroke: var(--ink-dim); stroke-width: 1; opacity: 0.7; }
+    .t-mark { stroke: var(--danger); stroke-width: 1.2; }
+    .t-mark--dash { stroke-dasharray: 3 3; }
+    .t-label { font-family: var(--font-mono); font-size: 8.5px; fill: var(--ink-dim); }
+    .t-label--accent { fill: var(--accent); }
+    .t-label--danger { fill: var(--danger); }
+    .t-tile { fill: var(--bg-elev); stroke: var(--ink-dim); stroke-width: 1; }
+    .t-crater { fill: var(--bg); stroke: var(--ink-dim); stroke-width: 1; }
+    .t-shade { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+    .t-box { fill: none; stroke: var(--accent); stroke-width: 1.4; }
+    .t-bit { fill: var(--bg-elev); stroke: var(--ink-dim); stroke-width: 1; }
+    .t-bit--err { stroke: var(--danger); stroke-width: 1.6; }
+    .t-bit--syn { stroke: var(--accent); }
+    .t-digit { font-family: var(--font-mono); font-size: 13px; fill: var(--ink); }
+    .t-digit--err { fill: var(--danger); }
+    .t-digit--syn { fill: var(--accent); }
+    .t-arrow { fill: none; stroke: var(--ink-dim); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+    .t-band { fill: var(--accent); opacity: 0.16; }
+
+    @media (max-width: 940px) {
+        .teaser-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 480px) {
+        .teaser-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .teaser-card, .teaser-cta svg { transition: none; }
+        .teaser-card:hover .teaser-cta svg { transform: none; }
+    }
+</style>

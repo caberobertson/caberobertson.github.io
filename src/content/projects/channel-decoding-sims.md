@@ -3,7 +3,7 @@ title: Linear-Algebra Channel Decoding Simulations
 outcome: Python simulations validating bit-error-rate performance across encoding schemes under noise, with publication-quality figures automated in MATLAB.
 status: complete
 period: Aug 2025 - Feb 2026
-order: 6
+order: 7
 audiences: [bigtech, defense]
 context: Mitchell Coding Group, NMSU
 role: Research Assistant
@@ -12,6 +12,7 @@ metrics:
   - { value: "7 months", label: "independent research, reporting to the PI" }
   - { value: "Multi-hour", label: "experiment runs, automated end to end" }
 artifacts: []
+lab: decoder
 figure: images
 figureData:
   caption: "Publication-quality figures produced by the automated MATLAB pipeline."

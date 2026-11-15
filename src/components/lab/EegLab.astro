@@ -1,0 +1,97 @@
+---
+// Lab 04: cleaning up a single-channel EEG.
+import LabFrame from './LabFrame.astro';
+
+interface Props {
+    id?: string;
+    /** Rendered on its own project page rather than in the Lab. */
+    embedded?: boolean;
+}
+const { id = 'eeg', embedded = false } = Astro.props;
+---
+
+<LabFrame
+    id={id}
+    embedded={embedded}
+    kind="eeg"
+    kicker="Lab 04"
+    title="EEG filter bench"
+    lede="Scalp EEG is tens of microvolts, buried under mains hum, slow drift and the wearer's own blinks. A dry electrode makes each of those worse. This bench runs a synthetic channel through the standard cleanup chain so each stage can be switched in and out."
+    from={{ label: 'Low-cost EEG electrode capstone', href: '/projects/neuropawn-eeg-electrode.html' }}
+    model="dsp.js"
+>
+    <canvas
+        class="lab-canvas lab-canvas--time"
+        data-time
+        role="img"
+        aria-label="Two stacked four-second traces of the synthetic EEG channel: the raw signal above, the filtered signal below."
+    ></canvas>
+    <canvas
+        class="lab-canvas lab-canvas--spec"
+        data-spectrum
+        role="img"
+        aria-label="Amplitude spectrum from 0 to 80 hertz, raw and filtered, with the alpha band and the 60 hertz mains line marked."
+    ></canvas>
+    <p class="lab-figcap">Faint: raw. Solid: after the enabled filters. Spectrum from a 2 s Hann window, averaged.</p>
+
+    <dl class="lab-readouts">
+        <div><dt>Alpha, 8 to 12 Hz</dt><dd data-out="alpha">0 µV</dd></div>
+        <div><dt>60 Hz after filters</dt><dd data-out="mains">0 µV</dd></div>
+        <div><dt>60 Hz at the electrode</dt><dd data-out="pickup">0 µV</dd></div>
+    </dl>
+
+    <Fragment slot="controls">
+        <fieldset class="lab-group">
+            <legend>Filter chain</legend>
+            <label class="lab-check"><input type="checkbox" checked data-filter="highpass" /> High-pass, 1 Hz</label>
+            <label class="lab-check"><input type="checkbox" checked data-filter="notch" /> Notch, 60 Hz</label>
+            <label class="lab-check"><input type="checkbox" checked data-filter="lowpass" /> Low-pass, 40 Hz</label>
+        </fieldset>
+        <fieldset class="lab-group">
+            <legend>Subject</legend>
+            <div class="lab-row">
+                <button type="button" class="lab-btn lab-toggle" data-eyes aria-pressed="true">Eyes closed</button>
+                <button type="button" class="lab-btn" data-blink>Blink</button>
+            </div>
+        </fieldset>
+        <fieldset class="lab-group">
+            <legend>Electrode</legend>
+            <div class="lab-field">
+                <label for={`${id}-imp`}>Contact impedance</label>
+                <output data-for="imp">150 kΩ</output>
+                <input id={`${id}-imp`} type="range" min="0" max="100" step="1" value="74" data-imp data-name="imp" />
+            </div>
+        </fieldset>
+        <div class="lab-row">
+            <button type="button" class="lab-btn" data-run aria-pressed="false">Pause</button>
+        </div>
+    </Fragment>
+
+    <Fragment slot="steps">
+        <li>Untick <strong>Notch, 60 Hz</strong>. The mains line returns in the spectrum and rides on the filtered trace as fuzz.</li>
+        <li>Drag <strong>Contact impedance</strong> up and down. Mains pickup follows it in proportion, which is why contact impedance is the first thing the capstone benchmarks.</li>
+        <li>Press <strong>Eyes closed</strong> to open them. The alpha peak near 10 Hz collapses. A feature like that, appearing and disappearing, is what a brain-computer interface classifies.</li>
+        <li>Untick <strong>High-pass, 1 Hz</strong>: slow drift carries the trace out of its lane. Tick it again and press <strong>Blink</strong>: a blink sits inside the passband at ten times the signal, so no filter removes it. It has to be detected and rejected.</li>
+    </Fragment>
+
+    <Fragment slot="note">
+        Synthetic signal, 250 Hz: 1/f background, a 10 Hz alpha rhythm, mains, drift and blinks, with amplitudes chosen
+        for a clear picture. Mains pickup uses the potential-divider model (50 mV common mode, 20% impedance mismatch,
+        200 MΩ input). No capstone measurement is shown here.
+    </Fragment>
+</LabFrame>
+
+<style is:global>
+    .lab-canvas--time { height: 220px; }
+    .lab-canvas--spec { height: 230px; margin-top: 8px; }
+
+    @media (max-width: 520px) {
+        .lab-canvas--time { height: 190px; }
+        .lab-canvas--spec { height: 200px; }
+    }
+</style>
+
+<script>
+    import { initEegLab } from '../../scripts/lab/eeg-lab.js';
+    document.querySelectorAll<HTMLElement>('[data-lab="eeg"]').forEach(initEegLab);
+</script>

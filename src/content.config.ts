@@ -22,8 +22,12 @@ const projects = defineCollection({
         /** One-line outcome. Shown under the title and in the index grid. */
         outcome: z.string(),
         status: z.enum(['active', 'complete', 'archived']),
-        /** Display string, e.g. "Jul 2026 - Present". Kept free-form on purpose. */
-        period: z.string(),
+        /**
+         * Display string, e.g. "Jul 2026 - Present". Kept free-form on purpose.
+         * Optional: when the dates are not on record the row shows none,
+         * instead of a guess.
+         */
+        period: z.string().optional(),
         /** Sort key, newest first. */
         order: z.number(),
         audiences: z.array(z.enum(['defense', 'bigtech', 'neurotech'])).min(1),
@@ -44,6 +48,17 @@ const projects = defineCollection({
             .enum(['none', 'image', 'images', 'cost', 'doe', 'pipeline', 'video'])
             .default('none'),
         figureData: z.record(z.string(), z.any()).optional(),
+        /**
+         * Interactive model rendered on the project page, from
+         * src/components/lab. The same four appear together on /lab.html.
+         */
+        lab: z.enum(['impact', 'sdg', 'decoder', 'eeg']).optional(),
+        /**
+         * Listed on the projects index without a detail page. For work that is
+         * real but where the record is a single line: a page padded out to
+         * look like a write-up would be invention.
+         */
+        listOnly: z.boolean().default(false),
         /** Set when the page lives outside the collection, e.g. crashguard.astro. */
         externalPage: z.string().optional(),
         /** Flagged for the owner to confirm releasability before publishing. */

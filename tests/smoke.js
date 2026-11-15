@@ -14,7 +14,7 @@ const here = import.meta.dirname;
 const root = path.resolve(here, '..', 'dist');
 // Static pages plus every generated project detail page, so a new entry in
 // the collection is covered automatically instead of silently untested.
-const staticPages = ['index.html', 'experience.html', 'projects.html', 'notes.html', 'skills.html', 'contact.html', 'crashguard.html', 'ieee-points.html', 'ieee-bricks.html', 'resume-tailor.html', 'og-preview.html', '404.html'];
+const staticPages = ['index.html', 'experience.html', 'projects.html', 'lab.html', 'notes.html', 'skills.html', 'contact.html', 'crashguard.html', 'ieee-points.html', 'ieee-bricks.html', 'resume-tailor.html', 'og-preview.html', '404.html'];
 const collectionPages = (dir) =>
     fs.existsSync(path.join(root, dir))
         ? fs.readdirSync(path.join(root, dir)).filter((f) => f.endsWith('.html')).map((f) => `${dir}/${f}`)
@@ -122,7 +122,7 @@ for (const page of pages) {
     // Nav active-state is baked in at build time so it survives with JS off.
     // Only pages that are themselves nav entries highlight; detail pages
     // (crashguard, ieee-points) highlight nothing, matching prior behaviour.
-    const NAV_PAGES = ['index.html', 'experience.html', 'projects.html', 'notes.html', 'skills.html', 'contact.html'];
+    const NAV_PAGES = ['index.html', 'experience.html', 'projects.html', 'lab.html', 'notes.html', 'skills.html', 'contact.html'];
     if (page !== '404.html' && page !== 'og-preview.html') {
         const active = doc.querySelectorAll('.nav-links a.active').length;
         const want = NAV_PAGES.includes(page) ? 1 : 0;
@@ -207,6 +207,50 @@ for (const page of pages) {
         }
     }
 
+    // Interactive labs. jsdom cannot run a canvas, so this checks the contract
+    // the controllers depend on: every hook a controller looks up at start-up
+    // exists in the markup, the bundle that drives it shipped, and the lab
+    // degrades to an explanation when scripting is off. The mathematics is
+    // covered separately by tests/sim.test.js.
+    const LAB_HOOKS = {
+        impact: ['[data-scope]', '[data-out="d"]', '[data-out="hold"]', '[data-out="state"]', '[data-out="over"]', '[data-out="alt"]', '[data-alt-box]', '[data-status]', '[data-hint]', '[data-cancel]', '[data-run]', '[data-recal]', '[data-fire="impact"]', '[data-strength]', '[data-dir]', '[data-tilt]', '[data-threshold]', '[data-confirm]', '[data-median]', '[data-saturation]', '[data-compare]'],
+        sdg: ['[data-view]', '[data-thumb]', '[data-record]', '[data-new]', '[data-labels]', '[data-out="seed"]', '[data-out="count"]', '[data-out="light"]', '[data-flag="layout"]', '[data-flag="size"]', '[data-flag="light"]', '[data-flag="surface"]'],
+        decoder: ['[data-chart]', '[data-clear]', '[data-mc-run]', '[data-mc-reset]', '[data-out="frames"]', '[data-out="spot"]', '[data-out="verdict"]'],
+        eeg: ['[data-time]', '[data-spectrum]', '[data-run]', '[data-eyes]', '[data-blink]', '[data-imp]', '[data-for="imp"]', '[data-out="alpha"]', '[data-out="mains"]', '[data-out="pickup"]', '[data-filter="highpass"]', '[data-filter="notch"]', '[data-filter="lowpass"]'],
+    };
+    const labEls = [...doc.querySelectorAll('[data-lab]')];
+    for (const lab of labEls) {
+        const kind = lab.getAttribute('data-lab');
+        if (!LAB_HOOKS[kind]) { errs.push(`unknown lab kind: ${kind}`); continue; }
+        for (const sel of LAB_HOOKS[kind]) {
+            if (!lab.querySelector(sel)) errs.push(`${kind} lab is missing ${sel}`);
+        }
+        if (!lab.querySelector('canvas')) errs.push(`${kind} lab has no canvas`);
+        if (!lab.querySelector('noscript')) errs.push(`${kind} lab has no no-JS explanation`);
+        if (lab.querySelectorAll('.lab-steps li').length < 3) errs.push(`${kind} lab has no guided exercise`);
+        for (const c of lab.querySelectorAll('canvas[role="img"]')) {
+            if (!c.getAttribute('aria-label')) errs.push(`${kind} lab canvas has no text alternative`);
+        }
+        // Form controls inside a lab must be labelled.
+        for (const input of lab.querySelectorAll('input, select')) {
+            const id = input.getAttribute('id');
+            const labelled = input.closest('label') || (id && lab.querySelector(`label[for="${id}"]`)) || input.getAttribute('aria-label');
+            if (!labelled) errs.push(`${kind} lab has an unlabelled control`);
+        }
+    }
+    if (labEls.length) {
+        const ids = labEls.map((l) => l.id);
+        if (new Set(ids).size !== ids.length) errs.push('two labs on one page share an id');
+        const shipped = [...doc.querySelectorAll('script')].some((el) => {
+            const src = el.getAttribute('src');
+            if (!src) return /data-lab/.test(el.textContent);
+            const f = path.join(root, src.replace(/^\//, ''));
+            return fs.existsSync(f) && /data-lab/.test(fs.readFileSync(f, 'utf8'));
+        });
+        if (!shipped) errs.push('page renders a lab but ships no controller for it');
+    }
+    if (page === 'lab.html' && labEls.length !== 4) errs.push(`expected 4 labs on the Lab page, found ${labEls.length}`);
+
     if (page.startsWith('projects/')) {
         if (!doc.querySelector('.doc-back')) errs.push('project page missing back link');
         if (!doc.querySelector('.project-body h2')) errs.push('project page has no write-up sections');
@@ -218,6 +262,16 @@ for (const page of pages) {
         const metrics = doc.querySelectorAll('.scan-metric').length;
         if (metrics < 3) errs.push(`expected 3-4 hero metrics, found ${metrics}`);
         if (!/ITAR/.test(doc.querySelector('.scan-facts')?.textContent || '')) errs.push('eligibility line missing from hero');
+        // Live scope: every hook initHeroScope reads must be in the markup,
+        // and the panel must be hidden when scripting is unavailable.
+        const scope = doc.querySelector('[data-hero-scope]');
+        if (!scope) errs.push('hero live scope missing');
+        else {
+            for (const sel of ['[data-scope]', '[data-out="d"]', '[data-out="state"]', '[data-run]', '[data-fire="pothole"]', '[data-fire="glitch"]', '[data-fire="impact"]']) {
+                if (!scope.querySelector(sel)) errs.push(`hero scope is missing ${sel}`);
+            }
+        }
+        if (doc.querySelectorAll('.teaser-card').length !== 4) errs.push('home page should link to all four labs');
         // Flagship demo is a click-to-play facade, never a bare third-party iframe.
         const facade = doc.querySelector('.video-facade');
         if (!facade) errs.push('flagship video facade missing');

@@ -3,7 +3,7 @@ title: Low-Cost EEG Electrode for Brain-Computer Interfaces
 outcome: Initiated the partnership with NeuroPawn Biotechnologies, wrote the proposal and IRB protocol that made it an approved senior capstone, and lead the five-person team building and validating the electrode.
 status: active
 period: 2026 - 2027
-order: 2
+order: 3
 audiences: [neurotech, bigtech]
 context: NeuroPawn Biotechnologies, senior capstone at New Mexico State University
 role: Team lead, 5-person team
@@ -13,6 +13,7 @@ metrics:
   - { value: "7", label: "electrode parameters benchmarked against the incumbent" }
   - { value: "IRB", label: "human-subjects protocol authored" }
 artifacts: []
+lab: eeg
 figure: image
 figureData:
   caption: "Capstone meet and greet, recruiting the team and running the NeuroPawn headset live at the poster."

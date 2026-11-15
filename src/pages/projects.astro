@@ -21,7 +21,9 @@ const counts = Object.fromEntries(
 
 // externalPage lets CrashGuard keep its hand-authored write-up while still
 // living in the collection, so it appears here and in the Phase 4 lens.
-const href = (p: (typeof all)[number]) => p.data.externalPage ?? `/projects/${p.id}.html`;
+// A listOnly entry has no page, so it has no href and renders as a plain row.
+const href = (p: (typeof all)[number]) =>
+    p.data.listOnly ? undefined : (p.data.externalPage ?? `/projects/${p.id}.html`);
 
 const schema = graph(
     {
@@ -38,7 +40,7 @@ const schema = graph(
                 position: i + 1,
                 name: p.data.title,
                 description: p.data.outcome,
-                url: `https://caberobertson.github.io${p.data.externalPage ?? `/projects/${p.id}.html`}`,
+                ...(href(p) ? { url: `https://caberobertson.github.io${href(p)}` } : {}),
             })),
         },
     },
@@ -92,38 +94,57 @@ const groups = [
                                 data-delay={String(Math.min(i, 3))}
                                 data-audiences={p.data.audiences.join(' ')}
                             >
-                                <a class="proj-link" href={href(p)}>
-                                    <span class="proj-index" aria-hidden="true">{String(p.data.order).padStart(2, '0')}</span>
-                                    <span class="proj-body">
-                                        <span class="proj-head">
-                                            <span class="proj-title">
-                                                {p.data.title}
-                                                {p.data.status === 'active' && <span class="wip-badge">In progress</span>}
-                                            </span>
-                                            <span class="proj-period">{p.data.period}</span>
-                                        </span>
-                                        <span class="proj-outcome">{p.data.outcome}</span>
-                                        <span class="tags">
-                                            {p.data.tags.slice(0, 5).map((t) => <span class="tag">{t}</span>)}
-                                        </span>
-                                        {p.data.metrics.length > 0 && (
-                                            <span class="proj-metrics">
-                                                {p.data.metrics.slice(0, 3).map((m) => (
-                                                    <span class="proj-metric">
-                                                        <b>{m.value}</b> {m.label}
+                                {(() => {
+                                    const body = (
+                                        <>
+                                            <span class="proj-index" aria-hidden="true">{String(p.data.order).padStart(2, '0')}</span>
+                                            <span class="proj-body">
+                                                <span class="proj-head">
+                                                    <span class="proj-title">
+                                                        {p.data.title}
+                                                        {p.data.status === 'active' && <span class="wip-badge">In progress</span>}
                                                     </span>
-                                                ))}
+                                                    {p.data.period && <span class="proj-period">{p.data.period}</span>}
+                                                </span>
+                                                <span class="proj-outcome">{p.data.outcome}</span>
+                                                <span class="tags">
+                                                    {p.data.tags.slice(0, 5).map((t) => <span class="tag">{t}</span>)}
+                                                </span>
+                                                {p.data.metrics.length > 0 && (
+                                                    <span class="proj-metrics">
+                                                        {p.data.metrics.slice(0, 3).map((m) => (
+                                                            <span class="proj-metric">
+                                                                <b>{m.value}</b> {m.label}
+                                                            </span>
+                                                        ))}
+                                                    </span>
+                                                )}
+                                                {!p.data.listOnly && (
+                                                    <span class="proj-foot">
+                                                        <span class="proj-cta">
+                                                            Read the write-up
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                                        </span>
+                                                        {p.data.lab && (
+                                                            <span class="proj-lab">
+                                                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="6 4 20 12 6 20"/></svg>
+                                                                Interactive model inside
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                )}
                                             </span>
-                                        )}
-                                        <span class="proj-cta">
-                                            Read the write-up
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                                        </span>
-                                    </span>
-                                    <span class="proj-chevron" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                                    </span>
-                                </a>
+                                            {!p.data.listOnly && (
+                                                <span class="proj-chevron" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                                </span>
+                                            )}
+                                        </>
+                                    );
+                                    return p.data.listOnly
+                                        ? <div class="proj-link proj-link--static">{body}</div>
+                                        : <a class="proj-link" href={href(p)}>{body}</a>;
+                                })()}
                             </li>
                         ))}
                     </ul>
@@ -211,6 +232,27 @@ const groups = [
     }
 
     .proj-cta svg { width: 13px; height: 13px; transition: transform 0.2s var(--ease-out); }
+
+    .proj-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--space-4); }
+
+    .proj-lab {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.4px;
+        color: var(--ink);
+        border: 1px solid var(--accent);
+        padding: 2px 8px;
+    }
+
+    .proj-lab svg { width: 8px; height: 8px; color: var(--accent); }
+
+    /* A row with no page behind it: no hover, no chevron, nothing that
+       promises a destination. */
+    .proj-link.proj-link--static:hover { background: none; box-shadow: none; }
+    .proj-link.proj-link--static:hover .proj-title { color: var(--ink); }
     .proj-link:hover .proj-cta svg { transform: translateX(3px); }
 
     .proj-index {

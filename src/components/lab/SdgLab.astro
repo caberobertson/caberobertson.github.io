@@ -1,0 +1,125 @@
+---
+// Lab 02: synthetic data generation with domain randomization.
+import LabFrame from './LabFrame.astro';
+
+interface Props {
+    id?: string;
+    /** Rendered on its own project page rather than in the Lab. */
+    embedded?: boolean;
+}
+const { id = 'synthetic-data', embedded = false } = Astro.props;
+const thumbs = Array.from({ length: 6 });
+const groups = [
+    { key: 'layout', label: 'Layout: how many, and where' },
+    { key: 'size', label: 'Size and depth' },
+    { key: 'light', label: 'Lighting direction' },
+    { key: 'surface', label: 'Surface tone and texture' },
+];
+---
+
+<LabFrame
+    id={id}
+    embedded={embedded}
+    kind="sdg"
+    kicker="Lab 02"
+    title="Synthetic data generator"
+    lede="A vision model that finds damage needs thousands of labelled images of damage. When those cannot be photographed, they are generated: build the scene in simulation, randomize it, and every image arrives with labels that are exact by construction. This is that workflow at browser scale."
+    from={{ label: 'Synthetic inspection data', href: '/projects/synthetic-inspection-data.html' }}
+    model="sdg.js"
+>
+    <div class="sdg-grid">
+        <canvas
+            class="lab-canvas sdg-view"
+            data-view
+            role="img"
+            aria-label="A generated image of a panel surface with impact craters, each outlined by its ground-truth bounding box. A dial in the corner shows the direction of the light."
+        ></canvas>
+        <div class="sdg-batch" role="group" aria-label="Current batch of six generated samples">
+            {thumbs.map((_, i) => (
+                <button type="button" class="sdg-thumb" data-thumb aria-pressed="false" aria-label={`Show sample ${i + 1} of ${thumbs.length}`}>
+                    <canvas width="112" height="112"></canvas>
+                </button>
+            ))}
+        </div>
+    </div>
+
+    <dl class="lab-readouts">
+        <div><dt>Sample</dt><dd data-out="seed">000001</dd></div>
+        <div><dt>Craters</dt><dd data-out="count">0</dd></div>
+        <div><dt>Light</dt><dd data-out="light">az 0°, el 0°</dd></div>
+    </dl>
+
+    <p class="lab-figcap">The record written beside the image. Boxes are in pixels for a 512 &times; 512 frame.</p>
+    <pre class="sdg-record" data-record tabindex="0" aria-label="Annotation record for the selected sample"></pre>
+
+    <Fragment slot="controls">
+        <div class="lab-row">
+            <button type="button" class="lab-btn lab-btn--primary" data-new>New batch</button>
+        </div>
+        <fieldset class="lab-group">
+            <legend>Randomize</legend>
+            {groups.map((g) => (
+                <label class="lab-check"><input type="checkbox" checked data-flag={g.key} /> {g.label}</label>
+            ))}
+        </fieldset>
+        <fieldset class="lab-group">
+            <legend>Overlay</legend>
+            <label class="lab-check"><input type="checkbox" checked data-labels /> Ground-truth boxes</label>
+        </fieldset>
+    </Fragment>
+
+    <Fragment slot="steps">
+        <li>Press <strong>New batch</strong> a few times. No two images match, and each one is already labelled.</li>
+        <li>Untick <strong>Ground-truth boxes</strong>, then tick it again. No detector drew those boxes. They are read straight off the scene description that produced the pixels, which is why they are exact.</li>
+        <li>Untick everything under Randomize except <strong>Lighting direction</strong>. Now the batch is one scene under six suns. A model that has only ever seen one of them fails on the other five.</li>
+        <li>Click through the batch and read the record under the image. That is what a dataset writer emits per frame, and the sample number alone regenerates the picture.</li>
+    </Fragment>
+
+    <Fragment slot="note">
+        A teaching model written for this site: a heightfield with Lambertian shading, drawn in your browser. It is not
+        NVIDIA Isaac Sim output, and it contains no data, geometry or parameters from any employer's pipeline.
+    </Fragment>
+</LabFrame>
+
+<style is:global>
+    .sdg-grid { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 10px; align-items: start; }
+    .sdg-view { aspect-ratio: 1; height: auto; }
+    .sdg-batch { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+    .sdg-thumb {
+        padding: 0;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        cursor: pointer;
+        line-height: 0;
+        aspect-ratio: 1;
+    }
+
+    .sdg-thumb canvas { width: 100%; height: 100%; display: block; }
+    .sdg-thumb:hover { border-color: var(--accent); }
+    .sdg-thumb[aria-pressed='true'] { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    .sdg-record {
+        margin: 6px 0 0;
+        padding: 10px 12px;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-left: 2px solid var(--accent);
+        font-size: 0.7rem;
+        line-height: 1.6;
+        color: var(--ink-dim);
+        overflow-x: auto;
+        max-height: 15.5em;
+        white-space: pre;
+    }
+
+    @media (max-width: 520px) {
+        .sdg-grid { grid-template-columns: 1fr; }
+        .sdg-batch { grid-template-columns: repeat(6, 1fr); }
+    }
+</style>
+
+<script>
+    import { initSdgLab } from '../../scripts/lab/sdg-lab.js';
+    document.querySelectorAll<HTMLElement>('[data-lab="sdg"]').forEach(initSdgLab);
+</script>

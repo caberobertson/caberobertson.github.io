@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import VideoFacade from '../components/VideoFacade.astro';
+import ImpactLab from '../components/lab/ImpactLab.astro';
 import { PERSON_REF, breadcrumbs, graph } from '../lib/schema';
 
 // Build-log entries arguing decisions made on this project.
@@ -84,6 +85,7 @@ const schema = graph(
                         <li><strong>Architected the tech stack.</strong> Defined the full signal-to-action chain end to end (on-vehicle sensing, the BLE link to a phone with its Wi-Fi HTTP fallback, the Flask call server and dashboard, and the Twilio voice interface), resolving the threading and timeout failures that blocked reliable real-time dispatch.</li>
                         <li><strong>Led the team.</strong> Coordinated four engineers across firmware, host software, and demo preparation, keeping the subsystems integrating cleanly against the competition deadline.</li>
                         <li><strong>Led the testing effort.</strong> Drove the work of getting accurate results rather than plausible ones: tracing the vendor library's sensor readings to their source, calibrating the gravity vector, and tuning the threshold and confirmation window so ordinary handling cannot raise an alert.</li>
+                        <li><strong>Built the automated test suite.</strong> Constructed 46 automated tests across the BLE link, the Flask call server, and the Twilio voice interface to verify the detection chain and eliminate false triggers.</li>
                     </ul>
                 </article>
 
@@ -303,6 +305,11 @@ const schema = graph(
                         <li><strong>Crash peak</strong>: measured only across a 400&nbsp;ms window around the impact itself, so the figure given to the dispatcher belongs to that collision rather than to the largest bump seen earlier in the session.</li>
                     </ul>
                 </article>
+
+                <!-- The pipeline described above, as a model that runs. Same
+                     constants as the Specifications table; see the note under
+                     the lab for the one value this page does not publish. -->
+                <ImpactLab id="detector-lab" embedded />
             </div>
         </section>
 

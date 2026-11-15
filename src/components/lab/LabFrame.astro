@@ -1,0 +1,252 @@
+---
+// Shared shell for an interactive lab: what it is, the stage, the controls,
+// a short guided exercise, and where the model and its tests live.
+//
+// Each lab is laid out as a lesson rather than a toy. The "Try this" steps
+// are the point: they tell the visitor what to do and what they should see,
+// which is the difference between a demo and a tutorial.
+interface Props {
+    id: string;
+    /** Selects the controller: impact | sdg | decoder | eeg. */
+    kind: string;
+    kicker: string;
+    title: string;
+    lede: string;
+    /** The project this lab is built from. */
+    from?: { label: string; href: string };
+    /** Path of the model under src/lib/sim, for the source link. */
+    model: string;
+    /**
+     * Set when the lab is rendered on the write-up it was built from. The
+     * kicker then points at the Lab instead of back at the page it is on.
+     */
+    embedded?: boolean;
+}
+
+const { id, kind, kicker, title, lede, from, model, embedded = false } = Astro.props;
+const REPO = 'https://github.com/caberobertson/caberobertson.github.io/blob/main';
+---
+
+<section class="lab" id={id} data-lab={kind} aria-labelledby={`${id}-title`}>
+    <header class="lab-head">
+        <p class="lab-kicker">
+            {embedded ? (
+                <>Interactive model &middot; one of four in the <a href="/lab.html">Lab</a></>
+            ) : (
+                <>
+                    {kicker}
+                    {from && <> &middot; from <a href={from.href}>{from.label}</a></>}
+                </>
+            )}
+        </p>
+        <h2 class="lab-title" id={`${id}-title`}>{title}</h2>
+        <p class="lab-lede">{lede}</p>
+    </header>
+
+    <div class="lab-body">
+        <div class="lab-stage">
+            <noscript>
+                <p class="lab-nojs">
+                    This model runs in the browser and needs JavaScript.
+                    {from && !embedded && <>{' '}The write-up it is built from is <a href={from.href}>{from.label}</a>.</>}
+                </p>
+            </noscript>
+            <slot />
+        </div>
+        <div class="lab-side">
+            <div class="lab-controls"><slot name="controls" /></div>
+            <div class="lab-steps">
+                <h3>Try this</h3>
+                <ol><slot name="steps" /></ol>
+            </div>
+        </div>
+    </div>
+
+    <footer class="lab-note">
+        <slot name="note" />
+        <span class="lab-source">
+            Model: <a href={`${REPO}/src/lib/sim/${model}`} target="_blank" rel="noopener">src/lib/sim/{model}</a>
+            {' '}&middot; Tests: <a href={`${REPO}/tests/sim.test.js`} target="_blank" rel="noopener">tests/sim.test.js</a>
+        </span>
+    </footer>
+</section>
+
+<style is:global>
+    .lab {
+        border: 1px solid var(--border-strong);
+        background: var(--bg-elev);
+        margin-top: var(--space-6);
+        /* Anchored from the home page and the nav; clear the sticky header. */
+        scroll-margin-top: 84px;
+    }
+
+    .lab-head { padding: var(--space-5) var(--space-5) var(--space-4); border-bottom: 1px solid var(--line); }
+
+    .lab-kicker {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 6px;
+    }
+
+    .lab-kicker a { color: inherit; }
+    .lab-title { font-size: 1.35rem; margin: 0; }
+    .lab-lede { color: var(--ink-dim); margin: 8px 0 0; max-width: 72ch; font-size: 0.95rem; }
+
+    .lab-body { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(250px, 1fr); }
+    .lab-stage { padding: var(--space-5); border-right: 1px solid var(--line); min-width: 0; }
+    .lab-side { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; }
+
+    .lab-canvas { display: block; width: 100%; background: var(--bg); border: 1px solid var(--line); }
+    .lab-figcap {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--ink-dim);
+        margin: 6px 0 0;
+        line-height: 1.6;
+    }
+
+    /* Flex rather than grid so a short last row stretches to fill the width
+       instead of leaving an empty cell. Rules are drawn as outlines that
+       overlap in the 1px gap, so they stay one pixel wide. */
+    .lab-readouts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1px;
+        border: 1px solid var(--line);
+        margin: var(--space-3) 0 0;
+    }
+
+    .lab-readouts > div {
+        flex: 1 1 128px;
+        outline: 1px solid var(--line);
+        background: var(--bg-elev);
+        padding: 8px 10px;
+        min-width: 0;
+    }
+
+    .lab-readouts > div[hidden] { display: none; }
+    .lab-readouts > .lab-readout--wide { flex-basis: 184px; }
+
+    .lab-readouts dt {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+    }
+
+    .lab-readouts dd {
+        margin: 2px 0 0;
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: anywhere;
+    }
+
+    .lab-readouts dd[data-tone='alert'] { color: var(--danger); }
+
+    .lab-status {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.6;
+        margin: var(--space-3) 0 0;
+        min-height: 3.2em;
+        color: var(--ink-dim);
+    }
+
+    .lab-status[data-tone='alert'] { color: var(--danger); }
+    .lab-status[data-tone='ok'] { color: var(--accent); }
+    .lab-hint { font-family: var(--font-mono); font-size: 0.76rem; color: var(--danger); margin: var(--space-2) 0 0; }
+
+    .lab-controls { display: flex; flex-direction: column; gap: var(--space-4); }
+    .lab-group { border: none; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+
+    .lab-group legend,
+    .lab-steps h3 {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--accent);
+        padding: 0;
+        margin: 0 0 8px;
+    }
+
+    .lab-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .lab-btn {
+        font-family: var(--font-mono);
+        font-size: 0.74rem;
+        padding: 7px 11px;
+        border: 1px solid var(--border-strong);
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        transition: background-color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+    }
+
+    .lab-btn:hover:not(:disabled) { background: var(--hover-surface); border-color: var(--accent); }
+    .lab-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .lab-btn--primary { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--accent-ink); }
+    .lab-btn--primary:hover:not(:disabled) { background: var(--hover-surface); color: var(--ink); }
+    .lab-btn--alert { background: var(--danger); border-color: var(--danger); color: var(--bg); font-weight: 600; }
+    .lab-btn[aria-pressed='true'].lab-toggle { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--accent-ink); }
+
+    .lab-field { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; font-size: 0.84rem; }
+    .lab-field label { color: var(--ink-dim); }
+    .lab-field output { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .lab-field input[type='range'] { grid-column: 1 / -1; width: 100%; margin: 2px 0 0; accent-color: var(--accent-fill); }
+
+    .lab-field select {
+        grid-column: 1 / -1;
+        font: inherit;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        padding: 6px 8px;
+        color: var(--ink);
+        background: var(--bg);
+        border: 1px solid var(--border-strong);
+        border-radius: 0;
+    }
+
+    .lab-check { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; color: var(--ink-dim); cursor: pointer; }
+    .lab-check input { accent-color: var(--accent-fill); width: 15px; height: 15px; flex-shrink: 0; margin: 0; }
+
+    .lab-steps ol { margin: 0; padding-left: 1.15rem; color: var(--ink-dim); font-size: 0.88rem; }
+    .lab-steps li + li { margin-top: 9px; }
+    .lab-steps li::marker { color: var(--accent); font-family: var(--font-mono); font-size: 0.78rem; }
+    .lab-steps strong { color: var(--ink); font-weight: 600; }
+
+    .lab-note {
+        padding: var(--space-3) var(--space-5);
+        border-top: 1px solid var(--line);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        line-height: 1.75;
+        color: var(--ink-dim);
+    }
+
+    .lab-note a { color: var(--accent); }
+    .lab-source { display: block; }
+    .lab-nojs { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-dim); margin: 0 0 var(--space-3); }
+    .lab-nojs a { color: var(--accent); }
+
+    @media (max-width: 860px) {
+        .lab-body { grid-template-columns: 1fr; }
+        .lab-stage { border-right: none; border-bottom: 1px solid var(--line); }
+    }
+
+    @media (max-width: 520px) {
+        .lab-head, .lab-stage, .lab-side { padding: var(--space-4); }
+        .lab-note { padding: var(--space-3) var(--space-4); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .lab-btn { transition: none; }
+    }
+</style>

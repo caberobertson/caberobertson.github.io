@@ -1,0 +1,214 @@
+---
+// Lab 03: syndrome decoding by hand, then the same experiment as a sweep.
+import LabFrame from './LabFrame.astro';
+import { H } from '../../lib/sim/hamming.js';
+
+interface Props {
+    id?: string;
+    /** Rendered on its own project page rather than in the Lab. */
+    embedded?: boolean;
+}
+const { id = 'decoding', embedded = false } = Astro.props;
+const NAMES = ['d1', 'd2', 'd3', 'd4', 'p1', 'p2', 'p3'];
+const seven = [0, 1, 2, 3, 4, 5, 6];
+---
+
+<LabFrame
+    id={id}
+    embedded={embedded}
+    kind="decoder"
+    kicker="Lab 03"
+    title="Syndrome decoder"
+    lede="An error-correcting code adds parity bits so the receiver can find and fix what the channel broke. This is a Hamming(7,4) code, decoded from the syndrome H·rᵀ: first one word by hand, then the same experiment repeated until the error-rate curves appear."
+    from={{ label: 'Channel decoding simulations', href: '/projects/channel-decoding-sims.html' }}
+    model="hamming.js"
+>
+    <div class="dec-scroll">
+        <table class="dec-table">
+            <caption class="lab-figcap">Click a message bit to change the word, or a received bit to flip it in transit.</caption>
+            <thead>
+                <tr>
+                    <td></td>
+                    {NAMES.map((n, k) => <th scope="col" class={k > 3 ? 'is-parity' : undefined}>{n}</th>)}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">Message</th>
+                    {[0, 1, 2, 3].map((i) => (
+                        <td><button type="button" class="dec-bit" data-msg={i} aria-pressed="false" aria-label={`Message bit ${NAMES[i]}`}>0</button></td>
+                    ))}
+                    <td colspan="3" class="dec-gap">parity is computed</td>
+                </tr>
+                <tr>
+                    <th scope="row">Sent</th>
+                    {seven.map((k) => <td><span class={`dec-cell${k > 3 ? ' is-parity' : ''}`} data-cw={k}>0</span></td>)}
+                </tr>
+                <tr>
+                    <th scope="row">Received</th>
+                    {seven.map((k) => <td><button type="button" class="dec-bit" data-rx={k}>0</button></td>)}
+                </tr>
+                <tr>
+                    <th scope="row">Decoded</th>
+                    {seven.map((k) => <td><span class="dec-cell" data-fix={k}>0</span></td>)}
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="dec-h">
+            <caption class="lab-figcap">Parity-check matrix H, and the syndrome s = H·rᵀ over GF(2). A nonzero syndrome equals the column of the bit to flip.</caption>
+            <tbody>
+                {H.map((row, j) => (
+                    <tr>
+                        <th scope="row">{j === 1 ? 'H' : ''}</th>
+                        {row.map((v, k) => <td><span class="dec-cell dec-cell--h" data-h={`${j},${k}`}>{v}</span></td>)}
+                        <th scope="row" class="dec-eq">{j === 1 ? 's' : ''}</th>
+                        <td><span class="dec-cell dec-cell--syn" data-syn={j}>0</span></td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="lab-status" data-out="verdict" role="status"></p>
+
+    <h3 class="dec-sub">The same experiment, a few hundred thousand times</h3>
+    <canvas
+        class="lab-canvas lab-canvas--chart"
+        data-chart
+        role="img"
+        aria-label="Frame error rate and bit error rate after decoding, on a log scale, against the channel's bit-error probability from 0 to 0.5. Simulated points sit on the exact curves."
+    ></canvas>
+    <ul class="dec-legend">
+        <li><span class="dec-key dec-key--fer"></span>Frame error rate: circles simulated, line exact</li>
+        <li><span class="dec-key dec-key--ber"></span>Bit error rate after decoding: crosses simulated, dashes exact</li>
+        <li><span class="dec-key dec-key--raw"></span>Uncoded: the channel's own error rate</li>
+    </ul>
+    <dl class="lab-readouts">
+        <div><dt>Frames simulated</dt><dd data-out="frames">0</dd></div>
+        <div><dt>Frame error rate at p = 0.05</dt><dd data-out="spot">0</dd></div>
+    </dl>
+
+    <Fragment slot="controls">
+        <fieldset class="lab-group">
+            <legend>One word</legend>
+            <div class="lab-row">
+                <button type="button" class="lab-btn" data-clear>Clear the errors</button>
+            </div>
+        </fieldset>
+        <fieldset class="lab-group">
+            <legend>Monte Carlo sweep</legend>
+            <div class="lab-row">
+                <button type="button" class="lab-btn lab-btn--primary" data-mc-run aria-pressed="false">Run the sweep</button>
+                <button type="button" class="lab-btn" data-mc-reset>Reset</button>
+            </div>
+        </fieldset>
+    </Fragment>
+
+    <Fragment slot="steps">
+        <li>Click one bit in the <strong>Received</strong> row. The syndrome stops being 000, it matches one column of H, and that column names the bit to flip back.</li>
+        <li>Click a second bit. The syndrome still points somewhere, but at a bit that was never wrong. The decoder "fixes" it and hands back a valid codeword that is not the one sent: a frame error.</li>
+        <li>Press <strong>Run the sweep</strong>. Every point is that experiment repeated thousands of times at one channel error probability. The simulated points settle onto the exact curves, which is the check that the simulation is right.</li>
+        <li>Read the left edge of the chart: below p ≈ 0.1 the decoded bit error rate drops under the uncoded line. That gap is what the three parity bits buy.</li>
+    </Fragment>
+
+    <Fragment slot="note">
+        Hamming(7,4) over a binary symmetric channel is the textbook instance of the method, chosen because every step
+        fits on screen. The research code itself is unpublished and none of it is used here. The exact curves come from enumerating all
+        128 error patterns.
+    </Fragment>
+</LabFrame>
+
+<style is:global>
+    .dec-scroll { overflow-x: auto; }
+    .dec-table, .dec-h { border-collapse: separate; border-spacing: 5px; font-family: var(--font-mono); }
+    .dec-h { margin-top: var(--space-4); }
+    .dec-table caption, .dec-h caption { caption-side: top; text-align: left; margin: 0 0 4px 5px; }
+
+    .dec-table th, .dec-h th {
+        font-size: 0.68rem;
+        font-weight: 500;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        text-align: right;
+        padding: 0 6px 0 0;
+        white-space: nowrap;
+    }
+
+    .dec-table thead th { text-align: center; padding: 0; text-transform: none; }
+    .dec-table thead th.is-parity { color: var(--accent); }
+    .dec-h th.dec-eq { padding: 0 2px 0 14px; }
+    .dec-table td, .dec-h td { padding: 0; }
+
+    .dec-gap {
+        font-size: 0.66rem;
+        color: var(--ink-dim);
+        text-align: center;
+        border: 1px dashed var(--line);
+    }
+
+    .dec-bit, .dec-cell {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        font-variant-numeric: tabular-nums;
+        border: 1px solid var(--line);
+        background: var(--bg);
+        color: var(--ink);
+    }
+
+    .dec-bit { cursor: pointer; border-color: var(--border-strong); padding: 0; }
+    .dec-bit:hover { border-color: var(--accent); background: var(--hover-surface); }
+    .dec-bit.is-error { background: var(--danger); border-color: var(--danger); color: var(--bg); font-weight: 600; }
+    .dec-cell.is-parity { color: var(--accent); }
+    .dec-cell.is-flipped { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .dec-cell.is-wrong { color: var(--danger); border-color: var(--danger); }
+    .dec-cell--h { width: 34px; height: 26px; font-size: 0.82rem; color: var(--ink-dim); border-color: transparent; background: transparent; }
+    .dec-cell--h.is-match { color: var(--accent-ink); background: var(--accent-fill); }
+    .dec-cell--syn { height: 26px; font-size: 0.82rem; border-color: var(--border-strong); }
+
+    .dec-sub {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: var(--space-5) 0 var(--space-2);
+    }
+
+    .lab-canvas--chart { height: 300px; }
+
+    .dec-legend {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--ink-dim);
+    }
+
+    .dec-legend li { display: flex; align-items: center; gap: 8px; }
+    .dec-key { width: 22px; height: 0; border-top: 2px solid var(--accent); flex-shrink: 0; }
+    .dec-key--ber { border-top: 2px dashed var(--danger); }
+    .dec-key--raw { border-top: 2px dotted var(--ink-dim); }
+
+    @media (max-width: 520px) {
+        .dec-bit, .dec-cell { width: 29px; height: 31px; font-size: 0.85rem; }
+        .dec-cell--h, .dec-cell--syn { height: 24px; }
+        .dec-table, .dec-h { border-spacing: 3px; }
+        .lab-canvas--chart { height: 250px; }
+    }
+</style>
+
+<script>
+    import { initDecoderLab } from '../../scripts/lab/decoder-lab.js';
+    document.querySelectorAll<HTMLElement>('[data-lab="decoder"]').forEach(initDecoderLab);
+</script>

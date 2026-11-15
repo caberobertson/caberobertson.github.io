@@ -1,0 +1,140 @@
+---
+import fs from 'node:fs';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ImpactLab from '../components/lab/ImpactLab.astro';
+import SdgLab from '../components/lab/SdgLab.astro';
+import DecoderLab from '../components/lab/DecoderLab.astro';
+import EegLab from '../components/lab/EegLab.astro';
+import { PERSON_REF, breadcrumbs, graph } from '../lib/schema';
+
+// Counted from the test file at build time, so the number on the page is
+// always the number that actually ran.
+const testCount = (fs.readFileSync('tests/sim.test.js', 'utf8').match(/^test\(/gm) ?? []).length;
+
+const labs = [
+    { href: '#impact', n: '01', title: 'Impact detector', from: 'CrashGuard firmware' },
+    { href: '#synthetic-data', n: '02', title: 'Synthetic data generator', from: 'Isaac Sim work at ETV' },
+    { href: '#decoding', n: '03', title: 'Syndrome decoder', from: 'Mitchell Coding Group' },
+    { href: '#eeg', n: '04', title: 'EEG filter bench', from: 'NeuroPawn capstone' },
+];
+
+const schema = graph(
+    {
+        '@type': 'CollectionPage',
+        name: 'Lab',
+        description: 'Interactive models of four engineering projects, each with a guided exercise.',
+        url: 'https://caberobertson.github.io/lab.html',
+        author: PERSON_REF,
+        hasPart: labs.map((l) => ({
+            '@type': 'LearningResource',
+            name: l.title,
+            learningResourceType: 'Interactive simulation',
+            url: `https://caberobertson.github.io/lab.html${l.href}`,
+        })),
+    },
+    breadcrumbs([{ name: 'Home', href: '/' }, { name: 'Lab' }]),
+);
+---
+
+<BaseLayout
+    title="Lab | Cabe Robertson"
+    description="Four interactive models built from Cabe Robertson's engineering projects: a crash detection pipeline, a synthetic data generator, a syndrome decoder, and an EEG filter bench. Each runs in the browser with a guided exercise."
+    ogTitle="Lab | Cabe Robertson"
+    ogDescription="Four engineering projects as models you can run: crash detection, synthetic data generation, error-correcting codes, and EEG filtering."
+    ogCard="lab"
+>
+    <script is:inline type="application/ld+json" slot="head" set:html={schema} />
+
+    <main id="main">
+        <section class="section">
+            <div class="container">
+                <div class="section-head reveal in">
+                    <span class="section-index">01</span>
+                    <h1 class="section-title">Lab</h1>
+                </div>
+                <p class="section-sub reveal in">
+                    Four of my projects as models you can run. Each has a short exercise that says what to
+                    try and what you should see, and unit tests behind the mathematics.
+                </p>
+
+                <ul class="lab-toc reveal in">
+                    {labs.map((l) => (
+                        <li>
+                            <a href={l.href}>
+                                <span class="lab-toc-n">{l.n}</span>
+                                <span class="lab-toc-title">{l.title}</span>
+                                <span class="lab-toc-from">{l.from}</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+
+                <ImpactLab />
+                <SdgLab />
+                <DecoderLab />
+                <EegLab />
+
+                <article class="panel lab-colophon reveal">
+                    <span class="panel-tag">&sect; How these are built</span>
+                    <h2>Models first, pictures second</h2>
+                    <p>
+                        Each lab is a small pure model with no dependencies, in
+                        <a href="https://github.com/caberobertson/caberobertson.github.io/tree/main/src/lib/sim" target="_blank" rel="noopener">src/lib/sim</a>,
+                        and a thin canvas layer on top. The models are covered by {testCount} unit tests that run on
+                        every push: the rotation floor is 2 sin(θ/2), a 50 g threshold is unreachable through a
+                        ±16 g converter, every single-bit error is corrected and every double-bit error is not, the
+                        notch removes 60 Hz and leaves 10 Hz alone.
+                    </p>
+                    <p>
+                        The canvases stop drawing when they scroll out of view, follow the light and dark themes, and
+                        start paused for anyone who has asked their system to reduce motion.
+                    </p>
+                </article>
+            </div>
+        </section>
+    </main>
+</BaseLayout>
+
+<style>
+    .lab-toc {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid var(--border-strong);
+    }
+
+    .lab-toc li + li { border-left: 1px solid var(--line); }
+
+    .lab-toc a {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        height: 100%;
+        padding: var(--space-4);
+        text-decoration: none;
+        color: inherit;
+        transition: background-color 0.15s var(--ease-out);
+    }
+
+    .lab-toc a:hover, .lab-toc a:focus-visible { background: var(--hover-surface); }
+    .lab-toc-n { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); }
+    .lab-toc-title { font-family: var(--font-display); font-weight: 600; font-size: 1rem; color: var(--ink); }
+    .lab-toc-from { font-family: var(--font-mono); font-size: 0.68rem; color: var(--ink-dim); }
+
+    .lab-colophon { margin-top: var(--space-7); }
+    .lab-colophon h2 { font-size: 1.2rem; margin: 0.4rem 0 0.8rem; }
+    .lab-colophon p { color: var(--ink-dim); max-width: 78ch; }
+    .lab-colophon a { color: var(--accent); }
+
+    @media (max-width: 760px) {
+        .lab-toc { grid-template-columns: 1fr 1fr; }
+        .lab-toc li:nth-child(3) { border-left: none; }
+        .lab-toc li:nth-child(n + 3) { border-top: 1px solid var(--line); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .lab-toc a { transition: none; }
+    }
+</style>
