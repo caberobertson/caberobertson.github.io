@@ -16,7 +16,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                 <span class="section-index">TOOL</span>
                 <h1 class="section-title">Resume Tailor</h1>
             </div>
-            <p class="section-sub reveal in">Give it a picture of a job posting and a resume. It rewrites the resume for that role as one page of LaTeX, pulls in skills your experience implies, and shows its reasoning so you can cut anything you would not defend.</p>
+            <p class="section-sub reveal in">Give Claude a picture of a job posting and a resume. It rewrites the resume for that role as one page of LaTeX, pulls in skills your experience implies, and shows its reasoning so you can cut anything you would not defend.</p>
+
+            <div class="callout" id="rt-artifact-callout">
+                <strong>One-click version.</strong> The same tool runs inside Claude on your own subscription, reads photos of the posting directly, and needs no copy and paste: <a href="https://claude.ai/artifact/BXJnzvNRy8MgRvNbXfa2Eb" target="_blank" rel="noopener">open Resume Tailor in Claude</a>. The page below does the same job by hand through any Claude chat.
+            </div>
 
             <div class="rt-grid">
                 <div class="panel">
@@ -32,20 +36,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                             <input type="text" id="rt-role" autocomplete="off">
                         </label>
                     </div>
-                    <div class="rt-drop" id="rt-drop">
-                        <p>Drop photos or screenshots of the requirements here, or paste one from the clipboard.</p>
-                        <div class="rt-actions">
-                            <label class="btn" for="rt-files">Choose images</label>
-                            <input type="file" id="rt-files" class="rt-hidden" accept="image/*" multiple>
-                            <label class="btn" for="rt-camera">Take a photo</label>
-                            <input type="file" id="rt-camera" class="rt-hidden" accept="image/*" capture="environment">
-                        </div>
-                    </div>
-                    <div class="rt-thumbs" id="rt-thumbs" aria-live="polite"></div>
                     <label class="rt-field">
-                        <span>Or paste the posting text</span>
-                        <textarea id="rt-posting-text" rows="4" spellcheck="false"></textarea>
+                        <span>Posting text (optional)</span>
+                        <textarea id="rt-posting-text" rows="8" spellcheck="false"></textarea>
                     </label>
+                    <p class="rt-hint">Have a photo or screenshot of the requirements instead? Leave this empty and attach the pictures to the Claude chat in step 03.</p>
                 </div>
 
                 <div class="panel">
@@ -53,13 +48,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                     <h2>Your resume</h2>
                     <div class="rt-actions">
                         <button type="button" class="btn" id="rt-load-mine">Load Cabe's resume</button>
-                        <label class="btn" for="rt-resume-file">Upload PDF, .tex or .txt</label>
-                        <input type="file" id="rt-resume-file" class="rt-hidden" accept=".pdf,.tex,.txt,.md,application/pdf,text/plain">
+                        <label class="btn" for="rt-resume-file">Upload .tex or .txt</label>
+                        <input type="file" id="rt-resume-file" class="rt-hidden" accept=".tex,.txt,.md,text/plain">
                     </div>
-                    <p class="rt-hint" id="rt-resume-file-name" aria-live="polite"></p>
                     <label class="rt-field">
                         <span>Resume text</span>
-                        <textarea id="rt-resume" rows="12" spellcheck="false"></textarea>
+                        <textarea id="rt-resume" rows="10" spellcheck="false"></textarea>
                     </label>
                     <label class="rt-check">
                         <input type="checkbox" id="rt-use-site" checked>
@@ -68,33 +62,38 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                 </div>
             </div>
 
-            <div class="panel rt-run">
-                <span class="panel-tag">03 Generate</span>
-                <h2>Run it</h2>
-                <div class="rt-fields">
-                    <label class="rt-field">
-                        <span>Anthropic API key</span>
-                        <input type="password" id="rt-key" autocomplete="current-password" spellcheck="false">
-                    </label>
-                    <label class="rt-field">
-                        <span>Model</span>
-                        <select id="rt-model">
-                            <option value="claude-opus-5-5" selected>Claude Opus 5.5</option>
-                            <option value="claude-fable-5-2">Claude Fable 5.2 (strongest, costs more)</option>
-                            <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (faster, cheaper)</option>
-                        </select>
+            <div class="rt-grid">
+                <div class="panel">
+                    <span class="panel-tag">03 Ask Claude</span>
+                    <h2>Run it in your Claude chat</h2>
+                    <ol class="step-list">
+                        <li>Copy the prompt. It carries the instructions, your resume and the source material.</li>
+                        <li>Open a new Claude chat, paste it, attach your photos of the posting, and send.</li>
+                        <li>Copy Claude's whole reply and paste it into step 04.</li>
+                    </ol>
+                    <div class="rt-actions">
+                        <button type="button" class="btn btn-primary" id="rt-copy-prompt">Copy prompt</button>
+                        <a class="btn" href="https://claude.ai/new" target="_blank" rel="noopener">Open Claude</a>
+                    </div>
+                    <p class="rt-status" id="rt-status" role="status" aria-live="polite"></p>
+                    <label class="rt-field rt-fallback">
+                        <span class="rt-sr">Prompt text</span>
+                        <textarea id="rt-prompt-box" rows="5" readonly hidden></textarea>
                     </label>
                 </div>
-                <label class="rt-check">
-                    <input type="checkbox" id="rt-remember">
-                    <span>Remember the key in this browser</span>
-                </label>
-                <p class="rt-hint">The page has no server. Your key, the posting and the resume go from this browser straight to the Claude API and nowhere else. Create a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.</p>
-                <div class="rt-actions">
-                    <button type="button" class="btn btn-primary" id="rt-generate">Tailor my resume</button>
-                    <button type="button" class="btn" id="rt-stop" hidden>Stop</button>
+
+                <div class="panel">
+                    <span class="panel-tag">04 Reply</span>
+                    <h2>Paste Claude's reply</h2>
+                    <label class="rt-field">
+                        <span>The whole reply, as copied</span>
+                        <textarea id="rt-reply" rows="8" spellcheck="false"></textarea>
+                    </label>
+                    <div class="rt-actions">
+                        <button type="button" class="btn btn-primary" id="rt-load-reply">Load into editor</button>
+                    </div>
+                    <p class="rt-status" id="rt-reply-status" role="status" aria-live="polite"></p>
                 </div>
-                <p class="rt-status" id="rt-status" role="status" aria-live="polite"></p>
             </div>
 
             <div id="rt-output">
@@ -112,6 +111,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                             <button type="button" class="btn" id="rt-download">Download .tex</button>
                             <button type="button" class="btn" id="rt-copy">Copy</button>
                         </div>
+                        <p class="rt-status" id="rt-out-status" role="status" aria-live="polite"></p>
                         <p class="rt-hint">Compile PDF sends the LaTeX to the public service latex.ytotech.com. Open in Overleaf sends it to Overleaf. Neither happens until you press the button.</p>
                     </div>
                     <div class="panel">
@@ -139,8 +139,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                             <span>For example: cut it to fit one page, lead with the RF work, drop the objective</span>
                             <input type="text" id="rt-revise" autocomplete="off">
                         </label>
-                        <button type="button" class="btn" id="rt-revise-btn">Revise</button>
+                        <button type="button" class="btn" id="rt-revise-btn">Copy request</button>
                     </div>
+                    <p class="rt-status" id="rt-revise-status" role="status" aria-live="polite"></p>
                     <div class="rt-report" id="rt-report" aria-live="polite"></div>
                 </div>
             </div>
@@ -168,19 +169,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .rt-field textarea { resize: vertical; line-height: 1.45; }
     .rt-field input:focus-visible, .rt-field textarea:focus-visible, .rt-field select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
     .rt-editor { font-family: var(--font-mono) !important; font-size: 0.78rem !important; white-space: pre; overflow: auto; tab-size: 2; }
+    .rt-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .rt-fallback { margin: 0.8rem 0 0; }
+    .rt-status + .rt-hint { margin-top: 0.8rem; }
+    .rt-grid .step-list { margin: 0 0 1.2rem; }
     .rt-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip-path: inset(50%); }
     .rt-hidden:focus-visible + .btn, .btn:has(+ .rt-hidden:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
     .rt-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0 0 1rem; }
-    .rt-drop { border: 1px dashed var(--muted); padding: 1.1rem; margin: 0 0 1rem; }
-    .rt-drop.is-over { border-color: var(--accent); background: var(--accent-soft); }
-    .rt-drop p { margin: 0 0 0.9rem; color: var(--muted); font-size: 0.9rem; }
-    .rt-drop .rt-actions { margin: 0; }
-    .rt-thumbs { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0 0 1rem; }
-    .rt-thumbs:empty { display: none; }
-    .rt-thumb { width: 96px; border: 1px solid var(--line); }
-    .rt-thumb img { display: block; width: 100%; height: 96px; object-fit: cover; object-position: top; }
-    .rt-thumb button { width: 100%; padding: 5px 0; font: 600 0.68rem var(--font-mono); text-transform: uppercase; color: var(--ink); background: var(--bg); border: 0; border-top: 1px solid var(--line); cursor: pointer; }
-    .rt-thumb button:hover { color: var(--danger); }
     .rt-check { display: flex; gap: 10px; align-items: flex-start; font-size: 0.88rem; color: var(--muted); margin: 0 0 1rem; }
     .rt-check input { margin-top: 3px; accent-color: var(--accent-fill); }
     .rt-hint, .rt-note { font-size: 0.82rem; color: var(--muted); margin: 0 0 1rem; }
