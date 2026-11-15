@@ -13,6 +13,7 @@ const EXCLUDED = new Set([
     'ieee-points',    // noindex: a chapter-internal program page
     'ieee-bricks',    // noindex: chapter fundraising, shared by link not search
     'og-preview',     // build tool: the source frames for the social cards
+    'resume-tailor',  // noindex: a personal tool that needs the visitor's own API key
 ]);
 
 /** Rough priority by depth and role. Search engines treat this as a hint. */

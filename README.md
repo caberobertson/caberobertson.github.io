@@ -72,6 +72,7 @@ ground.
 
 ## Features
 
+- Resume Tailor (`/resume-tailor.html`, noindex): photo of a job posting plus a resume in, one-page LaTeX resume out. Runs in the browser against the Claude API with the visitor's own key; `/resume-context.json` is built from the site's own content as source material
 - Command palette: `Ctrl`/`⌘` + `K` to navigate, open the resume, toggle theme
 - Light/dark theme, persisted, applied before first paint so it never flashes
 - Scroll-reveal, typed hero line, scroll-progress bar, all respecting `prefers-reduced-motion`

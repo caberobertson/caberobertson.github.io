@@ -238,6 +238,7 @@
         { label: 'Filter projects: defense & aerospace', icon: icons.cpu, keywords: 'lens filter defense aerospace rf electronic warfare uas itar clearance', run: go('/projects.html?lens=defense') },
         { label: 'Filter projects: big tech hardware', icon: icons.cpu, keywords: 'lens filter big tech hardware embedded firmware bring-up test doe', run: go('/projects.html?lens=bigtech') },
         { label: 'Filter projects: neurotech & BCI', icon: icons.cpu, keywords: 'lens filter neurotech bci eeg biopotential brain computer interface', run: go('/projects.html?lens=neurotech') },
+        { label: 'Resume Tailor (job posting to LaTeX resume)', icon: icons.file, keywords: 'resume tailor job posting latex ats cover application tool', run: go('/resume-tailor.html') },
         { label: 'Download Resume (PDF)', icon: icons.file, keywords: 'resume cv pdf download', run: () => window.open('/Cabe_Robertson_Resume.pdf', '_blank') },
         { label: 'Email Cabe', icon: icons.mail, keywords: 'email mail message caberobertson gmail', run: go('mailto:caberobertson@gmail.com') },
         { label: 'Open LinkedIn', icon: icons.link, keywords: 'linkedin social network connect', run: () => window.open('https://www.linkedin.com/in/caberobertson/', '_blank') },
