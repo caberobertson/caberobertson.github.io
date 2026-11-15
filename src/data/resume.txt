@@ -1,0 +1,61 @@
+Cabe Robertson
+caberobertson@gmail.com | 575-644-4703 | caberobertson.github.io
+OBJECTIVE
+Pursuing Electrical Engineering internship roles in hardware design, test, and validation for Summer 2027
+EDUCATION
+New Mexico State University - Las Cruces, NM   Expected December 2027
+- Bachelor of Science in Electrical Engineering (Communications and Signal Processing Concentration)
+SKILLS
+HARDWARE: Oscilloscope, Logic Analyzer, Spectrum Analyzer, Function Generator, Power Supply, Anemometer, Microcontrollers
+SOFTWARE: Arduino IDE, C, C++, Python, MATLAB, EAGLE, VHDL, Quartus Prime, Flask, Git, AutoCAD, Overleaf
+LANGUAGE: English (Native), Spanish (Native)
+PROFESSIONAL EXPERIENCE
+Electrical Engineering Intern, Emerging Technology Ventures (ETV America) - Las Cruces, NM   Jul 2026 - Present
+Designed the equipment layout for the company's unmanned systems production floor, specifying tooling and power requirements to support a 7
+person build team
+Qualified vendors and handled procurement for the entire floor, delivering a turnkey build area ready for staff move-in
+Formulated a 59 line item bill of materials totaling roughly $168,000 to source every component through Blue UAS and NDAA compliant vendors
+Co-authored a 30 page NASA SBIR/STTR proposal pursuing a $2.5 million matching award for an autonomous on-orbit inspection and repair
+system
+Electrical Engineering Intern, GILZ LLC - Remote   Mar 2026 - May 2026
+Deconstructed a desk blower fan to test the internal BLDC motor's voltage/current ratings and PWM capabilities for use in an air filtration system
+Drafted an Arduino program on an ESP32 to control the 3 speeds of the BLDC motor to add user control capabilities
+Conducted benchmarks with the original blower fan to measure noise, temperature, speed, and velocity using different attachments such as air
+ducts and filters, isolating the configuration that cut noise by roughly 10 dB while raising airflow 20%
+Hardware Engineering Intern, Syndetix Incorporated - Las Cruces, NM   Apr 2025 - Aug 2025
+Created an affordable demonstration kit for $219 to accurately present the capabilities of a communication disrupting device to law enforcement
+and defense agencies while also being easily produceable
+Improvised a lightweight solution for a scenario in which wind could knock over the demonstration, ensuring portability and stability of the kit
+Formulated an in-depth user manual for a new product, guiding customers on proper handling and set up of the device for missions or training
+Repaired a critical permission-based synchronization issue on the company server that had been active for 4 years, improving efficiency of
+workstations company wide
+Research Assistant, Mitchell Coding Group - Las Cruces, NM   Aug 2025 - Feb 2026
+Developed Python programs to simulate channel decoding using Linear Algebra for wireless communication models
+Executed experiments with multiple hour runtimes utilizing contrasting bit string values to ensure software functionality
+Wrote MATLAB scripts to process and visualize experimental results, producing publication-quality plots and diagrams
+ACADEMIC PROJECTS
+Low-Cost EEG Electrode for Brain-Computer Interfaces, (NeuroPawn Biotechnologies)   Team Lead, 5-Person Team
+Initiated the partnership with NeuroPawn Biotechnologies and authored the project proposal that established it as an approved senior
+capstone, along with the IRB protocol governing human subjects testing
+Lead a 5 person team spanning electrical, electronics, mechanical, and mechanical engineering technology disciplines
+Designing and bench testing a low-cost dry EEG electrode, benchmarking contact impedance, contact area, DC offset, noise, frequency
+response, shielding, and durability against the incumbent commercial electrode
+Building a proof-of-concept brain-computer interface that uses the electrodes to steer a remote-control car through a maze, comparing
+performance between the new and incumbent designs
+CrashGuard, (ESP32, MPU6050, Python, Flask)   IEEE MYOSA 6.0 Finalist
+Selected as 1 of 15 teams worldwide for the IEEE Sensors Council's international MYOSA 6.0 competition and advanced as 1 of 7 finalists,
+presenting a live hardware demonstration at IEEE SENSORS 2026 in Rotterdam
+Programmed the ESP32 and MPU6050 sensor firmware to flag vehicle impacts from 6-axis IMU data at a 50 g threshold
+Traced a fault to the vendor sensor library clipping crash level readings, then wrote direct I2C burst reads and corrected the accelerometer
+scale factor to recover the full data range
+Constructed a 46 test automated suite across BLE, a Flask call server, and a Twilio voice interface to verify the detection chain and eliminate
+false triggers
+LEADERSHIP   Oct 2024 - Present
+Vice President, IEEE NMSU Chapter
+Directing a unique fundraising project with an estimated revenue of $50,000 to revitalize the chapter and ECE department
+Grew active membership from 10 to over 30 students, leading the turnaround that earned NMSU's Most Improved Student Organization Award
+Oversee and manage all club projects ensuring tasks are being completed efficiently, and mentor students during technical workshops teaching
+proper troubleshooting methods and soldering techniques
+Diplomat for communication with industry representatives, external IEEE chapters, and other student organizations on campus for sponsorship
+proposals and collaborations
+

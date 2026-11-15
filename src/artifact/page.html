@@ -1,0 +1,170 @@
+<title>Resume Tailor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@600&display=swap">
+<style>
+/* Layout: one working column of numbered instrument panels, two up on wide
+   screens; the resume sheet stays paper white in both themes. Tokens mirror
+   caberobertson.github.io so the tool reads as part of that site. */
+:root {
+    --bg: #0e100b; --panel: #16180f; --ink: #f2f4ea; --ink-dim: #a7ad98; --line: #2b2f22;
+    --accent: #c6ff3a; --accent-fill: #9ccb28; --accent-ink: #0e100b; --danger: #ff5c4d; --hover: #252a1a;
+    --display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --body: 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg: #f4efe3; --panel: #fbf8ef; --ink: #1b1a17; --ink-dim: #5f594c; --line: #d2cbb8; --accent: #415c00; --accent-fill: #415c00; --accent-ink: #fbf8ef; --danger: #b3261e; --hover: #e2e0cc; color-scheme: light; }
+}
+:root[data-theme="light"] { --bg: #f4efe3; --panel: #fbf8ef; --ink: #1b1a17; --ink-dim: #5f594c; --line: #d2cbb8; --accent: #415c00; --accent-fill: #415c00; --accent-ink: #fbf8ef; --danger: #b3261e; --hover: #e2e0cc; color-scheme: light; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; }
+h1 { font: 600 1.9rem/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2 { font: 600 1.05rem/1.3 var(--display); margin: 0; }
+.lede { color: var(--ink-dim); max-width: 65ch; margin: 8px 0 0; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.panel { background: var(--panel); border: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.tag { font: 600 0.7rem var(--mono); text-transform: uppercase; letter-spacing: 0.8px; color: var(--accent); }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > span { font: 500 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-dim); }
+input[type=text], textarea { width: 100%; padding: 10px 12px; font: inherit; font-size: 0.92rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 0; }
+textarea { resize: vertical; line-height: 1.45; }
+#editor { font: 0.76rem/1.5 var(--mono); white-space: pre; overflow: auto; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { display: inline-flex; align-items: center; padding: 10px 18px; font: 600 0.8rem var(--mono); text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink); background: transparent; border: 1px solid var(--ink); cursor: pointer; }
+.btn:hover { background: var(--hover); border-color: var(--accent); }
+.btn.primary { background: var(--accent-fill); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { background: var(--hover); color: var(--ink); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.sr { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip-path: inset(50%); }
+.btn:has(+ .sr:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.drop { border: 1px dashed var(--ink-dim); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.drop.is-over { border-color: var(--accent); background: var(--hover); }
+.drop p, .hint { margin: 0; color: var(--ink-dim); font-size: 0.86rem; }
+.thumbs { display: flex; flex-wrap: wrap; gap: 10px; }
+.thumbs:empty { display: none; }
+.thumb { width: 92px; border: 1px solid var(--line); }
+.thumb img { display: block; width: 100%; height: 92px; object-fit: cover; object-position: top; }
+.thumb button { width: 100%; padding: 5px 0; font: 600 0.66rem var(--mono); text-transform: uppercase; color: var(--ink); background: var(--bg); border: 0; border-top: 1px solid var(--line); cursor: pointer; }
+.thumb button:hover { color: var(--danger); }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 0.88rem; color: var(--ink-dim); }
+.check input { margin-top: 4px; accent-color: var(--accent-fill); }
+.status { margin: 0; font: 0.84rem var(--mono); color: var(--accent); }
+.status:empty { display: none; }
+.status.is-error { color: var(--danger); }
+.revise { display: flex; gap: 12px; align-items: flex-end; }
+.revise .field { flex: 1; }
+.rt-report h3 { font: 600 0.92rem var(--display); margin: 18px 0 8px; }
+.rt-report pre { white-space: pre-wrap; font-size: 0.8rem; color: var(--ink-dim); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags .tag { border: 1px solid var(--accent); padding: 3px 8px; text-transform: none; letter-spacing: 0; }
+.doc-list { margin: 0; padding-left: 18px; color: var(--ink-dim); }
+.doc-list li { margin-bottom: 6px; }
+.doc-list strong { color: var(--ink); font-weight: 600; }
+.rt-note { color: var(--ink-dim); font-size: 0.82rem; margin: 14px 0 0; }
+
+/* The sheet stands in for a printed page, so it is black on white in
+   both themes on purpose. */
+.paper { background: #fff; color: #111; padding: 24px 26px; min-height: 380px; font: 11.5px/1.32 Georgia, 'Times New Roman', serif; overflow-wrap: anywhere; }
+.paper header { text-align: center; margin-bottom: 4px; }
+.paper .rt-name { font-size: 22px; font-weight: 700; }
+.paper .rt-contact { font-size: 10.5px; }
+.paper h3 { font: 700 11.5px/1.3 Georgia, serif; text-transform: uppercase; letter-spacing: 0.3px; color: #111; border-bottom: 1px solid #111; margin: 9px 0 4px; padding-bottom: 1px; }
+.paper p { margin: 0; }
+.paper .rt-row { display: flex; justify-content: space-between; gap: 12px; }
+.paper .rt-row span:last-child { text-align: right; flex-shrink: 0; max-width: 45%; }
+.paper .rt-entry { margin-top: 3px; }
+.paper .rt-entry span:first-child { font-weight: 700; }
+.paper ul { margin: 1px 0 0; padding-left: 16px; font-size: 10.5px; }
+.paper a { color: inherit; text-decoration: none; }
+.paper .rt-empty { color: #666; font-family: var(--body); }
+
+@media (max-width: 820px) { .grid, .fields { grid-template-columns: 1fr; } .revise { flex-direction: column; align-items: stretch; } }
+</style>
+
+<div class="wrap">
+    <header>
+        <h1>Resume Tailor</h1>
+        <p class="lede">Add a picture of a job posting. Claude rewrites the resume for that role as one page of LaTeX, adds skills your experience implies, and lists its reasoning so you can cut anything you would not defend. It runs on your own Claude plan.</p>
+    </header>
+
+    <div class="grid">
+        <section class="panel">
+            <span class="tag">01 Job posting</span>
+            <h2>The role</h2>
+            <div class="fields">
+                <label class="field"><span>Company name</span><input type="text" id="company" autocomplete="off" spellcheck="false"></label>
+                <label class="field"><span>Role title (optional)</span><input type="text" id="role" autocomplete="off"></label>
+            </div>
+            <div class="drop" id="drop">
+                <p>Drop photos or screenshots of the requirements here, or paste one from the clipboard.</p>
+                <div class="actions">
+                    <label class="btn" for="files">Choose images</label>
+                    <input type="file" id="files" class="sr" accept="image/*" multiple>
+                </div>
+            </div>
+            <div class="thumbs" id="thumbs" aria-live="polite"></div>
+            <label class="field"><span>Or paste the posting text</span><textarea id="posting-text" rows="4" spellcheck="false"></textarea></label>
+        </section>
+
+        <section class="panel">
+            <span class="tag">02 Resume</span>
+            <h2>Your resume</h2>
+            <div class="actions">
+                <button type="button" class="btn" id="load-mine">Reset to Cabe's resume</button>
+                <label class="btn" for="resume-file">Upload .tex or .txt</label>
+                <input type="file" id="resume-file" class="sr" accept=".tex,.txt,.md,text/plain">
+            </div>
+            <label class="field"><span>Resume text</span><textarea id="resume" rows="11" spellcheck="false"></textarea></label>
+            <label class="check"><input type="checkbox" id="use-site" checked><span>Also use the project write-ups, build log and skills pages from caberobertson.github.io as source material. Turn this off for anyone else's resume.</span></label>
+        </section>
+    </div>
+
+    <section class="panel">
+        <span class="tag">03 Generate</span>
+        <div class="actions">
+            <button type="button" class="btn primary" id="generate" disabled>Tailor my resume</button>
+            <button type="button" class="btn" id="stop" hidden>Stop</button>
+        </div>
+        <p class="status" id="status" role="status" aria-live="polite">Connecting to Claude...</p>
+    </section>
+
+    <div class="grid">
+        <section class="panel">
+            <span class="tag">LaTeX</span>
+            <h2>Source</h2>
+            <label class="field"><span>Editable. The preview follows as you type.</span><textarea id="editor" rows="26" spellcheck="false"></textarea></label>
+            <div class="actions">
+                <button type="button" class="btn primary" id="copy">Copy LaTeX</button>
+                <button type="button" class="btn" id="save" hidden>Save .tex</button>
+                <a class="btn" href="https://www.overleaf.com/project" target="_blank" rel="noopener">Open Overleaf</a>
+            </div>
+            <p class="status" id="out-status" role="status" aria-live="polite"></p>
+            <p class="hint">For the PDF, copy the LaTeX into a blank Overleaf project, or paste it into the editor on caberobertson.github.io/resume-tailor.html and press Compile PDF.</p>
+        </section>
+        <section class="panel">
+            <span class="tag">Preview</span>
+            <h2>Quick preview</h2>
+            <div class="paper" id="preview"></div>
+            <p class="hint">An approximation. Compile the LaTeX for exact spacing and to confirm it fits one page.</p>
+        </section>
+    </div>
+
+    <section class="panel">
+        <span class="tag">Revise</span>
+        <h2>Ask for changes</h2>
+        <div class="revise">
+            <label class="field"><span>For example: cut it to fit one page, lead with the RF work, drop the objective</span><input type="text" id="revise" autocomplete="off"></label>
+            <button type="button" class="btn" id="revise-btn">Revise</button>
+        </div>
+        <div class="rt-report" id="report" aria-live="polite"></div>
+    </section>
+</div>
+
+<script>
+/*__BUNDLE__*/
+</script>

@@ -72,6 +72,7 @@ ground.
 
 ## Features
 
+- Resume Tailor (`/resume-tailor.html`, noindex): a job posting plus a resume in, one-page LaTeX resume out. No API key: the page builds a prompt to run in any Claude chat and reads the pasted reply into a LaTeX editor with preview and PDF compile. `/resume-context.json` is built from the site's own content as source material. `npm run artifact` (after `npm run build`) produces the single-file Claude artifact version, which asks Claude directly on the viewer's own plan
 - Command palette: `Ctrl`/`⌘` + `K` to navigate, open the resume, toggle theme
 - Light/dark theme, persisted, applied before first paint so it never flashes
 - Scroll-reveal, typed hero line, scroll-progress bar, all respecting `prefers-reduced-motion`

@@ -13,7 +13,8 @@
     "test": "node tests/smoke.js",
     "ci": "npm run build && npm run check && npm run validate && npm test",
     "og": "node scripts/og.mjs",
-    "lighthouse": "node scripts/lighthouse.mjs"
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "artifact": "node scripts/build-tailor-artifact.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",
