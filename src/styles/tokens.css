@@ -40,17 +40,28 @@
     --font-body: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-    /* ---- Spacing scale, 8px base ---- */
-    --space-1: 4px;
-    --space-2: 8px;
-    --space-3: 12px;
-    --space-4: 16px;
-    --space-5: 24px;
-    --space-6: 32px;
-    --space-7: 48px;
-    --space-8: 64px;
-    --space-9: 96px;
-    --space-10: 128px;
+    /* ---- Density -------------------------------------------------------
+       One number scales type, spacing and the content column together, the
+       way browser zoom does. Phones stay at 1: 16px body text is right at
+       arm's length. From tablet width up the site runs at 0.875, because at
+       1 a laptop showed too little per screen and the page read better
+       zoomed out. Two things deliberately do not follow it: the top
+       navigation, which divides by --scale to keep its size as a click
+       target, and small labels, which are floored at 10.5px where they are
+       declared. Change the value in the media query below to retune. ---- */
+    --scale: 1;
+
+    /* ---- Spacing scale, 8px base. In rem so it follows --scale. ---- */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 3rem;
+    --space-8: 4rem;
+    --space-9: 6rem;
+    --space-10: 8rem;
     --measure: 1200px;
 
     /* ---- Motion ---- */
@@ -73,6 +84,10 @@
     --radius: 0px;                /* sharp corners are part of the identity */
 
     color-scheme: dark;
+}
+
+@media (min-width: 769px) {
+    :root { --scale: 0.875; }
 }
 
 /* Warm "paper" light theme. Accent shifts to a deep olive so the signal

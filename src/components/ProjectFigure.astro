@@ -111,7 +111,7 @@ const maxBar = bars.length ? Math.max(...bars.map((b) => b.value)) : 1;
     .pfig figcaption {
         margin-top: 10px;
         font-family: var(--font-mono);
-        font-size: 0.72rem;
+        font-size: max(10.5px, 0.72rem);
         line-height: 1.6;
         color: var(--ink-dim);
     }
@@ -149,7 +149,7 @@ const maxBar = bars.length ? Math.max(...bars.map((b) => b.value)) : 1;
 
     .doe-col .pfig-colhead {
         font-family: var(--font-mono);
-        font-size: 0.7rem;
+        font-size: max(10.5px, 0.7rem);
         letter-spacing: 1px;
         text-transform: uppercase;
         color: var(--accent);
@@ -191,9 +191,9 @@ const maxBar = bars.length ? Math.max(...bars.map((b) => b.value)) : 1;
     }
 
     .pipe-stage:last-child { border-right: none; }
-    .pipe-num { font-family: var(--font-mono); font-size: 0.68rem; color: var(--accent); }
+    .pipe-num { font-family: var(--font-mono); font-size: max(10.5px, 0.68rem); color: var(--accent); }
     .pipe-label { font-family: var(--font-display); font-weight: 600; font-size: 0.98rem; }
-    .pipe-detail { font-family: var(--font-mono); font-size: 0.7rem; color: var(--ink-dim); line-height: 1.5; }
+    .pipe-detail { font-family: var(--font-mono); font-size: max(10.5px, 0.7rem); color: var(--ink-dim); line-height: 1.5; }
 
     @media (max-width: 720px) {
         .pipe-stage { border-right: none; border-bottom: 1px solid var(--line); }

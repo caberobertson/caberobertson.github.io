@@ -174,7 +174,7 @@ const labs = [
 
     .teaser-art svg { width: 100%; height: auto; display: block; }
 
-    .teaser-kicker { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.6px; text-transform: uppercase; color: var(--accent); }
+    .teaser-kicker { font-family: var(--font-mono); font-size: max(10.5px, 0.66rem); letter-spacing: 0.6px; text-transform: uppercase; color: var(--accent); }
     .teaser-title { font-family: var(--font-display); font-weight: 600; font-size: 1.08rem; color: var(--ink); }
     .teaser-text { font-size: 0.86rem; line-height: 1.55; color: var(--ink-dim); }
 
@@ -185,7 +185,7 @@ const labs = [
         margin-top: auto;
         padding-top: var(--space-2);
         font-family: var(--font-mono);
-        font-size: 0.72rem;
+        font-size: max(10.5px, 0.72rem);
         color: var(--accent);
         text-decoration: underline;
         text-underline-offset: 3px;
@@ -222,8 +222,38 @@ const labs = [
         .teaser-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    @media (max-width: 480px) {
-        .teaser-grid { grid-template-columns: minmax(0, 1fr); }
+    /* Phones: a compact list. Four illustrated cards stacked in one column
+       ran to nearly two screens before the reader reached anything else, so
+       here each lab is a single row: where it came from, its name, and the
+       way in. The drawings and blurbs are on /lab.html. */
+    @media (max-width: 600px) {
+        .teaser-grid {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 0;
+            border: 1px solid var(--border-strong);
+            background: var(--bg-elev);
+        }
+
+        .teaser-grid li + li { border-top: 1px solid var(--line); }
+
+        .teaser-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas: 'kicker cta' 'title cta';
+            align-items: center;
+            gap: 2px var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            border: none;
+            background: none;
+        }
+
+        .teaser-card:hover,
+        .teaser-card:focus-visible { box-shadow: inset 3px 0 0 var(--accent); }
+
+        .teaser-art, .teaser-text { display: none; }
+        .teaser-kicker { grid-area: kicker; }
+        .teaser-title { grid-area: title; font-size: 1rem; }
+        .teaser-cta { grid-area: cta; margin: 0; padding: 0; }
     }
 
     @media (prefers-reduced-motion: reduce) {

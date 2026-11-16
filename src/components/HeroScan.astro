@@ -3,9 +3,10 @@
 // four hard numbers, sized to clear the fold on a 390x844 phone.
 //
 // Beside it on a wide screen (and under the numbers on a phone, so the read
-// above still clears the fold) sits a live scope: the CrashGuard detector
-// model from src/lib/sim/detector.js, running at 100 Hz. It is the first
-// thing on the site a visitor can operate.
+// above still clears the fold) sits a scope: the CrashGuard detector model
+// from src/lib/sim/detector.js. It is the first thing on the site a visitor
+// can operate, and it does not move until they do: an animation running
+// beside the name pulls the eye off the name.
 //
 // Every metric below is moved from the "At a Glance" block, not newly written,
 // so the numbers still trace back to the resume.
@@ -53,12 +54,13 @@ const metrics = [
             ))}
         </dl>
 
-        <!-- Live scope. Everything here is progressive: without JavaScript the
-             panel is hidden (html.js gates it) and the hero is the plain scan
-             strip it always was. -->
+        <!-- Detector scope. Still until a button is pressed, then it runs
+             for a few seconds and stops again. Progressive: without
+             JavaScript the panel is hidden (html.js gates it) and the hero is
+             the plain scan strip it always was. -->
         <section class="scan-live reveal in" data-hero-scope aria-label="Live model of the CrashGuard crash detector">
             <p class="scan-live-head">
-                <span class="scan-live-tag"><span class="live-dot" aria-hidden="true"></span> Live model</span>
+                <span class="scan-live-tag"><span class="live-dot" aria-hidden="true"></span> Try the model</span>
                 <span>CrashGuard detector &middot; 100 Hz</span>
             </p>
             <canvas
@@ -75,7 +77,6 @@ const metrics = [
                 <button type="button" class="scan-live-btn" data-fire="pothole">Pothole</button>
                 <button type="button" class="scan-live-btn" data-fire="glitch">Bus glitch</button>
                 <button type="button" class="scan-live-btn scan-live-btn--go" data-fire="impact">Impact</button>
-                <button type="button" class="scan-live-btn scan-live-btn--run" data-run aria-pressed="false">Pause</button>
             </div>
             <p class="scan-live-foot">
                 The detection pipeline behind our IEEE MYOSA first-place win, rebuilt as a model you can
@@ -116,7 +117,7 @@ const metrics = [
 
     @media (min-width: 940px) {
         .scan-grid {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+            grid-template-columns: minmax(0, 1fr) minmax(0, 27.5rem);
             grid-template-areas: 'text live' 'metrics metrics';
             column-gap: var(--space-7);
             align-items: end;
@@ -146,14 +147,16 @@ const metrics = [
         gap: var(--space-3);
         margin: 0 0 var(--space-2);
         font-family: var(--font-mono);
-        font-size: 0.66rem;
+        font-size: max(10.5px, 0.66rem);
         letter-spacing: 0.8px;
         text-transform: uppercase;
         color: var(--ink-dim);
     }
 
     .scan-live-tag { display: inline-flex; align-items: center; gap: 7px; color: var(--accent); }
-    .live-dot { width: 6px; height: 6px; background: var(--accent); animation: pulse 2.4s infinite; }
+    /* The marker only pulses while the model is actually running. */
+    .live-dot { width: 6px; height: 6px; background: var(--accent); }
+    .scan-live.is-live .live-dot { animation: pulse 2.4s infinite; }
 
     .scan-live-canvas {
         display: block;
@@ -170,7 +173,7 @@ const metrics = [
         gap: var(--space-3);
         margin: var(--space-2) 0 0;
         font-family: var(--font-mono);
-        font-size: 0.72rem;
+        font-size: max(10.5px, 0.72rem);
         color: var(--ink-dim);
         font-variant-numeric: tabular-nums;
     }
@@ -183,7 +186,7 @@ const metrics = [
 
     .scan-live-btn {
         font-family: var(--font-mono);
-        font-size: 0.72rem;
+        font-size: max(10.5px, 0.72rem);
         padding: 7px 11px;
         border: 1px solid var(--border-strong);
         background: transparent;
@@ -195,7 +198,6 @@ const metrics = [
     .scan-live-btn:hover { background: var(--hover-surface); border-color: var(--accent); }
     .scan-live-btn--go { background: var(--accent-fill); border-color: var(--accent-fill); color: var(--accent-ink); }
     .scan-live-btn--go:hover { background: var(--hover-surface); color: var(--ink); }
-    .scan-live-btn--run { margin-left: auto; }
 
     .scan-live-foot {
         margin: var(--space-3) 0 0;
@@ -266,7 +268,7 @@ const metrics = [
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .scan-status .pulse, .live-dot { animation: none; }
+        .scan-status .pulse, .scan-live.is-live .live-dot { animation: none; }
         .scan-live-btn { transition: none; }
     }
 </style>

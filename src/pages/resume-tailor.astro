@@ -161,7 +161,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .panel [hidden], .panel[hidden] { display: none; }
     .rt-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
     .rt-field { display: block; margin: 0 0 1rem; }
-    .rt-field > span { display: block; font-family: var(--font-mono); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
+    .rt-field > span { display: block; font-family: var(--font-mono); font-size: max(10.5px, 0.74rem); text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 6px; }
     .rt-field input, .rt-field textarea, .rt-field select {
         width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 0.92rem;
         color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);

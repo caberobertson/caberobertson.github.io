@@ -60,41 +60,40 @@ const personSchema = {
              single mono status line. -->
         <HeroScan />
 
-        <FlagshipVideo />
-
-        <!-- Four runnable models, one per project. Sits directly under the
-             flagship so the first two things on the page are a demo to watch
-             and a model to operate. -->
-        <LabTeaser index="02" />
-
-        <!-- At a glance -->
+        <!-- At a glance. Directly under the hero: this is the section that says
+             what I have done, so it is the second thing a reader meets, ahead
+             of the demo and the Lab. Five bullets, one per strand. The design
+             of experiments and channel-decoding lines that used to sit here
+             are on the Experience and Projects pages. -->
         <section class="section">
             <div class="container">
-                <div class="section-head reveal">
-                    <span class="section-index">03</span>
+                <div class="section-head reveal in">
+                    <span class="section-index">01</span>
                     <h2 class="section-title">At a Glance</h2>
                 </div>
-                <p class="section-sub reveal">Electrical Engineering student concentrating in Communications &amp; Signal Processing, with hands-on RF, embedded, sensor-fusion, and simulation work across four engineering roles.</p>
+                <p class="section-sub reveal in">Electrical Engineering student concentrating in Communications &amp; Signal Processing, with hands-on RF, embedded, sensor-fusion, and simulation work across four engineering roles.</p>
 
-                <div class="chip-row reveal">
+                <div class="chip-row reveal in">
                     <span class="chip"><strong>U.S. Person</strong>, ITAR/EAR eligible</span>
                     <span class="chip">Eligible for U.S. security clearance</span>
                     <span class="chip">Available Summer 2027</span>
                     <span class="chip">Open to relocation</span>
                 </div>
 
-
-                <ul class="highlight-list reveal">
-                    <li><span class="hl-mark">RF</span><span>Built and fielded a <strong>$219 RF communication-jamming demonstrator</strong> for law-enforcement and defense clients, ~56% cheaper than the $500 setup it replaced.</span></li>
+                <ul class="highlight-list reveal in">
                     <li><span class="hl-mark">EMBEDDED</span><span>Own the <strong>ESP32/MPU6050 detection firmware</strong> on CrashGuard, <strong>first place at IEEE MYOSA 6.0</strong>, recovering dynamic acceleration from raw accelerometer counts and tuning the threshold and confirmation window so ordinary handling cannot raise a false alert.</span></li>
                     <li><span class="hl-mark">SIM</span><span>Use <strong>NVIDIA Isaac Sim</strong> at ETV America to generate <strong>synthetic training data</strong> of meteoroid crater damage on satellites, used to train the company's model for autonomous inspection and maintenance.</span></li>
-                    <li><span class="hl-mark">TEST</span><span>Ran a benchtop <strong>design of experiments</strong> across duct and filter configurations, identifying the setup that cut acoustic noise ~10&nbsp;dB and raised airflow 20% versus stock.</span></li>
-                    <li><span class="hl-mark">DSP</span><span>Developed Python simulations of <strong>linear-algebra channel decoding</strong>, validating bit-error-rate performance across encoding schemes under noise.</span></li>
+                    <li><span class="hl-mark">RF</span><span>Built and fielded a <strong>$219 RF communication-jamming demonstrator</strong> for law-enforcement and defense clients, ~56% cheaper than the $500 setup it replaced.</span></li>
                     <li><span class="hl-mark">NEURO</span><span>Initiated the partnership with <strong>NeuroPawn Biotechnologies</strong>, wrote the proposal and IRB protocol that made it an approved senior capstone, and lead the five-person team validating a low-cost dry EEG electrode.</span></li>
                     <li><span class="hl-mark">LEAD</span><span><strong>Tripled IEEE chapter membership</strong> from 10 to 30+ and lead a $50,000 fundraising initiative for the ECE department.</span></li>
                 </ul>
             </div>
         </section>
+
+        <FlagshipVideo index="02" />
+
+        <!-- Four runnable models, one per project. -->
+        <LabTeaser index="03" />
 
         <!-- About + Education -->
         <section class="section">
@@ -103,12 +102,17 @@ const personSchema = {
                     <span class="section-index">04</span>
                     <h2 class="section-title">About Me</h2>
                 </div>
-                <div class="grid-2">
+                <div class="grid-2 about-grid">
                     <div class="panel about-card reveal">
                         <span class="panel-tag">&sect; About</span>
-                        <p>I am an Electrical Engineering student concentrating in <strong>Communications &amp; Signal Processing</strong> at <strong>New Mexico State University</strong> (expected Dec 2027). My work centers on building real-time embedded systems that turn noisy sensor data into reliable device actions (sensor-fusion firmware, BLE device links, and decoding pipelines) across three engineering internships and a signal-processing research assistantship.</p>
-                        <p>That has meant fielding an <strong>RF communication-jamming demonstrator</strong> for defense clients at Syndetix, characterizing BLDC motor drive and running a design of experiments at GILZ, validating bit-error-rate performance for channel decoding in the Mitchell Coding Group, and, at ETV America, generating <strong>synthetic training data in NVIDIA Isaac Sim</strong> while solely responsible for standing up the company's <strong>unmanned systems production floor</strong>. I am seeking a <strong>Summer 2027 internship</strong> in RF, embedded, and mission systems hardware.</p>
-                        <p>I also serve as <strong>Vice President of the IEEE NMSU Student Chapter</strong>, where I tripled active membership from 10 to 30+, lead a <strong>$50,000</strong> fundraising initiative for the ECE department, and act as primary liaison to industry sponsors and national IEEE.</p>
+                        <p>I am an Electrical Engineering student concentrating in <strong>Communications &amp; Signal Processing</strong> at <strong>New Mexico State University</strong> (expected Dec 2027). My work centers on building real-time embedded systems that turn noisy sensor data into reliable device actions (sensor-fusion firmware, BLE device links, and decoding pipelines) across three engineering internships and a signal-processing research assistantship. Each role is written up on the <a href="/experience.html">Experience</a> page.</p>
+
+                        <h3>Leadership</h3>
+                        <ul>
+                            <li>Vice President, IEEE NMSU Student Chapter</li>
+                            <li>Tripled active membership: 10 &rarr; 30+</li>
+                            <li>Lead, $50K department fundraising initiative</li>
+                        </ul>
                     </div>
                     <div class="panel edu-card reveal" data-delay="1">
                         <span class="panel-tag accent">&sect; Edu</span>
@@ -131,13 +135,6 @@ const personSchema = {
                             <li>Communication Systems</li>
                             <li>Control Systems</li>
                             <li>Electromagnetics</li>
-                        </ul>
-
-                        <h3>Leadership</h3>
-                        <ul>
-                            <li>Vice President, IEEE NMSU Student Chapter</li>
-                            <li>Tripled active membership: 10 &rarr; 30+</li>
-                            <li>Lead, $50K department fundraising initiative</li>
                         </ul>
                     </div>
                 </div>
@@ -254,7 +251,7 @@ const personSchema = {
         color: var(--accent);
         letter-spacing: 1px;
         text-transform: uppercase;
-        font-size: 0.7rem;
+        font-size: max(10.5px, 0.7rem);
     }
 
     .lens-jump a {

@@ -456,7 +456,15 @@ export function initImpactLab(root) {
     }
 }
 
-/** The compact scope in the home-page hero: three buttons and a readout. */
+/**
+ * The compact scope in the home-page hero.
+ *
+ * It is drawn once and then left alone. Nothing here moves until a visitor
+ * presses a button: the model then runs, shows what happened, and stops
+ * again a few seconds after the detector has re-armed. The still frame it
+ * opens on is not empty. It is a short recorded history, a pothole and a
+ * rejected bus glitch, so the chart explains itself before anyone touches it.
+ */
 export function initHeroScope(root) {
     if (root.dataset.ready) return;
     root.dataset.ready = '1';
@@ -466,12 +474,11 @@ export function initHeroScope(root) {
     const det = new Detector();
     const outD = $('[data-out="d"]');
     const outState = $('[data-out="state"]');
-    const runBtn = $('[data-run]');
+    const SETTLE_S = 5;      // quiet time after re-arming before it stops again
     let acc = 0;
     let frames = 0;
     let last = null;
-    let script = 0;      // seconds into the idle demo
-    let handsOff = 0;    // seconds until the idle demo may resume
+    let quiet = 0;
     let countdownAt = -1;
     let shownState = '';
 
@@ -484,8 +491,20 @@ export function initHeroScope(root) {
             countdownAt = f.n;
         }
         // The hero never sits through the full ten seconds: the occupant
-        // "cancels" after a moment so the scope is ready for the next visitor.
+        // "cancels" after a moment so the scope is ready for the next press.
         if (f.state === 'COUNTDOWN' && f.n - countdownAt > 2.6 * DEFAULTS.fs) det.cancel();
+    };
+
+    const readout = () => {
+        if (!last) return;
+        outD.textContent = fmt(last.d);
+        // The state is a live region, so only touch it when it changes.
+        const label = last.state === 'COUNTDOWN' ? 'CRASH DETECTED' : last.state;
+        if (label !== shownState) {
+            shownState = label;
+            outState.textContent = label;
+            outState.dataset.tone = last.state === 'COUNTDOWN' ? 'alert' : '';
+        }
     };
 
     const loop = loopWhileVisible(root, (dt) => {
@@ -494,50 +513,49 @@ export function initHeroScope(root) {
             step();
             acc -= 1;
         }
-        // Idle demo: a pothole, a glitch, then an impact, on a slow loop.
-        if (handsOff > 0) handsOff -= dt;
-        else {
-            const before = script;
-            script = (script + dt) % 15;
-            const crossed = (t) => before < t && script >= t;
-            if (crossed(2.5)) src.fire(EVENTS.pothole);
-            if (crossed(5.5)) src.fire(EVENTS.glitch);
-            if (crossed(8.5)) src.fire({ peak: 9, durationS: 0.12, dir: 'sideways' });
-        }
         scope.draw(dt);
-        if (frames++ % 6 === 0 && last) {
-            outD.textContent = fmt(last.d);
-            // The state is a live region, so only touch it when it changes.
-            const label = last.state === 'COUNTDOWN' ? 'CRASH DETECTED' : last.state;
-            if (label !== shownState) {
-                shownState = label;
-                outState.textContent = label;
-                outState.dataset.tone = last.state === 'COUNTDOWN' ? 'alert' : '';
-            }
-        }
+        if (frames++ % 6 === 0) readout();
+        quiet = last && last.state === 'ARMED' ? quiet + dt : 0;
+        if (quiet > SETTLE_S) setLive(false);
     });
 
-    function setRunning(on) {
+    function setLive(on) {
         loop.set(on);
-        runBtn.setAttribute('aria-pressed', String(!on));
-        runBtn.textContent = on ? 'Pause' : 'Run';
+        root.classList.toggle('is-live', on);
+        if (!on) readout();
     }
 
-    for (let i = 0; i < 220; i++) step();
-    scope.draw();
+    // The opening frame: calibrate, then a pothole and a bus glitch, then rest.
+    for (let i = 0; i < 620; i++) {
+        if (i === 250) src.fire(EVENTS.pothole);
+        if (i === 430) src.fire(EVENTS.glitch);
+        step();
+    }
+    setLive(false);
+    scope.yMax = 8;
+    scope.draw(1);
+    readout();
     onRedrawNeeded(scope.canvas, () => {
         scope.colors = palette();
-        scope.draw();
+        if (!loop.enabled) scope.draw(1);
     });
-    setRunning(!reducedMotion());
 
     root.querySelectorAll('[data-fire]').forEach((btn) =>
         btn.addEventListener('click', () => {
-            handsOff = 30;
-            if (!loop.enabled) setRunning(true);
-            if (btn.dataset.fire === 'impact') src.fire({ peak: 12, durationS: 0.12, dir: 'sideways' });
-            else src.fire(EVENTS[btn.dataset.fire]);
+            const event = btn.dataset.fire === 'impact' ? { peak: 12, durationS: 0.12, dir: 'sideways' } : EVENTS[btn.dataset.fire];
+            if (reducedMotion()) {
+                // No scrolling chart for someone who asked for less motion:
+                // work out the next 1.2 s at once and show the result.
+                if (det.state === 'COUNTDOWN') det.cancel();
+                src.fire(event);
+                for (let i = 0; i < 120; i++) step();
+                scope.draw(1);
+                readout();
+                return;
+            }
+            quiet = 0;
+            setLive(true);
+            src.fire(event);
         }),
     );
-    runBtn.addEventListener('click', () => setRunning(!loop.enabled));
 }

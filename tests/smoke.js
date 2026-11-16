@@ -267,11 +267,25 @@ for (const page of pages) {
         const scope = doc.querySelector('[data-hero-scope]');
         if (!scope) errs.push('hero live scope missing');
         else {
-            for (const sel of ['[data-scope]', '[data-out="d"]', '[data-out="state"]', '[data-run]', '[data-fire="pothole"]', '[data-fire="glitch"]', '[data-fire="impact"]']) {
+            for (const sel of ['[data-scope]', '[data-out="d"]', '[data-out="state"]', '[data-fire="pothole"]', '[data-fire="glitch"]', '[data-fire="impact"]']) {
                 if (!scope.querySelector(sel)) errs.push(`hero scope is missing ${sel}`);
             }
         }
         if (doc.querySelectorAll('.teaser-card').length !== 4) errs.push('home page should link to all four labs');
+        // The front page is a scan, not a biography. The summary comes
+        // straight after the hero, stays short, and About is one paragraph;
+        // anything longer belongs on the Experience page.
+        const firstSection = doc.querySelector('main > section .section-title')?.textContent.trim();
+        if (firstSection !== 'At a Glance') errs.push(`the summary must follow the hero, found "${firstSection}" first`);
+        const bullets = doc.querySelectorAll('.highlight-list li').length;
+        if (bullets > 5) errs.push(`At a Glance is capped at 5 bullets, found ${bullets}`);
+        const aboutParas = doc.querySelectorAll('.about-card > p').length;
+        if (aboutParas !== 1) errs.push(`About is one paragraph, found ${aboutParas}`);
+        // The density scale must leave the navigation alone.
+        const allCss = [...doc.querySelectorAll('style')].map((e) => e.textContent).join('\n');
+        if (!/\.nav-links a\s*\{[^}]*font-size:\s*calc\([^)]*\/\s*var\(--scale\)/.test(allCss)) {
+            errs.push('nav links must divide by --scale so they keep their size');
+        }
         // Flagship demo is a click-to-play facade, never a bare third-party iframe.
         const facade = doc.querySelector('.video-facade');
         if (!facade) errs.push('flagship video facade missing');

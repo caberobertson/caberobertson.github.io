@@ -4,13 +4,19 @@
 import VideoFacade from './VideoFacade.astro';
 
 const VIDEO_ID = 'EEg8c9FayB0';
+
+interface Props {
+    /** Section number, set by the page so the order lives in one place. */
+    index?: string;
+}
+const { index = '01' } = Astro.props;
 ---
 
 
 <section class="section flagship">
     <div class="container">
         <div class="section-head reveal">
-            <span class="section-index">01</span>
+            <span class="section-index">{index}</span>
             <h2 class="section-title">Flagship</h2>
         </div>
         <p class="section-sub reveal">
