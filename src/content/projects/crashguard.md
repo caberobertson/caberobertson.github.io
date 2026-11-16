@@ -18,7 +18,7 @@ artifacts:
   - { label: "Prototype demo", href: "/crashguard.html#demo" }
   - { label: "Architecture", href: "/crashguard.html#architecture" }
 externalPage: /crashguard.html
-lab: impact
+lab: call
 figure: none
 ---
 

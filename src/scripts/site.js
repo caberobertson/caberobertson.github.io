@@ -232,7 +232,7 @@
         { label: 'Go to Experience', icon: icons.briefcase, keywords: 'experience work internship jobs timeline leadership ieee', run: go('/experience.html') },
         { label: 'Go to Projects', icon: icons.cpu, keywords: 'projects portfolio arduino fpga robot face tracking', run: go('/projects.html') },
         { label: 'Go to Lab', icon: icons.zap, keywords: 'lab interactive models simulation demo run tutorial playground', run: go('/lab.html') },
-        { label: 'Lab: impact detector', icon: icons.zap, keywords: 'lab crashguard accelerometer threshold detector simulation impact crash', run: go('/lab.html#impact') },
+        { label: 'Lab: crash to call', icon: icons.zap, keywords: 'lab crashguard crash emergency call dispatcher agent cancel countdown twilio claude', run: go('/lab.html#crash-to-call') },
         { label: 'Lab: synthetic data generator', icon: icons.zap, keywords: 'lab synthetic data isaac sim domain randomization labels bounding boxes nvidia', run: go('/lab.html#synthetic-data') },
         { label: 'Lab: syndrome decoder', icon: icons.zap, keywords: 'lab hamming code syndrome decoder bit error rate channel coding monte carlo', run: go('/lab.html#decoding') },
         { label: 'Lab: EEG filter bench', icon: icons.zap, keywords: 'lab eeg filter notch spectrum alpha electrode neuropawn bci', run: go('/lab.html#eeg') },

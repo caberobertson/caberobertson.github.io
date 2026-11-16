@@ -21,16 +21,20 @@ interface Props {
      * kicker then points at the Lab instead of back at the page it is on.
      */
     embedded?: boolean;
+    /** A supporting model that lives only on its write-up, not on /lab.html. */
+    standalone?: boolean;
 }
 
-const { id, kind, kicker, title, lede, from, model, embedded = false } = Astro.props;
+const { id, kind, kicker, title, lede, from, model, embedded = false, standalone = false } = Astro.props;
 const REPO = 'https://github.com/caberobertson/caberobertson.github.io/blob/main';
 ---
 
 <section class="lab" id={id} data-lab={kind} aria-labelledby={`${id}-title`}>
     <header class="lab-head">
         <p class="lab-kicker">
-            {embedded ? (
+            {standalone ? (
+                <>{kicker}</>
+            ) : embedded ? (
                 <>Interactive model &middot; one of four in the <a href="/lab.html">Lab</a></>
             ) : (
                 <>
@@ -235,6 +239,29 @@ const REPO = 'https://github.com/caberobertson/caberobertson.github.io/blob/main
     .lab-source { display: block; }
     .lab-nojs { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-dim); margin: 0 0 var(--space-3); }
     .lab-nojs a { color: var(--accent); }
+
+    /* A lab folded behind a disclosure: present for whoever wants the
+       detail, out of the way for everyone else. */
+    .lab-fold { margin-top: var(--space-5); }
+
+    .lab-fold > summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        list-style: none;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        padding: 8px 12px;
+        border: 1px solid var(--border-strong);
+        color: var(--ink);
+    }
+
+    .lab-fold > summary::-webkit-details-marker { display: none; }
+    .lab-fold > summary::before { content: '+'; color: var(--accent); font-weight: 600; width: 0.7em; }
+    .lab-fold[open] > summary::before { content: '\2212'; }
+    .lab-fold > summary:hover { background: var(--hover-surface); border-color: var(--accent); }
+    .lab-fold > .lab { margin-top: var(--space-3); }
 
     @media (max-width: 860px) {
         .lab-body { grid-template-columns: 1fr; }

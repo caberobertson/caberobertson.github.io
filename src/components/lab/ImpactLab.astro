@@ -1,5 +1,6 @@
 ---
-// Lab 01: the CrashGuard detection pipeline, live.
+// The CrashGuard detection pipeline as a model. A supporting detail of the
+// write-up's detection section; the project's Lab entry is CallLab.
 import LabFrame from './LabFrame.astro';
 
 interface Props {
@@ -13,8 +14,9 @@ const { id = 'impact', embedded = false } = Astro.props;
 <LabFrame
     id={id}
     embedded={embedded}
+    standalone
     kind="impact"
-    kicker="Lab 01"
+    kicker="Detection model"
     title="Impact detector"
     lede="CrashGuard's detection pipeline, running at 100 Hz on a synthetic accelerometer: gravity-vector subtraction, a median-of-three filter, a 5.0 g threshold confirmed over consecutive samples, and a railed-axis check for impacts beyond the sensor's range."
     from={{ label: 'MYOSA CrashGuard', href: '/crashguard.html' }}

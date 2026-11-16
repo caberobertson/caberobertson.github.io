@@ -52,7 +52,7 @@ const projects = defineCollection({
          * Interactive model rendered on the project page, from
          * src/components/lab. The same four appear together on /lab.html.
          */
-        lab: z.enum(['impact', 'sdg', 'decoder', 'eeg']).optional(),
+        lab: z.enum(['call', 'impact', 'sdg', 'decoder', 'eeg']).optional(),
         /**
          * Listed on the projects index without a detail page. For work that is
          * real but where the record is a single line: a page padded out to

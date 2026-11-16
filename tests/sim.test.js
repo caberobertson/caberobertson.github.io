@@ -4,7 +4,8 @@
    The interactive labs are only worth publishing if the mathematics under
    them is right, so every claim a lab makes on screen is asserted here first:
    the rotation floor, the sensor ceiling, glitch rejection, the code's
-   distance properties, the filters' responses. Run with `node --test`.
+   distance properties, the filters' responses, and the rule that the
+   dispatcher model answers only from its record. Run with `node --test`.
    ========================================================================== */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -26,6 +27,10 @@ import {
     lightVector, craterProfile, RANGES, NOMINAL,
 } from '../src/lib/sim/sdg.js';
 import { mulberry32, substream } from '../src/lib/sim/rng.js';
+import {
+    Chain, SAMPLE, REFUSAL, THRESHOLD_G, context, briefing, answer, incidentReport,
+    speakNumber, speakPhone, speakText, haversineMiles, bearingDeg, compass,
+} from '../src/lib/sim/dispatch.js';
 
 const close = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg ?? ''} expected ${b} +/- ${tol}, got ${a}`);
 
@@ -469,4 +474,304 @@ test('an even-length pulse keeps its true peak through the median filter', () =>
     const peak = Math.max(...run(det, src, 30).map((f) => f.d));
     close(peak, 6 * Math.sin((Math.PI * 5.5) / 12), 1e-9);
     assert.ok(peak > 5.9);
+});
+
+// ---------------------------------------------------------------------------
+// Crash to call: the chain's timing and the grounding rule
+// ---------------------------------------------------------------------------
+
+/** Advance a chain in 100 ms steps and collect every event it emits. */
+const advance = (chain, seconds) => {
+    const out = [];
+    for (let i = 0; i < Math.round(seconds * 10); i++) out.push(...chain.tick(0.1));
+    return out;
+};
+const crashCtx = (record = SAMPLE, crash = { peakG: 11.9, elapsedS: 14 }) => context(record, crash);
+const sentences = (text) => text.split(/(?<=[.!?])\s+/).filter(Boolean).length;
+
+test('numbers are read digit by digit', () => {
+    assert.equal(speakNumber('12.0'), 'one two point zero');
+    assert.equal(speakNumber(-106.748), 'minus one zero six point seven four eight');
+    assert.equal(speakPhone('575-555-0142'), 'five seven five, five five five, zero one four two');
+    assert.equal(speakText('Type 1 diabetes at 1500 Sample Street'), 'Type one diabetes at one five zero zero Sample Street');
+});
+
+test('haversine distance and bearing', () => {
+    // One degree of latitude is 69.09 miles on a 3958.8 mile sphere.
+    close(haversineMiles({ lat: 32, lon: -106 }, { lat: 33, lon: -106 }), (Math.PI / 180) * 3958.8, 1e-6);
+    assert.equal(haversineMiles({ lat: 32, lon: -106 }, { lat: 32, lon: -106 }), 0);
+    const a = { lat: 32.283, lon: -106.748 };
+    const b = { lat: 32.3105, lon: -106.779 };
+    close(haversineMiles(a, b), haversineMiles(b, a), 1e-9, 'distance is symmetric:');
+    assert.equal(compass(bearingDeg({ lat: 32, lon: -106 }, { lat: 33, lon: -106 })), 'north');
+    assert.equal(compass(bearingDeg({ lat: 32, lon: -106 }, { lat: 32, lon: -105 })), 'east');
+    assert.equal(compass(bearingDeg({ lat: 32, lon: -106 }, { lat: 31, lon: -106 })), 'south');
+    assert.equal(compass(bearingDeg(a, b)), 'northwest');
+    assert.equal(compass(359), 'north');
+});
+
+test('an impact under the threshold starts nothing', () => {
+    const chain = new Chain();
+    const events = chain.impact(1.8);
+    assert.equal(chain.state, 'ARMED');
+    assert.equal(events.length, 1);
+    assert.equal(events[0].kind, 'below');
+    // Exactly at the threshold is still not a crash: the trigger is "exceeds".
+    chain.impact(THRESHOLD_G);
+    assert.equal(chain.state, 'ARMED');
+    assert.deepEqual(advance(chain, 30), []);
+});
+
+test('cancel inside the ten-second window re-arms and no call is ever placed', () => {
+    const chain = new Chain();
+    chain.impact(12);
+    assert.equal(chain.state, 'WARNING');
+    advance(chain, 9.5);
+    assert.equal(chain.state, 'WARNING');
+    const events = chain.cancel();
+    assert.equal(events[0].kind, 'cancelled');
+    assert.equal(chain.state, 'ARMED');
+    const after = advance(chain, 60);
+    assert.deepEqual(after, [], 'nothing follows a cancel');
+});
+
+test('with no cancel the call is placed when the window closes, not before', () => {
+    const chain = new Chain();
+    chain.impact(12);
+    const early = advance(chain, 9.8);
+    assert.equal(chain.state, 'WARNING');
+    assert.ok(!early.some((e) => e.kind === 'escalated'));
+    const late = advance(chain, 0.4);
+    assert.equal(chain.state, 'DIALING');
+    assert.ok(late.some((e) => e.kind === 'escalated'));
+    assert.ok(late.some((e) => e.kind === 'dialing'));
+});
+
+test('the buzzer speeds up once, in the final three seconds', () => {
+    const chain = new Chain();
+    chain.impact(12);
+    assert.ok(!advance(chain, 6.8).some((e) => e.kind === 'buzzer'));
+    assert.equal(advance(chain, 3.4).filter((e) => e.kind === 'buzzer').length, 1);
+});
+
+test('the chain runs detect, warn, escalate, locate, call, brief, listen in that order', () => {
+    const chain = new Chain();
+    const kinds = [...chain.impact(12), ...advance(chain, 40)].map((e) => e.kind);
+    const order = ['detected', 'warn', 'buzzer', 'escalated', 'dialing', 'located', 'connected', 'briefing', 'listening'];
+    const first = order.map((k) => kinds.indexOf(k));
+    assert.ok(first.every((i) => i >= 0), `every stage happened: ${kinds.join(',')}`);
+    assert.deepEqual([...first].sort((x, y) => x - y), first, 'and in order');
+    assert.equal(chain.state, 'LISTENING');
+    assert.equal(chain.stage, 5);
+});
+
+test('cancel does nothing once the call has been placed', () => {
+    const chain = new Chain();
+    chain.impact(12);
+    advance(chain, 11);
+    assert.equal(chain.state, 'DIALING');
+    assert.deepEqual(chain.cancel(), []);
+    assert.equal(chain.state, 'DIALING');
+});
+
+test('a second impact during an alert is ignored', () => {
+    const chain = new Chain();
+    chain.impact(12);
+    advance(chain, 2);
+    assert.deepEqual(chain.impact(20), []);
+    close(chain.countdown, 8, 0.11);
+    assert.equal(chain.peakG, 12);
+});
+
+test('the briefing covers the six documented items, in order', () => {
+    const lines = briefing(crashCtx());
+    const all = lines.map((l) => l.text).join(' ');
+    const at = (needle) => all.indexOf(needle);
+    const marks = [at('Jordan Avery'), at('GPS coordinates'), at('Sample Street'), at('Peak impact'), at('Blood type'), at('Medical conditions'), at('emergency contact')];
+    assert.ok(marks.every((i) => i >= 0), all);
+    assert.deepEqual([...marks].sort((x, y) => x - y), marks);
+});
+
+test('nothing the agent says contains a numeral', () => {
+    const ctx = crashCtx();
+    for (const line of briefing(ctx)) assert.ok(!/\d/.test(line.text), line.text);
+    const questions = ['Where is the vehicle?', 'What are the coordinates?', 'How hard was the impact?', 'What is the emergency contact number?', 'Where is the closest hospital?', 'What vehicle is it?', 'Any medical conditions?', 'When did it happen?', 'What is the blood type?'];
+    for (const q of questions) {
+        const reply = answer(q, ctx);
+        assert.ok(reply.grounded, q);
+        assert.ok(!/\d/.test(reply.text), `${q} -> ${reply.text}`);
+    }
+});
+
+test('every answer is one to three sentences', () => {
+    const ctx = crashCtx();
+    const questions = ['Where is the vehicle?', 'What is the blood type?', 'Who is the emergency contact?', 'Is the occupant conscious?', 'Send me the report', 'Where is the closest hospital?', 'asdf'];
+    for (const q of questions) {
+        const n = sentences(answer(q, ctx).text);
+        assert.ok(n >= 1 && n <= 3, `${q}: ${n} sentences`);
+    }
+    // Including the worst case, where the address is missing and it falls back.
+    const n = sentences(answer('Where is the vehicle?', crashCtx({ ...SAMPLE, address: '' })).text);
+    assert.ok(n >= 1 && n <= 3);
+});
+
+test('answers are read from the record: change the field and the answer changes', () => {
+    const cases = [
+        ['What is the blood type?', 'bloodType', 'AB negative'],
+        ['Any allergies?', 'allergies', 'Latex'],
+        ['Is the occupant on any medication?', 'medications', 'Metformin'],
+        ['Any medical conditions?', 'conditions', 'Asthma'],
+        ['Who is the emergency contact?', 'contact', 'Riley Stone, parent'],
+        ['What is the nearest cross street?', 'crossStreets', 'First Street and Main Street'],
+        ['What vehicle is it?', 'vehicle', 'white pickup'],
+        ['What is the occupant name?', 'name', 'Casey Doe'],
+        ['Where is the vehicle?', 'address', 'Nine Oak Lane'],
+    ];
+    for (const [q, key, value] of cases) {
+        const before = answer(q, crashCtx());
+        const after = answer(q, crashCtx({ ...SAMPLE, [key]: value }));
+        assert.ok(before.grounded && after.grounded, q);
+        assert.ok(after.text.includes(value), `${q} -> ${after.text}`);
+        assert.ok(!before.text.includes(value));
+        assert.ok(after.uses.length > 0, 'a grounded answer names the fields it used');
+    }
+});
+
+test('a field that is empty is refused, never filled in', () => {
+    const cases = [
+        ['What is the blood type?', 'bloodType'],
+        ['Any allergies?', 'allergies'],
+        ['Any medical conditions?', 'conditions'],
+        ['Who is the emergency contact?', 'contact'],
+        ['Where is the closest hospital?', 'hospital'],
+        ['What vehicle is it?', 'vehicle'],
+    ];
+    for (const [q, key] of cases) {
+        for (const blank of ['', '   ']) {
+            const reply = answer(q, crashCtx({ ...SAMPLE, [key]: blank }));
+            assert.equal(reply.text, REFUSAL, q);
+            assert.equal(reply.grounded, false);
+            assert.equal(reply.reason, 'missing');
+            assert.ok(reply.uses.includes(key), 'and it says which field it looked for');
+        }
+    }
+});
+
+test('questions the system has no sensor for get the refusal', () => {
+    const ctx = crashCtx();
+    const questions = [
+        'Is the occupant conscious?', 'Are they breathing?', 'Is anyone bleeding?', 'How many people are in the car?',
+        'Is there a fire?', 'How fast were they going?', 'Did the airbag deploy?', 'What happened?', 'Is the driver injured?',
+        'What is the license plate?',
+    ];
+    for (const q of questions) {
+        const reply = answer(q, ctx);
+        assert.equal(reply.text, REFUSAL, q);
+        assert.equal(reply.grounded, false);
+        assert.deepEqual(reply.uses, []);
+    }
+});
+
+test('a question that only mentions a field is not answered with that field', () => {
+    // Each of these names something in the record without asking for it.
+    const ctx = crashCtx();
+    const questions = [
+        'Did the occupant cancel?', 'Is the vehicle on its roof?', 'When will help arrive?', 'Is there blood?',
+        'Does the occupant have family in the car?', 'Is medical help on the way?', 'Is the driver still in the car?',
+    ];
+    for (const q of questions) assert.equal(answer(q, ctx).text, REFUSAL, q);
+});
+
+test('where the vehicle is and what the vehicle is are different questions', () => {
+    const ctx = crashCtx();
+    assert.equal(answer('Where is the vehicle?', ctx).topic, 'location');
+    assert.equal(answer('What kind of vehicle is it?', ctx).topic, 'vehicle');
+    assert.equal(answer('Where is the nearest hospital?', ctx).topic, 'hospital');
+    assert.equal(answer('What is the nearest cross street?', ctx).topic, 'crossStreets');
+    assert.equal(answer('What city is this?', ctx).topic, 'city');
+});
+
+test('a question that matches nothing gets the refusal, not a guess', () => {
+    const ctx = crashCtx();
+    for (const q of ['What is the weather like?', 'xyzzy', 'Can you describe the scene?', '']) {
+        assert.equal(answer(q, ctx).text, REFUSAL, q);
+    }
+});
+
+test('the hospital answer carries the computed distance and bearing', () => {
+    const ctx = crashCtx();
+    const miles = haversineMiles({ lat: SAMPLE.lat, lon: SAMPLE.lon }, { lat: SAMPLE.hospitalLat, lon: SAMPLE.hospitalLon });
+    close(ctx.hospitalMiles, miles, 1e-12);
+    const reply = answer('Where is the closest hospital?', ctx);
+    assert.ok(reply.text.includes(speakNumber(miles.toFixed(1))), reply.text);
+    assert.ok(reply.text.includes('northwest'));
+});
+
+test('questions are only answered once the agent is listening', () => {
+    const chain = new Chain();
+    assert.deepEqual(chain.ask('What is the blood type?'), []);
+    chain.impact(12);
+    assert.deepEqual(chain.ask('What is the blood type?'), []);
+    advance(chain, 40);
+    const events = chain.ask('What is the blood type?');
+    assert.deepEqual(events.map((e) => e.who), ['dispatcher', 'agent']);
+    assert.equal(events[1].kind, 'answer');
+});
+
+test('the written report is offered after three exchanges, once', () => {
+    const chain = new Chain();
+    chain.impact(12);
+    advance(chain, 40);
+    assert.ok(!chain.ask('What is the blood type?').some((e) => e.kind === 'offer'));
+    assert.ok(!chain.ask('Is the occupant conscious?').some((e) => e.kind === 'offer'));
+    assert.ok(chain.ask('Any allergies?').some((e) => e.kind === 'offer'));
+    assert.ok(!chain.ask('Any medical conditions?').some((e) => e.kind === 'offer'));
+    assert.equal(chain.stage, 6);
+});
+
+test('a request for the report is recognised at any point in the call', () => {
+    const chain = new Chain();
+    chain.impact(12);
+    advance(chain, 40);
+    const events = chain.ask('Can you send me the report?');
+    assert.equal(events[1].topic, 'report');
+    assert.ok(events.some((e) => e.kind === 'report'));
+    assert.equal(chain.reported, true);
+});
+
+test('the incident report has every documented field, and marks gaps', () => {
+    const rows = incidentReport(crashCtx());
+    const labels = rows.map((r) => r[0]);
+    for (const want of ['Detected', 'Peak impact', 'Coordinates', 'Address', 'Cross streets', 'Nearest hospital', 'Occupant', 'Blood type', 'Conditions', 'Allergies', 'Medications', 'Emergency contact', 'Vehicle']) {
+        assert.ok(labels.includes(want), want);
+    }
+    assert.ok(rows.every((r) => r[1] !== 'Not available'));
+    const gaps = Object.fromEntries(incidentReport(crashCtx({ ...SAMPLE, allergies: '', hospital: '' })));
+    assert.equal(gaps.Allergies, 'Not available');
+    assert.equal(gaps['Nearest hospital'], 'Not available');
+});
+
+test('an edit to the record changes the very next answer in a live call', () => {
+    const record = { ...SAMPLE };
+    const chain = new Chain({ getContext: () => context(record, { peakG: 12, elapsedS: 20 }) });
+    chain.impact(12);
+    advance(chain, 40);
+    assert.ok(chain.ask('What is the blood type?')[1].text.includes('O positive'));
+    record.bloodType = '';
+    assert.equal(chain.ask('What is the blood type?')[1].text, REFUSAL);
+    record.bloodType = 'B negative';
+    assert.ok(chain.ask('What is the blood type?')[1].text.includes('B negative'));
+});
+
+test('hanging up ends the call and re-arming returns to monitoring', () => {
+    const chain = new Chain();
+    chain.impact(12);
+    advance(chain, 40);
+    assert.equal(chain.hangUp()[0].kind, 'ended');
+    assert.equal(chain.state, 'ENDED');
+    assert.deepEqual(chain.ask('What is the blood type?'), []);
+    assert.equal(chain.rearm()[0].kind, 'rearmed');
+    assert.equal(chain.state, 'ARMED');
+    assert.equal(chain.stage, -1);
+    assert.equal(chain.impact(12)[0].kind, 'detected');
 });

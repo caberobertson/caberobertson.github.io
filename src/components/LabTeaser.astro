@@ -9,18 +9,18 @@ const { index = '02' } = Astro.props;
 
 const labs = [
     {
-        kind: 'impact',
-        href: '/lab.html#impact',
+        kind: 'call',
+        href: '/lab.html#crash-to-call',
         n: '01',
         from: 'CrashGuard',
-        title: 'Impact detector',
-        text: 'Fire potholes, bus glitches and crashes at a 100 Hz detector, then find the threshold it can never reach.',
+        title: 'Crash to call',
+        text: 'Trigger a crash, let the ten-second cancel window run out, then question the dispatcher agent and watch it refuse to guess.',
     },
     {
         kind: 'sdg',
         href: '/lab.html#synthetic-data',
         n: '02',
-        from: 'Isaac Sim work at ETV',
+        from: 'Isaac Sim at ETV',
         title: 'Synthetic data generator',
         text: 'Randomize a scene and watch every generated image arrive with exact labels already attached.',
     },
@@ -59,15 +59,19 @@ const labs = [
                 <li>
                     <a class="teaser-card" href={l.href}>
                         <span class="teaser-art" aria-hidden="true">
-                            {l.kind === 'impact' && (
+                            {l.kind === 'call' && (
                                 <svg viewBox="0 0 240 104" preserveAspectRatio="xMidYMid meet">
-                                    <line class="t-grid" x1="8" y1="92" x2="232" y2="92" />
-                                    <line class="t-grid" x1="8" y1="66" x2="232" y2="66" />
-                                    <line class="t-ref" x1="8" y1="40" x2="232" y2="40" />
-                                    <text class="t-label t-label--accent" x="12" y="35">threshold 5.0 g</text>
-                                    <polyline class="t-trace" points="8,90 40,90 44,82 48,90 86,90 90,89 126,89 130,84 150,84 154,90 176,90 180,60 184,18 188,14 192,30 196,74 200,90 232,90" />
-                                    <line class="t-mark" x1="186" y1="8" x2="186" y2="92" />
-                                    <text class="t-label t-label--danger" x="181" y="16" text-anchor="end">TRIGGER</text>
+                                    <line class="t-rail" x1="34" y1="26" x2="206" y2="26" />
+                                    <circle class="t-node t-node--on" cx="34" cy="26" r="9" />
+                                    <circle class="t-node t-node--warn" cx="120" cy="26" r="9" />
+                                    <circle class="t-node t-node--on" cx="206" cy="26" r="9" />
+                                    <text class="t-label" x="34" y="50" text-anchor="middle">impact</text>
+                                    <text class="t-label t-label--danger" x="120" y="50" text-anchor="middle">10 s to cancel</text>
+                                    <text class="t-label" x="206" y="50" text-anchor="middle">call</text>
+                                    <text class="t-label" x="14" y="76">Q</text>
+                                    <text class="t-label t-label--ink" x="30" y="76">is the occupant conscious?</text>
+                                    <text class="t-label t-label--accent" x="14" y="92">A</text>
+                                    <text class="t-label t-label--ink" x="30" y="92">I don't have that information.</text>
                                 </svg>
                             )}
                             {l.kind === 'sdg' && (
@@ -121,7 +125,7 @@ const labs = [
                                 </svg>
                             )}
                         </span>
-                        <span class="teaser-kicker">{l.n} &middot; from {l.from}</span>
+                        <span class="teaser-kicker">{l.n} &middot; {l.from}</span>
                         <span class="teaser-title">{l.title}</span>
                         <span class="teaser-text">{l.text}</span>
                         <span class="teaser-cta">
@@ -217,6 +221,11 @@ const labs = [
     .t-digit--syn { fill: var(--accent); }
     .t-arrow { fill: none; stroke: var(--ink-dim); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
     .t-band { fill: var(--accent); opacity: 0.16; }
+    .t-rail { stroke: var(--ink-dim); stroke-width: 1.2; }
+    .t-node { fill: var(--bg); stroke-width: 1.6; }
+    .t-node--on { stroke: var(--accent); }
+    .t-node--warn { stroke: var(--danger); }
+    .t-label--ink { fill: var(--ink); }
 
     @media (max-width: 940px) {
         .teaser-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

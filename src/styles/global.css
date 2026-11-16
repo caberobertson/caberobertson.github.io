@@ -73,6 +73,9 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
     margin: 0;
 }
 
+/* Anything reached by an anchor link clears the sticky navigation. */
+:target { scroll-margin-top: 84px; }
+
 /* Scroll progress bar */
 #scroll-progress {
     position: fixed;
@@ -680,7 +683,16 @@ main { flex: 1 0 auto; padding-bottom: 4rem; }
 .copy-chip:hover { background: var(--hover-surface); border-color: var(--accent); color: var(--ink); }
 
 /* ---------- Photo gallery ---------- */
-.gallery-section { margin-top: 2.6rem; }
+/* The gallery is capped in width, and through its 3:2 frame in height. Left
+   at the full column it stood about 700px tall and filled a laptop screen by
+   itself. The second term ties the cap to the viewport's height, so the
+   photo stays near half the screen on a short display too. */
+.gallery-section {
+    margin-top: 2.6rem;
+    max-width: min(40rem, 72vh);
+    margin-left: auto;
+    margin-right: auto;
+}
 
 .gallery-title {
     font-family: var(--font-mono);

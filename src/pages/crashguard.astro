@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import VideoFacade from '../components/VideoFacade.astro';
 import ImpactLab from '../components/lab/ImpactLab.astro';
+import CallLab from '../components/lab/CallLab.astro';
 import { PERSON_REF, breadcrumbs, graph } from '../lib/schema';
 
 // Build-log entries arguing decisions made on this project.
@@ -171,6 +172,10 @@ const schema = graph(
                     </ol>
                 </article>
 
+                <!-- The seven steps above, as a model that runs: trigger a
+                     crash, cancel it or let it go, and question the agent. -->
+                <CallLab id="call-lab" embedded />
+
                 <figure id="architecture" class="figure reveal">
                     <svg class="diagram" viewBox="0 0 960 470" role="img" aria-label="CrashGuard system architecture: the MYOSA motherboard with an MPU6050, buzzer and backup button sits on the RC car and connects over Bluetooth Low Energy to a host bridge. The bridge relays over HTTP to a Flask call server, which serves the phone dashboard, queries the Claude API, and drives Twilio Voice out to the dispatcher's phone. A dashed Wi-Fi HTTP fallback path connects the board straight to the call server, bypassing the bridge.">
                         <defs>
@@ -265,7 +270,7 @@ const schema = graph(
         </section>
 
         <!-- Detection -->
-        <section class="section">
+        <section class="section" id="detection">
             <div class="container">
                 <div class="section-head reveal">
                     <span class="section-index">02</span>
@@ -306,10 +311,13 @@ const schema = graph(
                     </ul>
                 </article>
 
-                <!-- The pipeline described above, as a model that runs. Same
-                     constants as the Specifications table; see the note under
-                     the lab for the one value this page does not publish. -->
-                <ImpactLab id="detector-lab" embedded />
+                <!-- The detection pipeline as a model. Folded away: it is a
+                     detail of this section, and the chain model above is the
+                     one that shows what the project does. -->
+                <details class="lab-fold reveal">
+                    <summary>Run the detection model</summary>
+                    <ImpactLab id="detector-lab" embedded />
+                </details>
             </div>
         </section>
 

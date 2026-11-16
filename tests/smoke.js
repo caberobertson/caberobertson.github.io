@@ -213,6 +213,7 @@ for (const page of pages) {
     // degrades to an explanation when scripting is off. The mathematics is
     // covered separately by tests/sim.test.js.
     const LAB_HOOKS = {
+        call: ['[data-chain]', '[data-stage="0"]', '[data-stage="6"]', '[data-screen]', '[data-out="state"]', '[data-out="sub"]', '[data-out="count"]', '[data-out="peak"]', '[data-cancel]', '[data-skip]', '[data-hangup]', '[data-rearm]', '[data-log]', '[data-report]', '[data-report-rows]', '[data-record]', '[data-key="bloodType"]', '[data-field="fix"]', '[data-field="peak"]', '[data-fire="crash"]', '[data-fire="pothole"]', '[data-q]', '[data-ask-form]', '[data-question]', '[data-ask]', '[data-ask-hint]'],
         impact: ['[data-scope]', '[data-out="d"]', '[data-out="hold"]', '[data-out="state"]', '[data-out="over"]', '[data-out="alt"]', '[data-alt-box]', '[data-status]', '[data-hint]', '[data-cancel]', '[data-run]', '[data-recal]', '[data-fire="impact"]', '[data-strength]', '[data-dir]', '[data-tilt]', '[data-threshold]', '[data-confirm]', '[data-median]', '[data-saturation]', '[data-compare]'],
         sdg: ['[data-view]', '[data-thumb]', '[data-record]', '[data-new]', '[data-labels]', '[data-out="seed"]', '[data-out="count"]', '[data-out="light"]', '[data-flag="layout"]', '[data-flag="size"]', '[data-flag="light"]', '[data-flag="surface"]'],
         decoder: ['[data-chart]', '[data-clear]', '[data-mc-run]', '[data-mc-reset]', '[data-out="frames"]', '[data-out="spot"]', '[data-out="verdict"]'],
@@ -225,7 +226,9 @@ for (const page of pages) {
         for (const sel of LAB_HOOKS[kind]) {
             if (!lab.querySelector(sel)) errs.push(`${kind} lab is missing ${sel}`);
         }
-        if (!lab.querySelector('canvas')) errs.push(`${kind} lab has no canvas`);
+        // The call lab is a transcript and a form, so it has nothing to draw.
+        if (kind !== 'call' && !lab.querySelector('canvas')) errs.push(`${kind} lab has no canvas`);
+        if (kind === 'call' && !lab.querySelector('[role="log"][aria-live]')) errs.push('call lab transcript is not a live log');
         if (!lab.querySelector('noscript')) errs.push(`${kind} lab has no no-JS explanation`);
         if (lab.querySelectorAll('.lab-steps li').length < 3) errs.push(`${kind} lab has no guided exercise`);
         for (const c of lab.querySelectorAll('canvas[role="img"]')) {
@@ -250,6 +253,16 @@ for (const page of pages) {
         if (!shipped) errs.push('page renders a lab but ships no controller for it');
     }
     if (page === 'lab.html' && labEls.length !== 4) errs.push(`expected 4 labs on the Lab page, found ${labEls.length}`);
+    // CrashGuard's entry in the Lab is the whole chain. The detector is a
+    // detail of the write-up and stays folded there, off the Lab and off home.
+    if (page === 'lab.html' || page === 'index.html') {
+        if (doc.querySelector('[data-lab="impact"]')) errs.push('the impact detector belongs on the CrashGuard page only');
+    }
+    if (page === 'lab.html' && labEls[0]?.getAttribute('data-lab') !== 'call') errs.push('Lab 01 should be the crash-to-call model');
+    if (page === 'crashguard.html') {
+        if (!doc.querySelector('[data-lab="call"]')) errs.push('CrashGuard page is missing the crash-to-call model');
+        if (!doc.querySelector('details.lab-fold [data-lab="impact"]')) errs.push('the detector should be folded inside the detection section');
+    }
 
     if (page.startsWith('projects/')) {
         if (!doc.querySelector('.doc-back')) errs.push('project page missing back link');
@@ -262,15 +275,8 @@ for (const page of pages) {
         const metrics = doc.querySelectorAll('.scan-metric').length;
         if (metrics < 3) errs.push(`expected 3-4 hero metrics, found ${metrics}`);
         if (!/ITAR/.test(doc.querySelector('.scan-facts')?.textContent || '')) errs.push('eligibility line missing from hero');
-        // Live scope: every hook initHeroScope reads must be in the markup,
-        // and the panel must be hidden when scripting is unavailable.
-        const scope = doc.querySelector('[data-hero-scope]');
-        if (!scope) errs.push('hero live scope missing');
-        else {
-            for (const sel of ['[data-scope]', '[data-out="d"]', '[data-out="state"]', '[data-fire="pothole"]', '[data-fire="glitch"]', '[data-fire="impact"]']) {
-                if (!scope.querySelector(sel)) errs.push(`hero scope is missing ${sel}`);
-            }
-        }
+        // The hero is the scan strip and nothing else: no widget beside the name.
+        if (doc.querySelector('.hero-scan canvas, .hero-scan button')) errs.push('the hero should hold no interactive widget');
         if (doc.querySelectorAll('.teaser-card').length !== 4) errs.push('home page should link to all four labs');
         // The front page is a scan, not a biography. The summary comes
         // straight after the hero, stays short, and About is one paragraph;

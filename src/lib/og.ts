@@ -46,7 +46,7 @@ export const OG_CARDS: OgCard[] = [
         kicker: 'Lab',
         title: 'Four projects you can run',
         subtitle: 'Interactive models built from my own work, each with a guided exercise and unit tests behind it.',
-        facts: ['Impact detector', 'Synthetic data', 'Syndrome decoder', 'EEG filters'],
+        facts: ['Crash to call', 'Synthetic data', 'Syndrome decoder', 'EEG filters'],
     },
     {
         slug: 'notes',

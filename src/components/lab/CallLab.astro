@@ -1,0 +1,306 @@
+---
+// Lab 01: CrashGuard from impact to an answered call. This is what the
+// project is for; the detector is only the first link.
+import LabFrame from './LabFrame.astro';
+import { STAGES, FIELDS, SAMPLE } from '../../lib/sim/dispatch.js';
+
+interface Props {
+    id?: string;
+    /** Rendered on its own project page rather than in the Lab. */
+    embedded?: boolean;
+}
+const { id = 'crash-to-call', embedded = false } = Astro.props;
+
+const sample = SAMPLE as Record<string, string | number>;
+const groups = [...new Set(FIELDS.map((f) => f.group))];
+
+// Some of these the record can answer and some it cannot. The second kind
+// matter more: they are where a system that guesses would do harm.
+const questions = [
+    'Where is the vehicle?',
+    'How hard was the impact?',
+    'What is the blood type?',
+    'Any medical conditions?',
+    'Who is the emergency contact?',
+    'Where is the closest hospital?',
+    'Is the occupant conscious?',
+    'How many people are in the car?',
+    'Send me the report',
+];
+---
+
+<LabFrame
+    id={id}
+    embedded={embedded}
+    kind="call"
+    kicker="Lab 01"
+    title="Crash to call"
+    lede="What CrashGuard is for: a crash becomes an emergency call with nobody touching a phone. The impact is detected, the occupant gets ten seconds to cancel, and if they do not, the system calls a dispatcher, speaks a briefing, and answers follow-up questions using only verified data."
+    from={{ label: 'MYOSA CrashGuard', href: '/crashguard.html' }}
+    model="dispatch.js"
+>
+    <ol class="chain" data-chain>
+        {STAGES.map((name, i) => (
+            <li data-stage={i}>
+                <span class="chain-n" aria-hidden="true">{i + 1}</span>
+                <span class="chain-name">{name}</span>
+            </li>
+        ))}
+    </ol>
+
+    <div class="call-screen" data-screen data-state="ARMED">
+        <div class="call-read">
+            <p class="call-state" data-out="state" role="status">ARMED</p>
+            <p class="call-sub" data-out="sub">Monitoring. Press Crash to start the chain.</p>
+        </div>
+        <p class="call-count" data-out="count" aria-hidden="true"></p>
+        <div class="call-actions">
+            <button type="button" class="lab-btn lab-btn--alert" data-cancel hidden>CANCEL - I'M OK</button>
+            <button type="button" class="lab-btn" data-skip hidden>Skip the wait</button>
+            <button type="button" class="lab-btn" data-hangup hidden>End call</button>
+            <button type="button" class="lab-btn" data-rearm hidden>Re-arm</button>
+        </div>
+    </div>
+
+    <div class="call-log" data-log role="log" aria-live="polite" aria-label="What happened, and what was said on the call" tabindex="0">
+        <p class="log-line log-empty" data-empty>The transcript appears here.</p>
+    </div>
+
+    <div class="call-report" data-report hidden>
+        <h3>Written incident report</h3>
+        <p class="lab-figcap">Published to the phone dashboard first, then sent by text message or email.</p>
+        <dl data-report-rows></dl>
+    </div>
+
+    <h3 class="call-record-title">What the agent is given</h3>
+    <p class="lab-figcap">
+        The agent can read this record and nothing else. Edit any field and ask again. The occupant,
+        address and hospital are fictional.
+    </p>
+    <div class="call-record" data-record>
+        {groups.map((group) => (
+            <fieldset class="call-group">
+                <legend>{group}</legend>
+                {FIELDS.filter((f) => f.group === group).map((f) => (
+                    <div class="call-field" data-field={f.key}>
+                        <label for={`${id}-${f.key}`}>{f.label}</label>
+                        <input id={`${id}-${f.key}`} type="text" value={String(sample[f.key])} data-key={f.key} autocomplete="off" spellcheck="false" />
+                    </div>
+                ))}
+            </fieldset>
+        ))}
+        <fieldset class="call-group">
+            <legend>Live crash data</legend>
+            <div class="call-field" data-field="fix">
+                <span class="call-label">GPS fix</span>
+                <output>{Number(sample.lat).toFixed(4)}, {Number(sample.lon).toFixed(4)}</output>
+            </div>
+            <div class="call-field" data-field="peak">
+                <span class="call-label">Peak impact</span>
+                <output data-out="peak">none yet</output>
+            </div>
+        </fieldset>
+    </div>
+
+    <Fragment slot="controls">
+        <fieldset class="lab-group">
+            <legend>Trigger</legend>
+            <div class="lab-row">
+                <button type="button" class="lab-btn lab-btn--primary" data-fire="crash">Crash</button>
+                <button type="button" class="lab-btn" data-fire="pothole">Pothole</button>
+            </div>
+        </fieldset>
+
+        <fieldset class="lab-group">
+            <legend>Ask as the dispatcher</legend>
+            <div class="lab-row call-questions">
+                {questions.map((q) => (
+                    <button type="button" class="lab-btn" data-q={q} disabled>{q}</button>
+                ))}
+            </div>
+            <form class="call-ask" data-ask-form>
+                <label for={`${id}-question`}>Or type your own question</label>
+                <div class="call-ask-row">
+                    <input id={`${id}-question`} type="text" data-question autocomplete="off" disabled />
+                    <button type="submit" class="lab-btn" data-ask disabled>Ask</button>
+                </div>
+            </form>
+            <p class="lab-figcap" data-ask-hint>Questions unlock once the dispatcher has answered and the briefing is over.</p>
+        </fieldset>
+    </Fragment>
+
+    <Fragment slot="steps">
+        <li>Press <strong>Crash</strong> and leave it alone. Ten seconds later the call goes out with nobody touching a phone. <strong>Skip the wait</strong> jumps to the end of the countdown.</li>
+        <li>Press <strong>Re-arm</strong>, then <strong>Crash</strong> again, and this time press <strong>CANCEL - I'M OK</strong>. No call is placed. A false alarm costs one tap.</li>
+        <li>On a live call, ask <strong>Is the occupant conscious?</strong> Nothing on the board measures that, so the agent says it does not have that information.</li>
+        <li>Clear <strong>Blood type</strong> in the record and ask for it. The answer becomes the same refusal, because the record is all the agent can read. Type a new value and ask again.</li>
+        <li>Press <strong>Pothole</strong>. It reads under 2 g, well below the 5.0 g threshold, and nothing happens.</li>
+    </Fragment>
+
+    <Fragment slot="note">
+        In the real system the call is placed through Twilio and the questions are answered by a Claude agent over a
+        phone line. Neither runs on this page: no call is made and there is no AI here. Answers come from a keyword
+        lookup over the record, written to follow the rule the agent is given, and the wording is illustrative. The
+        peak figure is measured by the detector model described under <a href="/crashguard.html#detection">impact detection</a>.
+    </Fragment>
+</LabFrame>
+
+<style is:global>
+    /* ---- The seven stages ---- */
+    .chain {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 4px;
+    }
+
+    .chain li {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 7px 6px 6px;
+        border-top: 3px solid var(--line);
+        color: var(--ink-dim);
+        min-width: 0;
+        transition: border-color 0.2s var(--ease-out), color 0.2s var(--ease-out);
+    }
+
+    .chain-n { font-family: var(--font-mono); font-size: max(10.5px, 0.66rem); }
+    .chain-name { font-family: var(--font-mono); font-size: max(10.5px, 0.7rem); letter-spacing: 0.3px; overflow-wrap: anywhere; }
+    .chain li[data-on] { border-top-color: var(--accent); color: var(--ink); }
+    .chain li[data-on] .chain-n { color: var(--accent); }
+    .chain li[aria-current='step'] { background: var(--hover-surface); }
+
+    /* ---- The phone dashboard, reduced to its one decision ---- */
+    .call-screen {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: 'read count' 'actions actions';
+        align-items: center;
+        gap: var(--space-2) var(--space-4);
+        margin-top: var(--space-3);
+        padding: var(--space-4);
+        background: var(--bg);
+        border: 1px solid var(--line);
+        min-height: 7.5rem;
+    }
+
+    .call-read { grid-area: read; min-width: 0; }
+    .call-state { margin: 0; font-family: var(--font-mono); font-size: 1.1rem; font-weight: 600; letter-spacing: 1px; color: var(--accent); }
+    .call-sub { margin: 4px 0 0; font-size: 0.86rem; color: var(--ink-dim); }
+
+    .call-count {
+        grid-area: count;
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 3rem;
+        font-weight: 600;
+        line-height: 1;
+        color: var(--danger);
+        font-variant-numeric: tabular-nums;
+        min-width: 1.2em;
+        text-align: right;
+    }
+
+    .call-actions { grid-area: actions; display: flex; flex-wrap: wrap; gap: 6px; min-height: 2.2rem; }
+    .call-screen[data-state='WARNING'] { border-color: var(--danger); }
+    .call-screen[data-state='WARNING'] .call-state { color: var(--danger); }
+    .call-screen[data-state='ENDED'] .call-state { color: var(--ink-dim); }
+
+    /* ---- Transcript ---- */
+    .call-log {
+        margin-top: var(--space-3);
+        height: 15rem;
+        overflow-y: auto;
+        padding: var(--space-3);
+        background: var(--bg);
+        border: 1px solid var(--line);
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.6;
+    }
+
+    .log-line { margin: 0 0 6px; display: grid; grid-template-columns: 5.6rem minmax(0, 1fr); gap: 0 var(--space-3); color: var(--ink-dim); }
+    .log-who { font-size: max(10.5px, 0.66rem); letter-spacing: 0.6px; text-transform: uppercase; padding-top: 2px; }
+    .log-line[data-who='agent'] { color: var(--ink); }
+    .log-line[data-who='agent'] .log-who { color: var(--accent); }
+    .log-line[data-who='dispatcher'] { color: var(--ink); }
+    .log-line[data-who='dispatcher'] .log-who { color: var(--accent-2); }
+    .log-line[data-who='occupant'] .log-who,
+    .log-line[data-kind='refusal'] .log-who { color: var(--danger); }
+    .log-line[data-kind='detected'] { color: var(--danger); }
+    .log-empty { display: block; }
+
+    /* ---- Report ---- */
+    .call-report { margin-top: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--accent); background: var(--bg); }
+    .call-report h3, .call-record-title { font-size: 1rem; margin: 0; }
+    .call-report dl { margin: var(--space-3) 0 0; display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 3px var(--space-3); font-family: var(--font-mono); font-size: 0.76rem; }
+    .call-report dt { color: var(--ink-dim); }
+    .call-report dd { margin: 0; color: var(--ink); }
+
+    /* ---- The record ---- */
+    .call-record-title { margin-top: var(--space-5); }
+    .call-record { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); margin-top: var(--space-3); }
+    .call-group { border: 1px solid var(--line); padding: var(--space-3); margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+    .call-group:first-child { grid-row: span 2; }
+
+    .call-group legend {
+        font-family: var(--font-mono);
+        font-size: max(10.5px, 0.66rem);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--accent);
+        padding: 0 6px;
+    }
+
+    .call-field { display: grid; gap: 2px; padding: 3px 5px; margin: 0 -5px; transition: background-color 0.3s var(--ease-out); }
+    .call-field label, .call-label { font-size: 0.76rem; color: var(--ink-dim); }
+
+    .call-field input,
+    .call-ask input {
+        font: inherit;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        padding: 5px 7px;
+        color: var(--ink);
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 0;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .call-field input:focus-visible, .call-ask input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .call-field output { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink); padding: 5px 0; }
+
+    /* Where an answer came from, or the gap it ran into. */
+    .call-field.is-used { background: var(--hover-surface); box-shadow: inset 3px 0 0 var(--accent); }
+    .call-field.is-missing { background: var(--hover-surface); box-shadow: inset 3px 0 0 var(--danger); }
+
+    /* ---- Asking ---- */
+    .call-questions .lab-btn { text-align: left; }
+    .call-ask { display: grid; gap: 4px; }
+    .call-ask label { font-size: 0.8rem; color: var(--ink-dim); }
+    .call-ask-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+    .call-ask input:disabled { opacity: 0.5; }
+
+    @media (max-width: 620px) {
+        .chain { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .call-record { grid-template-columns: minmax(0, 1fr); }
+        .call-group:first-child { grid-row: auto; }
+        .log-line { grid-template-columns: minmax(0, 1fr); }
+        .call-report dl { grid-template-columns: minmax(0, 1fr); }
+        .call-report dd { margin-bottom: 6px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .chain li, .call-field { transition: none; }
+    }
+</style>
+
+<script>
+    import { initCallLab } from '../../scripts/lab/call-lab.js';
+    document.querySelectorAll<HTMLElement>('[data-lab="call"]').forEach(initCallLab);
+</script>

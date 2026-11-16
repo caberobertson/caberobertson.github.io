@@ -6,6 +6,7 @@ import SdgLab from '../../components/lab/SdgLab.astro';
 import DecoderLab from '../../components/lab/DecoderLab.astro';
 import EegLab from '../../components/lab/EegLab.astro';
 import ImpactLab from '../../components/lab/ImpactLab.astro';
+import CallLab from '../../components/lab/CallLab.astro';
 import { PERSON_REF, breadcrumbs, graph } from '../../lib/schema';
 
 export async function getStaticPaths() {
@@ -113,6 +114,7 @@ const schema = graph(
                 {d.lab === 'decoder' && <DecoderLab id="model" embedded />}
                 {d.lab === 'eeg' && <EegLab id="model" embedded />}
                 {d.lab === 'impact' && <ImpactLab id="model" embedded />}
+                {d.lab === 'call' && <CallLab id="model" embedded />}
 
                 <article class="panel project-body reveal">
                     <Content />

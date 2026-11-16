@@ -1,7 +1,7 @@
 ---
 import fs from 'node:fs';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ImpactLab from '../components/lab/ImpactLab.astro';
+import CallLab from '../components/lab/CallLab.astro';
 import SdgLab from '../components/lab/SdgLab.astro';
 import DecoderLab from '../components/lab/DecoderLab.astro';
 import EegLab from '../components/lab/EegLab.astro';
@@ -12,7 +12,7 @@ import { PERSON_REF, breadcrumbs, graph } from '../lib/schema';
 const testCount = (fs.readFileSync('tests/sim.test.js', 'utf8').match(/^test\(/gm) ?? []).length;
 
 const labs = [
-    { href: '#impact', n: '01', title: 'Impact detector', from: 'CrashGuard firmware' },
+    { href: '#crash-to-call', n: '01', title: 'Crash to call', from: 'MYOSA CrashGuard' },
     { href: '#synthetic-data', n: '02', title: 'Synthetic data generator', from: 'Isaac Sim work at ETV' },
     { href: '#decoding', n: '03', title: 'Syndrome decoder', from: 'Mitchell Coding Group' },
     { href: '#eeg', n: '04', title: 'EEG filter bench', from: 'NeuroPawn capstone' },
@@ -38,9 +38,9 @@ const schema = graph(
 
 <BaseLayout
     title="Lab | Cabe Robertson"
-    description="Four interactive models built from Cabe Robertson's engineering projects: a crash detection pipeline, a synthetic data generator, a syndrome decoder, and an EEG filter bench. Each runs in the browser with a guided exercise."
+    description="Four interactive models built from Cabe Robertson's engineering projects: a crash-to-emergency-call chain, a synthetic data generator, a syndrome decoder, and an EEG filter bench. Each runs in the browser with a guided exercise."
     ogTitle="Lab | Cabe Robertson"
-    ogDescription="Four engineering projects as models you can run: crash detection, synthetic data generation, error-correcting codes, and EEG filtering."
+    ogDescription="Four engineering projects as models you can run: a crash-to-call chain, synthetic data generation, error-correcting codes, and EEG filtering."
     ogCard="lab"
 >
     <script is:inline type="application/ld+json" slot="head" set:html={schema} />
@@ -69,7 +69,7 @@ const schema = graph(
                     ))}
                 </ul>
 
-                <ImpactLab />
+                <CallLab />
                 <SdgLab />
                 <DecoderLab />
                 <EegLab />
@@ -81,9 +81,9 @@ const schema = graph(
                         Each lab is a small pure model with no dependencies, in
                         <a href="https://github.com/caberobertson/caberobertson.github.io/tree/main/src/lib/sim" target="_blank" rel="noopener">src/lib/sim</a>,
                         and a thin canvas layer on top. The models are covered by {testCount} unit tests that run on
-                        every push: the rotation floor is 2 sin(θ/2), a 50 g threshold is unreachable through a
-                        ±16 g converter, every single-bit error is corrected and every double-bit error is not, the
-                        notch removes 60 Hz and leaves 10 Hz alone.
+                        every push: a cancel inside the ten-second window means no call is ever placed, the dispatcher
+                        model refuses any question its record cannot answer, every single-bit error is corrected and
+                        every double-bit error is not, the notch removes 60 Hz and leaves 10 Hz alone.
                     </p>
                     <p>
                         The canvases stop drawing when they scroll out of view, follow the light and dark themes, and
